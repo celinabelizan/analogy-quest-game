@@ -186,7 +186,9 @@ function Practice() {
       },
       (prev, d) => (already ? prev : grant(prev, d, 1)),
     );
+    if (drill.monkeyIndex + 1 >= q.choices.length) flash("All choices tested ✓");
   };
+
 
   /* ---------------- STATE 4: repair the bridge ---------------- */
   const reopenBridge = () => {
