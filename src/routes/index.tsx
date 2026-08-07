@@ -100,8 +100,8 @@ function Landing() {
       <DoodleField />
       <div className="relative z-10 mx-auto max-w-5xl">
         <header className="relative mb-12 text-center">
-          <Flower className="left-2 -top-4 hidden sm:block" size={70} rotate={-18} opacity={0.3} variant={2} />
-          <Flower className="right-2 -top-2 hidden sm:block" size={64} rotate={22} opacity={0.28} variant={3} />
+          <Flower className="left-0 -top-6 hidden sm:block" size={86} rotate={-8} opacity={0.3} variant={2} />
+          <Flower className="right-0 -top-8 hidden sm:block" size={80} rotate={184} opacity={0.28} variant={3} />
           <h1 className="stem-type text-6xl text-primary sm:text-7xl">SSAT Quest</h1>
           <p className="mt-3 text-xl text-muted-foreground">Analogies. Bridges. Treasure.</p>
         </header>
