@@ -346,7 +346,22 @@ function Practice() {
           <Flower className="-right-4 bottom-0" size={80} rotate={20} opacity={0.12} variant={2} />
           {drill.phase !== "type" && <FamilyBadge family={q.family} />}
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
+          {drill.phase !== "type" && drill.familyGuess && (
+            <p
+              className={`mt-4 text-lg ${drill.familyGuess === q.family ? "text-success" : "text-muted-foreground"}`}
+            >
+              {drill.familyGuess === q.family ? (
+                <>✓ You named the category right — {FAMILIES[q.family].label}.</>
+              ) : (
+                <>
+                  You said {FAMILIES[drill.familyGuess as Family].label} — it's actually{" "}
+                  {FAMILIES[q.family].label}. Keep going; a strong sentence can still get you there.
+                </>
+              )}
+            </p>
+          )}
         </section>
+
 
         {/* Locked sentence — kept in view while it's the thing being tested */}
         {drill.locked && drill.phase !== "feedback" && (

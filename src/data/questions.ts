@@ -1,6 +1,7 @@
 export type Family =
   | "synonym-antonym"
   | "kind-category"
+  | "young-adult"
   | "part-whole"
   | "tool-function"
   | "characteristic"
@@ -10,6 +11,7 @@ export type Family =
 export const FAMILIES: Record<Family, { label: string; color: string }> = {
   "synonym-antonym": { label: "Synonym / Antonym", color: "#EF4444" },
   "kind-category": { label: "Kind / Category", color: "#F97316" },
+  "young-adult": { label: "Young / Adult", color: "#EC4899" },
   "part-whole": { label: "Part / Whole", color: "#FACC15" },
   "tool-function": { label: "Tool / Function", color: "#22C55E" },
   characteristic: { label: "Characteristic", color: "#3B82F6" },
@@ -114,7 +116,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "G2",
-    family: "kind-category",
+    family: "young-adult",
     stem: "PUPPY : DOG",
     bridge: "A puppy is a young dog.",
     correct: "B",
@@ -128,7 +130,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "G3",
-    family: "kind-category",
+    family: "people-places",
     stem: "DENTIST : TEETH",
     bridge: "A dentist is a specialist who professionally cares for teeth.",
     correct: "A",
@@ -184,7 +186,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "C3",
-    family: "kind-category",
+    family: "young-adult",
     stem: "CALF : COW",
     bridge: "A calf is a young cow.",
     correct: "A",
