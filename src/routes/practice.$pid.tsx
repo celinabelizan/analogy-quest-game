@@ -393,9 +393,17 @@ function Practice() {
                 : "Now write your bridge sentence — how do these two words connect?"}
             </h2>
             {(drill.rewrites ?? 0) > 0 && (
-              <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
-                {looseHint(q.stem, FAMILIES[q.family].label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
-              </p>
+              <>
+                <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
+                  {looseHint(q.stem, FAMILIES[q.family].label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
+                </p>
+                {discarded.length > 0 && (
+                  <p className="text-base text-muted-foreground">
+                    Your {discarded.length} crossouts stay crossed out — the new sentence only has to sort the{" "}
+                    {standing.length} left.
+                  </p>
+                )}
+              </>
             )}
             <p className="text-base text-muted-foreground">
               Use both stem words. Tap the mic on the keyboard to dictate.
