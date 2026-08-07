@@ -173,22 +173,23 @@ function Practice() {
   };
 
   /* ---------------- STATE 3: discard the losers ---------------- */
-  const toggleDiscard = (label: string) => {
+  const setDiscard = (label: string, out: boolean) => {
     const already = drill.awardedJudged.includes(label);
     const isDiscarded = drill.judgments[label] === "no";
+    if (out === isDiscarded) return;
     setDrill(
       (d) => {
         const judgments = { ...d.judgments };
-        if (isDiscarded) delete judgments[label];
-        else judgments[label] = "no" as Judgment;
+        if (out) judgments[label] = "no" as Judgment;
+        else delete judgments[label];
         return {
           ...d,
           judgments,
           monkeyIndex: Object.keys(judgments).length,
-          awardedJudged: already || isDiscarded ? d.awardedJudged : [...d.awardedJudged, label],
+          awardedJudged: already || !out ? d.awardedJudged : [...d.awardedJudged, label],
         };
       },
-      (prev, d) => (already || isDiscarded ? prev : grant(prev, d, 1)),
+      (prev, d) => (already || !out ? prev : grant(prev, d, 1)),
     );
   };
 
@@ -202,7 +203,12 @@ function Practice() {
       judgments: {},
       monkeyIndex: 0,
       verdict: null,
+      rewrites: (d.rewrites ?? 0) + 1,
     }));
+  };
+
+  const peekModel = () => {
+    setDrill((d) => ({ ...d, peeked: true, stuckOnWord: true }));
   };
 
   /* ---------------- STATE 5: final answer ---------------- */
