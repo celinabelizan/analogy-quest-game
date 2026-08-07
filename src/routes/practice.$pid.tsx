@@ -87,8 +87,10 @@ function Practice() {
   const [draft, setDraft] = useState("");
   const [showBreak, setShowBreak] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
   const hydrated = useRef(false);
+
 
   const drill = p.current;
   const q: Question | undefined = useMemo(
