@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
-import { QUESTIONS, type Question } from "@/data/questions";
+import { FAMILIES, QUESTIONS, type Family, type Question } from "@/data/questions";
 import { monkeySwap, wordCount } from "@/lib/analogy";
 
 import {
@@ -26,16 +26,18 @@ export const Route = createFileRoute("/practice/$pid")({
       { title: "Analogy Drill — SSAT Quest" },
       {
         name: "description",
-        content: "Write a bridge sentence, test every choice with the monkey test, then commit to an answer.",
+        content: "Name the bridge type, write your sentence, then discard answer choices one by one.",
       },
       { property: "og:title", content: "Analogy Drill — SSAT Quest" },
-      { property: "og:description", content: "Bridge sentence, monkey test, survivor verdict, final answer." },
+      { property: "og:description", content: "Bridge type, your sentence, discard the losers, commit to one answer." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Practice,
 });
+
+const FAMILY_KEYS = Object.keys(FAMILIES) as Family[];
 
 function pickQuestion(p: ProfileState): { qid: string; xpMode: Drill["xpMode"] } {
   const cycle = p.recent;
@@ -52,7 +54,9 @@ function newDrill(p: ProfileState): Drill {
   const { qid, xpMode } = pickQuestion(p);
   return {
     qid,
-    phase: "stem",
+    phase: "type",
+    familyGuess: null,
+    awardedType: false,
     bridge: "",
     locked: false,
     monkeyIndex: 0,
@@ -91,7 +95,6 @@ function Practice() {
   const sessionStart = useRef(Date.now());
   const hydrated = useRef(false);
 
-
   const drill = p.current;
   const q: Question | undefined = useMemo(
     () => QUESTIONS.find((x) => x.id === drill?.qid),
@@ -122,7 +125,6 @@ function Practice() {
     setTimeout(() => setToast(null), 1800);
   };
 
-
   if (!drill || !q) {
     return (
       <main className="grid min-h-screen place-items-center text-2xl text-muted-foreground">Loading…</main>
@@ -139,7 +141,18 @@ function Practice() {
     });
   };
 
-  /* ---------------- STATE 2: lock the bridge ---------------- */
+  /* ---------------- STATE 1: name the bridge type ---------------- */
+  const chooseFamily = (f: Family) => {
+    const first = !drill.awardedType;
+    const right = f === q.family;
+    setDrill(
+      (d) => ({ ...d, familyGuess: f, awardedType: true, phase: "stem" }),
+      (prev, d) => (first && right ? grant(prev, d, 2) : prev),
+    );
+    flash(right ? "+2 XP — right kind of bridge" : `It's ${FAMILIES[q.family].label}`);
+  };
+
+  /* ---------------- STATE 2: lock the sentence ---------------- */
   const lockBridge = () => {
     if (wordCount(draft) < 5) return;
     const first = !drill.awardedBridge;
@@ -152,45 +165,33 @@ function Practice() {
           return addXp(prev, 1);
         }
         if (d.xpMode === "none") return prev;
-        flash("+5 XP — bridge locked");
+        flash("+5 XP — sentence locked");
         return addXp(prev, 5);
       },
     );
   };
 
-  /* ---------------- STATE 3: the monkey test ---------------- */
-  const judge = (label: string, j: Judgment) => {
+  /* ---------------- STATE 3: discard the losers ---------------- */
+  const toggleDiscard = (label: string) => {
     const already = drill.awardedJudged.includes(label);
+    const isDiscarded = drill.judgments[label] === "no";
     setDrill(
       (d) => {
-        const judgments = { ...d.judgments, [label]: j };
-        const nextIndex = d.monkeyIndex + 1;
-        const done = nextIndex >= q.choices.length;
-        const works = Object.values(judgments).filter((v) => v === "works").length;
-        const survivors = Object.values(judgments).filter((v) => v === "works" || v === "kind").length;
-        const verdict: Drill["verdict"] = !done
-          ? null
-          : works === 0
-            ? "rewrite"
-            : survivors >= 2
-              ? "loose"
-              : "clean";
+        const judgments = { ...d.judgments };
+        if (isDiscarded) delete judgments[label];
+        else judgments[label] = "no" as Judgment;
         return {
           ...d,
           judgments,
-          monkeyIndex: nextIndex,
-          awardedJudged: already ? d.awardedJudged : [...d.awardedJudged, label],
-          phase: done ? "verdict" : "monkey",
-          verdict,
+          monkeyIndex: Object.keys(judgments).length,
+          awardedJudged: already || isDiscarded ? d.awardedJudged : [...d.awardedJudged, label],
         };
       },
-      (prev, d) => (already ? prev : grant(prev, d, 1)),
+      (prev, d) => (already || isDiscarded ? prev : grant(prev, d, 1)),
     );
-    if (drill.monkeyIndex + 1 >= q.choices.length) flash("All choices tested ✓");
   };
 
-
-  /* ---------------- STATE 4: repair the bridge ---------------- */
+  /* ---------------- STATE 4: repair the sentence ---------------- */
   const reopenBridge = () => {
     setDraft(drill.bridge);
     setDrill((d) => ({
@@ -266,14 +267,15 @@ function Practice() {
     if (goHome) navigate({ to: "/dashboard/$pid", params: { pid: id } });
   };
 
-  const currentChoice = q.choices[drill.monkeyIndex];
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
+  const discarded = q.choices.filter((c) => drill.judgments[c.label] === "no");
+  const standing = q.choices.filter((c) => drill.judgments[c.label] !== "no");
   const stepIndex =
-    drill.phase === "stem"
+    drill.phase === "type"
       ? 0
-      : drill.phase === "monkey"
+      : drill.phase === "stem"
         ? 1
-        : drill.phase === "verdict"
+        : drill.phase === "monkey"
           ? 2
           : drill.phase === "final"
             ? 3
@@ -327,13 +329,12 @@ function Practice() {
 
         {/* STEM */}
         <section className="quest-card relative overflow-hidden p-7 text-center">
-          
           <Flower className="-right-4 bottom-0" size={80} rotate={20} opacity={0.12} variant={2} />
-          <FamilyBadge family={q.family} />
+          {drill.phase !== "type" && <FamilyBadge family={q.family} />}
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
         </section>
 
-        {/* Locked bridge — kept in view while it's the thing being tested */}
+        {/* Locked sentence — kept in view while it's the thing being tested */}
         {drill.locked && drill.phase !== "feedback" && (
           <motion.div
             initial={{ scale: 0.96, opacity: 0 }}
@@ -348,19 +349,40 @@ function Practice() {
           </motion.div>
         )}
 
+        {/* STATE 1 — what kind of bridge is this? */}
+        {drill.phase === "type" && (
+          <section className="quest-card space-y-4 p-7">
+            <h2 className="text-2xl font-extrabold">First: what kind of bridge is this?</h2>
+            <p className="text-base text-muted-foreground">
+              Name the relationship before you write anything.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {FAMILY_KEYS.map((f) => (
+                <BouncyTap
+                  key={f}
+                  onClick={() => chooseFamily(f)}
+                  className="w-full border border-border bg-card px-5 py-4 text-left text-xl hover:border-primary"
+                >
+                  {FAMILIES[f].label}
+                </BouncyTap>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* STATE 1 + 2 */}
+        {/* STATE 2 — write the sentence */}
         {drill.phase === "stem" && (
           <section className="quest-card space-y-4 p-7">
             <h2 className="text-2xl font-extrabold">
-              Write your bridge sentence — how do these two words connect?
+              Now write your bridge sentence — how do these two words connect?
             </h2>
-            <p className="text-base text-muted-foreground">Tap the mic on the keyboard to dictate.</p>
+            <p className="text-base text-muted-foreground">
+              Use both stem words. Tap the mic on the keyboard to dictate.
+            </p>
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={3}
-              placeholder="A glove is worn on a hand…"
               className="w-full rounded-3xl border border-border bg-secondary/50 p-5 text-[26px] leading-snug outline-none focus:border-primary"
             />
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -372,106 +394,91 @@ function Practice() {
                 disabled={wordCount(draft) < 5}
                 className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
               >
-                🔒 Lock My Bridge
+                🔒 Lock My Sentence
               </BouncyTap>
             </div>
           </section>
         )}
 
-        {/* STATE 3 — monkey test, one choice at a time */}
-        {drill.phase === "monkey" && currentChoice && (
-          <AnimatePresence mode="wait">
-            <motion.section
-              key={currentChoice.label}
-              initial={{ x: 120, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -120, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="quest-card space-y-5 p-7"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                  Monkey test
-                </p>
-                <ChoiceChecks total={q.choices.length} done={drill.monkeyIndex} />
-              </div>
-              <p className="stem-type text-[36px]">
-                ({currentChoice.label}) {currentChoice.pair}
+        {/* STATE 3 — all five choices, discard one by one */}
+        {drill.phase === "monkey" && (
+          <section className="quest-card space-y-4 p-7">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                Discard the ones your sentence rejects
               </p>
-              <p className="rounded-3xl bg-secondary/60 p-5 text-[30px] leading-snug">
-                {monkeySwap(drill.bridge, q.stem, currentChoice.pair)}
-              </p>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <BouncyTap
-                  onClick={() => judge(currentChoice.label, "works")}
-                  className="border border-border bg-card py-5 text-2xl hover:border-primary"
-                >
-                  ✓ Works
-                </BouncyTap>
-                <BouncyTap
-                  onClick={() => judge(currentChoice.label, "kind")}
-                  className="border border-border bg-card py-5 text-2xl hover:border-primary"
-                >
-                  ~ Kind of
-                </BouncyTap>
-                <BouncyTap
-                  onClick={() => judge(currentChoice.label, "no")}
-                  className="border border-border bg-card py-5 text-2xl hover:border-primary"
-                >
-                  ✕ Nope
-                </BouncyTap>
-              </div>
+              <ChoiceChecks total={q.choices.length} done={discarded.length} />
+            </div>
 
-            </motion.section>
-          </AnimatePresence>
-        )}
+            <ul className="space-y-3">
+              {q.choices.map((c) => {
+                const out = drill.judgments[c.label] === "no";
+                return (
+                  <motion.li
+                    key={c.label}
+                    animate={{ opacity: out ? 0.45 : 1 }}
+                    className="rounded-3xl border border-border p-5"
+                  >
+                    <p className={`stem-type text-[30px] ${out ? "line-through" : ""}`}>
+                      ({c.label}) {c.pair}
+                    </p>
+                    <p className={`mt-2 text-[24px] leading-snug ${out ? "line-through opacity-70" : ""}`}>
+                      {monkeySwap(drill.bridge, q.stem, c.pair)}
+                    </p>
+                    <BouncyTap
+                      onClick={() => toggleDiscard(c.label)}
+                      className={`mt-3 border px-5 py-3 text-lg ${
+                        out ? "border-border text-muted-foreground" : "border-border hover:border-primary"
+                      }`}
+                    >
+                      {out ? "↩ Put it back" : "✕ Doesn't fit — discard"}
+                    </BouncyTap>
+                  </motion.li>
+                );
+              })}
+            </ul>
 
-        {/* STATE 4 — survivor verdict */}
-        {drill.phase === "verdict" && (
-          <motion.section
-            initial={{ scale: 0.94, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 380, damping: 18 }}
-            className="quest-card space-y-4 p-7 text-center"
-          >
-            {drill.verdict === "clean" && (
-              <>
-                <h2 className="script-type text-5xl text-success">One clean survivor!</h2>
-                <p className="text-lg text-muted-foreground">Your bridge held. Time to answer.</p>
+            {/* live guidance */}
+            {standing.length === 1 && (
+              <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--success)" }}>
+                <p className="script-type text-4xl text-success">One survivor!</p>
+                <p className="text-lg text-muted-foreground">Your sentence did its job.</p>
                 <BouncyTap
-                  onClick={() => setDrill((d) => ({ ...d, phase: "final" }))}
+                  onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "clean" }))}
                   className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
                 >
                   Choose my answer →
                 </BouncyTap>
-              </>
+              </div>
             )}
-            {drill.verdict === "rewrite" && (
-              <>
-                <h2 className="script-type text-5xl text-danger">REWRITE</h2>
-                <p className="text-lg">
-                  None of the choices fit your sentence. Return to the stem and repair your bridge.
+            {standing.length > 1 && (
+              <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5 text-center">
+                <p className="text-xl font-extrabold">
+                  {standing.length} still standing — your sentence is too loose.
                 </p>
-                <BouncyTap onClick={reopenBridge} className="bg-primary px-8 py-4 text-2xl text-primary-foreground">
-                  Repair my bridge
-                </BouncyTap>
-              </>
-            )}
-            {drill.verdict === "loose" && (
-              <>
-                <h2 className="script-type text-5xl text-warn">TOO LOOSE</h2>
-                <p className="text-lg">
-                  Your bridge let more than one answer through. Find the broad word and tighten it.
+                <p className="text-base text-muted-foreground">
+                  Add the detail that only the stem pair has: how, why, or how much. Then re-test.
                 </p>
-                <BouncyTap onClick={reopenBridge} className="bg-primary px-8 py-4 text-2xl text-primary-foreground">
-                  Tighten my bridge
+                <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
+                  Build a stronger sentence
                 </BouncyTap>
-              </>
+              </div>
             )}
-          </motion.section>
+            {standing.length === 0 && (
+              <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--warn)" }}>
+                <p className="text-xl font-extrabold text-warn">You discarded everything.</p>
+                <p className="text-base text-muted-foreground">
+                  Your sentence is too strict — loosen one word and test again.
+                </p>
+                <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
+                  Rewrite my sentence
+                </BouncyTap>
+              </div>
+            )}
+          </section>
         )}
 
-        {/* STATE 5 — final answer */}
+        {/* STATE 4 — final answer */}
         {drill.phase === "final" && (
           <section className="quest-card space-y-3 p-7">
             <h2 className="text-2xl font-extrabold">Your final answer</h2>
@@ -493,7 +500,7 @@ function Practice() {
           </section>
         )}
 
-        {/* STATE 6 — feedback */}
+        {/* STATE 5 — feedback */}
         {drill.phase === "feedback" && (
           <section className="quest-card space-y-5 p-7">
             <h2 className="script-type text-5xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
@@ -534,7 +541,7 @@ function Practice() {
                 onClick={acknowledge}
                 className="w-full bg-primary py-5 text-2xl text-primary-foreground"
               >
-                What my bridge needed: “{q.bridge}”
+                What my sentence needed: “{q.bridge}”
               </BouncyTap>
             )}
 
