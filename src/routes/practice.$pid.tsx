@@ -339,7 +339,7 @@ function Practice() {
             initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="flex items-start gap-3 rounded-3xl border border-success/30 bg-success/10 p-5"
+            className="flex items-start gap-3 rounded-3xl border border-border bg-secondary/50 p-5"
           >
             <span className="text-2xl" aria-hidden="true">
               ✓

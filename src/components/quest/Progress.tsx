@@ -50,7 +50,7 @@ export function ChoiceChecks({ total, done }: { total: number; done: number }) {
           transition={{ type: "spring", stiffness: 500, damping: 16 }}
           className={[
             "grid h-7 w-7 place-items-center rounded-full text-xs font-extrabold",
-            i < done ? "bg-success text-primary-foreground" : "bg-secondary text-muted-foreground",
+            i < done ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
           ].join(" ")}
         >
           {i < done ? "✓" : i + 1}
