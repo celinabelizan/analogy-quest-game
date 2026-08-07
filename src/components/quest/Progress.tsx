@@ -29,7 +29,7 @@ export function StepTrail({ active }: { active: number }) {
               ].join(" ")}
             >
               <span aria-hidden="true">{done ? "✓" : i + 1}</span>
-              <span className="hidden sm:inline">{label}</span>
+              <span>{label}</span>
             </motion.div>
           </li>
         );
