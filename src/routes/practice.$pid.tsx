@@ -282,7 +282,7 @@ function Practice() {
 
   return (
     <main className="relative min-h-screen px-5 py-6 sm:px-8">
-      <DoodleField />
+      <DoodleField seed={3} />
       <Confetti fire={burst} />
 
       <AnimatePresence>
@@ -327,8 +327,8 @@ function Practice() {
 
         {/* STEM */}
         <section className="quest-card relative overflow-hidden p-7 text-center">
-          <Flower className="-left-4 -top-3" size={92} rotate={-16} opacity={0.2} variant={0} />
-          <Flower className="-right-4 bottom-0" size={80} rotate={20} opacity={0.16} variant={2} />
+          
+          <Flower className="-right-4 bottom-0" size={80} rotate={20} opacity={0.12} variant={2} />
           <FamilyBadge family={q.family} />
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
         </section>
@@ -436,7 +436,7 @@ function Practice() {
           >
             {drill.verdict === "clean" && (
               <>
-                <h2 className="stem-type text-4xl text-success">One clean survivor!</h2>
+                <h2 className="script-type text-5xl text-success">One clean survivor!</h2>
                 <p className="text-lg text-muted-foreground">Your bridge held. Time to answer.</p>
                 <BouncyTap
                   onClick={() => setDrill((d) => ({ ...d, phase: "final" }))}
@@ -448,7 +448,7 @@ function Practice() {
             )}
             {drill.verdict === "rewrite" && (
               <>
-                <h2 className="stem-type text-4xl text-danger">REWRITE</h2>
+                <h2 className="script-type text-5xl text-danger">REWRITE</h2>
                 <p className="text-lg">
                   None of the choices fit your sentence. Return to the stem and repair your bridge.
                 </p>
@@ -459,7 +459,7 @@ function Practice() {
             )}
             {drill.verdict === "loose" && (
               <>
-                <h2 className="stem-type text-4xl text-warn">TOO LOOSE</h2>
+                <h2 className="script-type text-5xl text-warn">TOO LOOSE</h2>
                 <p className="text-lg">
                   Your bridge let more than one answer through. Find the broad word and tighten it.
                 </p>
@@ -496,7 +496,7 @@ function Practice() {
         {/* STATE 6 — feedback */}
         {drill.phase === "feedback" && (
           <section className="quest-card space-y-5 p-7">
-            <h2 className="stem-type text-4xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
+            <h2 className="script-type text-5xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
             <div className="rounded-3xl bg-secondary/50 p-5">

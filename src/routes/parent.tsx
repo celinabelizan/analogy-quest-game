@@ -36,9 +36,9 @@ function ParentPanel() {
   if (!unlocked) {
     return (
       <main className="relative grid min-h-screen place-items-center px-6">
-        <DoodleField />
+        <DoodleField seed={2} />
         <div className="quest-card relative z-10 w-full max-w-sm space-y-4 p-8 text-center">
-          <h1 className="stem-type text-3xl">Parent PIN</h1>
+          <h1 className="script-type text-4xl">Parent PIN</h1>
           <input
             type="password"
             inputMode="numeric"
@@ -66,10 +66,10 @@ function ParentPanel() {
 
   return (
     <main className="relative min-h-screen px-4 py-8 sm:px-8">
-      <DoodleField />
+      <DoodleField seed={2} />
       <div className="relative z-10 mx-auto max-w-3xl space-y-6 pb-16">
         <div className="flex items-center justify-between">
-          <h1 className="stem-type text-4xl text-primary">Parent panel</h1>
+          <h1 className="script-type text-5xl text-primary">Parent panel</h1>
           <Link to="/" className="rounded-full border border-border px-5 py-3">
             Done
           </Link>
@@ -165,7 +165,7 @@ function GirlCard({ id, name, accent }: { id: ProfileId; name: string; accent: s
 
   return (
     <section className="quest-card p-6">
-      <h2 className="stem-type text-3xl" style={{ color: accent }}>
+      <h2 className="script-type text-4xl" style={{ color: accent }}>
         {name}
       </h2>
       <dl className="mt-3 space-y-1 text-base">

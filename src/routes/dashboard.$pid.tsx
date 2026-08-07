@@ -72,7 +72,7 @@ function Dashboard() {
 
   return (
     <main className="relative min-h-screen px-5 py-8 sm:px-8">
-      <DoodleField />
+      <DoodleField seed={1} />
       <AnimatePresence>
         {party && (
           <motion.div
@@ -87,7 +87,7 @@ function Dashboard() {
               transition={{ type: "spring", stiffness: 260, damping: 14 }}
               className="quest-card glow-pink p-10"
             >
-              <p className="stem-type text-6xl text-primary">Redeemed!</p>
+              <p className="script-type text-7xl text-primary">Redeemed!</p>
               <p className="mt-3 text-2xl">{party}</p>
               <p className="mt-2 text-lg text-muted-foreground">Mom approved it. Enjoy! 🎉</p>
             </motion.div>
@@ -99,7 +99,7 @@ function Dashboard() {
           <Link to="/" className="min-h-[48px] rounded-full border border-border px-5 py-3 text-base">
             ← Switch
           </Link>
-          <h1 className="stem-type text-4xl sm:text-5xl" style={{ color: meta.accent }}>
+          <h1 className="script-type text-5xl sm:text-6xl" style={{ color: meta.accent }}>
             {meta.name}
           </h1>
           <Link to="/parent" className="min-h-[48px] rounded-full border border-border px-5 py-3 text-base text-muted-foreground">
@@ -110,7 +110,7 @@ function Dashboard() {
         <div className="grid gap-6 md:grid-cols-2">
           {/* XP + reward ring */}
           <section className="quest-card relative overflow-hidden p-7">
-            <Flower className="-right-4 -top-3" size={96} rotate={18} opacity={0.2} variant={0} />
+            
             <h2 className="text-xl font-extrabold">Reward progress</h2>
             <div className="mt-5 flex items-center gap-6">
               <ProgressRing
@@ -154,7 +154,7 @@ function Dashboard() {
 
           {/* Mascot */}
           <section className="quest-card relative overflow-hidden p-7 text-center">
-            <Flower className="-left-5 bottom-0" size={90} rotate={-14} opacity={0.18} variant={3} />
+            <Flower className="-left-5 bottom-0" size={90} rotate={-14} opacity={0.14} variant={3} />
             <h2 className="text-xl font-extrabold">Study buddy</h2>
             <div className="mt-2 flex justify-center">
               <Mascot lifetimeXp={p.lifetimeXp} size={170} />

@@ -39,10 +39,10 @@ function ProfileCard({ id, name }: { id: ProfileId; name: string; accent: string
         transition={{ type: "spring", stiffness: 380, damping: 20 }}
         className="quest-card relative overflow-hidden p-8"
       >
-        <Flower className="-right-6 -top-8" size={130} rotate={186} opacity={0.3} variant={1} />
-        <Flower className="-bottom-8 -left-6" size={110} rotate={-6} opacity={0.22} variant={0} />
+        
+        <Flower className="-bottom-6 -left-5" size={92} rotate={-6} opacity={0.18} variant={0} />
 
-        <h2 className="stem-type text-5xl text-primary">{name}</h2>
+        <h2 className="script-type text-6xl text-primary">{name}</h2>
 
         <div className="mt-6 flex items-center gap-7">
           <ProgressRing
@@ -97,12 +97,12 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 function Landing() {
   return (
     <main className="relative min-h-screen px-6 py-12">
-      <DoodleField />
+      <DoodleField seed={0} />
       <div className="relative z-10 mx-auto max-w-5xl">
         <header className="relative mb-12 text-center">
-          <Flower className="left-0 -top-6 hidden sm:block" size={86} rotate={-8} opacity={0.3} variant={2} />
-          <Flower className="right-0 -top-8 hidden sm:block" size={80} rotate={184} opacity={0.28} variant={3} />
-          <h1 className="stem-type text-6xl text-primary sm:text-7xl">SSAT Quest</h1>
+          
+          
+          <h1 className="script-type text-7xl text-primary sm:text-8xl">SSAT Quest</h1>
           <p className="mt-3 text-xl text-muted-foreground">Analogies. Bridges. Treasure.</p>
         </header>
 
