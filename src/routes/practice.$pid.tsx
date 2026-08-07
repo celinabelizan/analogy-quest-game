@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
+import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
 import { QUESTIONS, type Question } from "@/data/questions";
 import { monkeySwap, wordCount } from "@/lib/analogy";
+
 import {
   PROFILES,
   addXp,
@@ -85,8 +87,10 @@ function Practice() {
   const [draft, setDraft] = useState("");
   const [showBreak, setShowBreak] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
   const hydrated = useRef(false);
+
 
   const drill = p.current;
   const q: Question | undefined = useMemo(
@@ -114,8 +118,10 @@ function Practice() {
 
   const flash = (msg: string) => {
     setToast(msg);
+    setBurst((n) => n + 1);
     setTimeout(() => setToast(null), 1800);
   };
+
 
   if (!drill || !q) {
     return (
@@ -180,7 +186,9 @@ function Practice() {
       },
       (prev, d) => (already ? prev : grant(prev, d, 1)),
     );
+    if (drill.monkeyIndex + 1 >= q.choices.length) flash("All choices tested ✓");
   };
+
 
   /* ---------------- STATE 4: repair the bridge ---------------- */
   const reopenBridge = () => {
@@ -260,17 +268,30 @@ function Practice() {
 
   const currentChoice = q.choices[drill.monkeyIndex];
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
+  const stepIndex =
+    drill.phase === "stem"
+      ? 0
+      : drill.phase === "monkey"
+        ? 1
+        : drill.phase === "verdict"
+          ? 2
+          : drill.phase === "final"
+            ? 3
+            : 4;
+  const today = dayOf(p);
 
   return (
     <main className="relative min-h-screen px-5 py-6 sm:px-8">
       <DoodleField />
+      <Confetti fire={burst} />
 
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ y: -40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+            initial={{ y: -40, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: -40, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 480, damping: 18 }}
             className="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-full bg-primary px-6 py-3 text-lg font-extrabold text-primary-foreground shadow-lg"
           >
             {toast}
@@ -278,7 +299,7 @@ function Practice() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto max-w-4xl space-y-6 pb-24">
+      <div className="relative z-10 mx-auto max-w-3xl space-y-5 pb-24">
         <div className="flex items-center justify-between">
           <BouncyTap
             onClick={() => navigate({ to: "/dashboard/$pid", params: { pid: id } })}
@@ -287,12 +308,22 @@ function Practice() {
             ← Dashboard
           </BouncyTap>
           <div className="text-right">
-            <div className="text-2xl font-extrabold" style={{ color: meta.accent }}>
+            <motion.div
+              key={p.availableXp}
+              initial={{ scale: 1.35 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 14 }}
+              className="text-2xl font-extrabold"
+              style={{ color: meta.accent }}
+            >
               {p.availableXp} XP
-            </div>
+            </motion.div>
             <div className="text-sm text-muted-foreground">Streak {p.streak} 🔥</div>
           </div>
         </div>
+
+        <GoalBar done={today.completed} goal={5} />
+        <StepTrail active={stepIndex} />
 
         {/* STEM */}
         <section className="quest-card relative overflow-hidden p-7 text-center">
@@ -302,20 +333,21 @@ function Practice() {
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
         </section>
 
-        {/* Locked bridge */}
-        {drill.locked && (
+        {/* Locked bridge — kept in view while it's the thing being tested */}
+        {drill.locked && drill.phase !== "feedback" && (
           <motion.div
             initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="quest-card flex items-start gap-3 p-6"
+            className="flex items-start gap-3 rounded-3xl border border-success/30 bg-success/10 p-5"
           >
-            <span className="text-3xl" aria-hidden="true">
-              🔒
+            <span className="text-2xl" aria-hidden="true">
+              ✓
             </span>
-            <p className="text-[30px] leading-snug">{drill.bridge}</p>
+            <p className="text-[26px] leading-snug">{drill.bridge}</p>
           </motion.div>
         )}
+
 
         {/* STATE 1 + 2 */}
         {drill.phase === "stem" && (
@@ -357,35 +389,39 @@ function Practice() {
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               className="quest-card space-y-5 p-7"
             >
-              <p className="text-sm uppercase tracking-widest text-muted-foreground">
-                Monkey test — choice {drill.monkeyIndex + 1} of {q.choices.length}
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Monkey test
+                </p>
+                <ChoiceChecks total={q.choices.length} done={drill.monkeyIndex} />
+              </div>
               <p className="stem-type text-[36px]">
                 ({currentChoice.label}) {currentChoice.pair}
               </p>
-              <p className="rounded-3xl bg-secondary/50 p-5 text-[30px] leading-snug">
+              <p className="rounded-3xl bg-secondary/60 p-5 text-[30px] leading-snug">
                 {monkeySwap(drill.bridge, q.stem, currentChoice.pair)}
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "works")}
-                  className="bg-[#22C55E]/20 py-5 text-2xl text-[#22C55E] ring-1 ring-[#22C55E]/40"
+                  className="bg-success/15 py-5 text-2xl text-success ring-1 ring-success/40"
                 >
-                  Works
+                  ✓ Works
                 </BouncyTap>
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "kind")}
-                  className="bg-[#FACC15]/20 py-5 text-2xl text-[#FACC15] ring-1 ring-[#FACC15]/40"
+                  className="bg-warn/15 py-5 text-2xl text-warn ring-1 ring-warn/40"
                 >
-                  Kind of
+                  ~ Kind of
                 </BouncyTap>
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "no")}
-                  className="bg-[#EF4444]/20 py-5 text-2xl text-[#EF4444] ring-1 ring-[#EF4444]/40"
+                  className="bg-danger/15 py-5 text-2xl text-danger ring-1 ring-danger/40"
                 >
-                  Doesn't work
+                  ✕ Nope
                 </BouncyTap>
               </div>
+
             </motion.section>
           </AnimatePresence>
         )}
@@ -400,7 +436,7 @@ function Practice() {
           >
             {drill.verdict === "clean" && (
               <>
-                <h2 className="stem-type text-4xl text-[#22C55E]">One clean survivor!</h2>
+                <h2 className="stem-type text-4xl text-success">One clean survivor!</h2>
                 <p className="text-lg text-muted-foreground">Your bridge held. Time to answer.</p>
                 <BouncyTap
                   onClick={() => setDrill((d) => ({ ...d, phase: "final" }))}
@@ -412,7 +448,7 @@ function Practice() {
             )}
             {drill.verdict === "rewrite" && (
               <>
-                <h2 className="stem-type text-4xl text-[#EF4444]">REWRITE</h2>
+                <h2 className="stem-type text-4xl text-danger">REWRITE</h2>
                 <p className="text-lg">
                   None of the choices fit your sentence. Return to the stem and repair your bridge.
                 </p>
@@ -423,7 +459,7 @@ function Practice() {
             )}
             {drill.verdict === "loose" && (
               <>
-                <h2 className="stem-type text-4xl text-[#FACC15]">TOO LOOSE</h2>
+                <h2 className="stem-type text-4xl text-warn">TOO LOOSE</h2>
                 <p className="text-lg">
                   Your bridge let more than one answer through. Find the broad word and tighten it.
                 </p>
@@ -460,7 +496,7 @@ function Practice() {
         {/* STATE 6 — feedback */}
         {drill.phase === "feedback" && (
           <section className="quest-card space-y-5 p-7">
-            <h2 className="stem-type text-4xl" style={{ color: drill.correct ? "#22C55E" : "#EF4444" }}>
+            <h2 className="stem-type text-4xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
             <div className="rounded-3xl bg-secondary/50 p-5">
@@ -468,7 +504,7 @@ function Practice() {
               <p className="mt-2 text-[30px] leading-snug">{q.bridge}</p>
             </div>
             <p className="text-2xl font-extrabold">
-              Answer: <span className="text-[#22C55E]">({q.correct}) {correctChoice.pair}</span>
+              Answer: <span className="text-success">({q.correct}) {correctChoice.pair}</span>
             </p>
             <ul className="space-y-2">
               {q.choices.map((c) => {
@@ -479,12 +515,12 @@ function Practice() {
                     key={c.label}
                     className="rounded-2xl border p-4 text-lg"
                     style={{
-                      borderColor: isCorrect ? "#22C55E" : tempting ? "#FACC15" : "var(--border)",
-                      backgroundColor: isCorrect ? "#22C55E1f" : tempting ? "#FACC151a" : "transparent",
+                      borderColor: isCorrect ? "var(--success)" : tempting ? "var(--warn)" : "var(--border)",
+                      backgroundColor: isCorrect ? "color-mix(in oklab, var(--success) 12%, transparent)" : tempting ? "color-mix(in oklab, var(--warn) 14%, transparent)" : "transparent",
                     }}
                   >
                     <span className="font-extrabold">({c.label}) {c.pair}</span>
-                    {tempting && <span className="ml-2 font-bold text-[#FACC15]">tempting distractor</span>}
+                    {tempting && <span className="ml-2 font-bold text-warn">tempting distractor</span>}
                     <p className="text-muted-foreground">{c.why}</p>
                   </li>
                 );
