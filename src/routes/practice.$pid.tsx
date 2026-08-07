@@ -118,8 +118,10 @@ function Practice() {
 
   const flash = (msg: string) => {
     setToast(msg);
+    setBurst((n) => n + 1);
     setTimeout(() => setToast(null), 1800);
   };
+
 
   if (!drill || !q) {
     return (
