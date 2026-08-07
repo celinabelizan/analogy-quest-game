@@ -434,7 +434,7 @@ function Practice() {
           >
             {drill.verdict === "clean" && (
               <>
-                <h2 className="stem-type text-4xl text-[#22C55E]">One clean survivor!</h2>
+                <h2 className="stem-type text-4xl text-success">One clean survivor!</h2>
                 <p className="text-lg text-muted-foreground">Your bridge held. Time to answer.</p>
                 <BouncyTap
                   onClick={() => setDrill((d) => ({ ...d, phase: "final" }))}
@@ -446,7 +446,7 @@ function Practice() {
             )}
             {drill.verdict === "rewrite" && (
               <>
-                <h2 className="stem-type text-4xl text-[#EF4444]">REWRITE</h2>
+                <h2 className="stem-type text-4xl text-danger">REWRITE</h2>
                 <p className="text-lg">
                   None of the choices fit your sentence. Return to the stem and repair your bridge.
                 </p>
@@ -457,7 +457,7 @@ function Practice() {
             )}
             {drill.verdict === "loose" && (
               <>
-                <h2 className="stem-type text-4xl text-[#FACC15]">TOO LOOSE</h2>
+                <h2 className="stem-type text-4xl text-warn">TOO LOOSE</h2>
                 <p className="text-lg">
                   Your bridge let more than one answer through. Find the broad word and tighten it.
                 </p>
@@ -494,7 +494,7 @@ function Practice() {
         {/* STATE 6 — feedback */}
         {drill.phase === "feedback" && (
           <section className="quest-card space-y-5 p-7">
-            <h2 className="stem-type text-4xl" style={{ color: drill.correct ? "#22C55E" : "#EF4444" }}>
+            <h2 className="stem-type text-4xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
             <div className="rounded-3xl bg-secondary/50 p-5">
@@ -502,7 +502,7 @@ function Practice() {
               <p className="mt-2 text-[30px] leading-snug">{q.bridge}</p>
             </div>
             <p className="text-2xl font-extrabold">
-              Answer: <span className="text-[#22C55E]">({q.correct}) {correctChoice.pair}</span>
+              Answer: <span className="text-success">({q.correct}) {correctChoice.pair}</span>
             </p>
             <ul className="space-y-2">
               {q.choices.map((c) => {
@@ -513,12 +513,12 @@ function Practice() {
                     key={c.label}
                     className="rounded-2xl border p-4 text-lg"
                     style={{
-                      borderColor: isCorrect ? "#22C55E" : tempting ? "#FACC15" : "var(--border)",
-                      backgroundColor: isCorrect ? "#22C55E1f" : tempting ? "#FACC151a" : "transparent",
+                      borderColor: isCorrect ? "var(--success)" : tempting ? "var(--warn)" : "var(--border)",
+                      backgroundColor: isCorrect ? "color-mix(in oklab, var(--success) 12%, transparent)" : tempting ? "color-mix(in oklab, var(--warn) 14%, transparent)" : "transparent",
                     }}
                   >
                     <span className="font-extrabold">({c.label}) {c.pair}</span>
-                    {tempting && <span className="ml-2 font-bold text-[#FACC15]">tempting distractor</span>}
+                    {tempting && <span className="ml-2 font-bold text-warn">tempting distractor</span>}
                     <p className="text-muted-foreground">{c.why}</p>
                   </li>
                 );
