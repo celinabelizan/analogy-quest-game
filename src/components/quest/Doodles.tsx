@@ -6,50 +6,52 @@ import type { ReactNode } from "react";
  * a few oval petals, a wobbly stem and leaf — the sketchbook kind.
  */
 const VARIANTS = [
-  // daisy, 8 petals
+  // boho fan poppy on a long thin stem
   (
     <g key="a">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <ellipse
-          key={i}
-          cx="50"
-          cy="27"
-          rx="8"
-          ry="16"
-          transform={`rotate(${i * 45} 50 50)`}
-        />
+      <path d="M50 98c2-22 0-38-2-52" />
+      <path d="M20 34c4-14 16-22 28-22s24 8 28 22c-8 8-18 12-28 12s-20-4-28-12z" />
+      {[28, 36, 44, 52, 60, 68].map((x, i) => (
+        <path key={i} d={`M${x} 45c-1-12 1-22 ${(i - 2.5) * 1.6} -31`} />
       ))}
-      <circle cx="50" cy="50" r="7.5" />
     </g>
   ),
-  // five round petals + curved stem and leaf
+  // hanging wildflower stem with paired leaves
   (
     <g key="b">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <circle key={i} cx="50" cy="28" r="11" transform={`rotate(${i * 72} 50 50)`} />
+      <path d="M50 0c3 24-2 48-5 74" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <g key={i} transform={`translate(0 ${16 + i * 11})`}>
+          <path d="M50 0c-8 1-14-3-16-9 8-2 14 2 16 9z" />
+          <path d="M49 5c8 2 14 8 15 15-8 1-14-5-15-15z" />
+        </g>
       ))}
-      <circle cx="50" cy="50" r="6" />
-      <path d="M50 62c1 12-2 20-6 30" />
-      <path d="M47 80c-8-3-12-9-11-14 6 0 11 5 11 14z" />
+      <circle cx="45" cy="80" r="4" />
     </g>
   ),
-  // tulip-ish bud on a stem
+  // thin-petal daisy with grass
   (
     <g key="c">
-      <path d="M50 20c9 6 14 15 12 24-2 8-8 12-12 12s-10-4-12-12c-2-9 3-18 12-24z" />
-      <path d="M50 24v32" />
-      <path d="M50 56v30" />
-      <path d="M50 72c9-2 14-8 14-14-7-1-13 5-14 14z" />
+      {Array.from({ length: 11 }).map((_, i) => (
+        <ellipse key={i} cx="50" cy="24" rx="3.2" ry="12" transform={`rotate(${i * 32.7} 50 46)`} />
+      ))}
+      <circle cx="50" cy="46" r="4.5" />
+      <path d="M50 58c1 16 0 26-1 40" />
+      <path d="M50 76c-7-2-11-7-12-13 7-1 12 4 12 13z" />
+      <path d="M30 98c2-9 5-14 9-18M70 98c-2-9-5-14-9-18" />
     </g>
   ),
-  // tiny sprig of three buds
+  // lavender / berry sprig
   (
     <g key="d">
-      <path d="M50 88V32" />
-      <circle cx="50" cy="26" r="8" />
-      <circle cx="34" cy="46" r="6.5" />
-      <circle cx="66" cy="54" r="6.5" />
-      <path d="M50 52l-11-4M50 60l11-4" />
+      <path d="M50 98c-1-26 0-52 0-78" />
+      {Array.from({ length: 7 }).map((_, i) => (
+        <g key={i}>
+          <circle cx={50 - 10 + (i % 2) * 20} cy={26 + i * 9} r="3.6" />
+          <path d={`M50 ${30 + i * 9}L${50 - 8 + (i % 2) * 16} ${27 + i * 9}`} />
+        </g>
+      ))}
+      <circle cx="50" cy="16" r="4" />
     </g>
   ),
 ];
@@ -60,7 +62,7 @@ export function Flower({
   rotate = 0,
   opacity = 0.5,
   variant = 0,
-  stroke = 3,
+  stroke = 1.6,
 }: {
   className?: string;
   size?: number;
@@ -95,12 +97,25 @@ export function Flower({
 export function DoodleField() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <Flower className="-left-4 top-6" size={110} rotate={-14} opacity={0.32} variant={0} />
-      <Flower className="right-5 top-14" size={78} rotate={18} opacity={0.26} variant={1} />
-      <Flower className="bottom-10 left-8" size={88} rotate={-6} opacity={0.24} variant={2} />
-      <Flower className="-right-4 bottom-14" size={118} rotate={24} opacity={0.28} variant={3} />
-      <Flower className="left-1/2 top-1" size={56} rotate={38} opacity={0.14} variant={1} />
-      <Flower className="left-1/3 bottom-2" size={52} rotate={-30} opacity={0.12} variant={0} />
+      {/* top hanging sprigs */}
+      <Flower className="-left-2 -top-8" size={150} rotate={182} opacity={0.85} variant={1} />
+      <Flower className="left-[9%] -top-12" size={112} rotate={179} opacity={0.6} variant={0} />
+      <Flower className="left-[18%] -top-10" size={124} rotate={178} opacity={0.75} variant={3} />
+      <Flower className="left-[30%] -top-6" size={94} rotate={183} opacity={0.5} variant={1} />
+      <Flower className="left-[42%] -top-11" size={116} rotate={180} opacity={0.62} variant={0} />
+      <Flower className="right-[30%] -top-7" size={100} rotate={181} opacity={0.5} variant={1} />
+      <Flower className="right-[17%] -top-10" size={132} rotate={177} opacity={0.75} variant={3} />
+      <Flower className="right-[7%] -top-12" size={108} rotate={182} opacity={0.55} variant={0} />
+      <Flower className="-right-3 -top-6" size={144} rotate={185} opacity={0.85} variant={1} />
+      {/* bottom meadow */}
+      <Flower className="-left-3 -bottom-6" size={144} rotate={-4} opacity={0.85} variant={0} />
+      <Flower className="left-[12%] -bottom-9" size={118} rotate={3} opacity={0.6} variant={3} />
+      <Flower className="left-[24%] -bottom-7" size={128} rotate={-5} opacity={0.7} variant={2} />
+      <Flower className="left-[40%] -bottom-9" size={102} rotate={4} opacity={0.5} variant={0} />
+      <Flower className="right-[34%] -bottom-8" size={96} rotate={-3} opacity={0.45} variant={3} />
+      <Flower className="right-[18%] -bottom-9" size={126} rotate={4} opacity={0.7} variant={0} />
+      <Flower className="right-[6%] -bottom-7" size={112} rotate={-6} opacity={0.55} variant={2} />
+      <Flower className="-right-2 -bottom-5" size={148} rotate={-6} opacity={0.85} variant={2} />
     </div>
   );
 }
