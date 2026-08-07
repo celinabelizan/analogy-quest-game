@@ -17,6 +17,7 @@ export type Redemption = {
   status: "pending" | "approved" | "declined";
   requestedAt: string;
   resolvedAt?: string;
+  celebrated?: boolean;
 };
 
 export type Judgment = "works" | "kind" | "no";

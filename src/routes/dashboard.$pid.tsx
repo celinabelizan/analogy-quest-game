@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { ProgressRing } from "@/components/quest/Bits";
 import { Mascot, nextUnlock } from "@/components/quest/Mascot";
@@ -38,6 +39,19 @@ function Dashboard() {
   const unlock = nextUnlock(p.lifetimeXp);
   const today = dayOf(p);
 
+  const [party, setParty] = useState<string | null>(null);
+  useEffect(() => {
+    const fresh = p.redemptions.find((r) => r.status === "approved" && !r.celebrated);
+    if (!fresh) return;
+    setParty(fresh.name);
+    update((prev) => ({
+      ...prev,
+      redemptions: prev.redemptions.map((r) => (r.id === fresh.id ? { ...r, celebrated: true } : r)),
+    }));
+    const t = setTimeout(() => setParty(null), 4000);
+    return () => clearTimeout(t);
+  }, [p.redemptions, update]);
+
   const redeem = () => {
     if (!active) return;
     update((prev) => ({
@@ -59,6 +73,27 @@ function Dashboard() {
   return (
     <main className="relative min-h-screen px-5 py-8 sm:px-8">
       <DoodleField />
+      <AnimatePresence>
+        {party && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 grid place-items-center bg-navy/80 px-6 text-center backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.6, rotate: -6 }}
+              animate={{ scale: [0.6, 1.12, 1], rotate: [-6, 3, 0] }}
+              transition={{ type: "spring", stiffness: 260, damping: 14 }}
+              className="quest-card glow-pink p-10"
+            >
+              <p className="stem-type text-6xl text-primary">Redeemed!</p>
+              <p className="mt-3 text-2xl">{party}</p>
+              <p className="mt-2 text-lg text-muted-foreground">Mom approved it. Enjoy! 🎉</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="relative z-10 mx-auto max-w-5xl space-y-7">
         <div className="flex items-center justify-between gap-4">
           <Link to="/" className="min-h-[48px] rounded-full border border-border px-5 py-3 text-base">
