@@ -381,8 +381,15 @@ function Practice() {
         {drill.phase === "stem" && (
           <section className="quest-card space-y-4 p-7">
             <h2 className="text-2xl font-extrabold">
-              Now write your bridge sentence — how do these two words connect?
+              {(drill.rewrites ?? 0) > 0
+                ? "Rewrite it — make it fit only this pair"
+                : "Now write your bridge sentence — how do these two words connect?"}
             </h2>
+            {(drill.rewrites ?? 0) > 0 && (
+              <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
+                {looseHint(q.stem, FAMILIES[q.family].label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
+              </p>
+            )}
             <p className="text-base text-muted-foreground">
               Use both stem words. Tap the mic on the keyboard to dictate.
             </p>
@@ -404,8 +411,37 @@ function Practice() {
                 🔒 Lock My Sentence
               </BouncyTap>
             </div>
+
+            {/* Don't know one of the words? */}
+            <BouncyTap
+              onClick={() => setShowStuck((s) => !s)}
+              className="border border-border px-5 py-3 text-base text-muted-foreground"
+            >
+              I don't know one of these words
+            </BouncyTap>
+            {showStuck && (
+              <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5">
+                <p className="text-lg font-extrabold">That's okay — do it in this order:</p>
+                <ol className="space-y-2 text-base">
+                  {unknownWordSteps(q.stem).map((s, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span className="font-extrabold text-primary">{i + 1}.</span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ol>
+                {drill.peeked ? (
+                  <p className="rounded-2xl bg-card p-4 text-[22px] leading-snug">{q.bridge}</p>
+                ) : (
+                  <BouncyTap onClick={peekModel} className="border border-border px-5 py-3 text-base">
+                    Show me a model sentence
+                  </BouncyTap>
+                )}
+              </div>
+            )}
           </section>
         )}
+
 
         {/* STATE 3 — all five choices, discard one by one */}
         {drill.phase === "monkey" && (
