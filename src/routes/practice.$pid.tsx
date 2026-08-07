@@ -468,14 +468,28 @@ function Practice() {
                     <p className={`mt-2 text-[24px] leading-snug ${out ? "line-through opacity-70" : ""}`}>
                       {monkeySwap(drill.bridge, q.stem, c.pair)}
                     </p>
-                    <BouncyTap
-                      onClick={() => toggleDiscard(c.label)}
-                      className={`mt-3 border px-5 py-3 text-lg ${
-                        out ? "border-border text-muted-foreground" : "border-border hover:border-primary"
-                      }`}
-                    >
-                      {out ? "↩ Put it back" : "✕ Doesn't fit — discard"}
-                    </BouncyTap>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <BouncyTap
+                        onClick={() => setDiscard(c.label, true)}
+                        className={`border px-5 py-3 text-lg ${
+                          out
+                            ? "border-transparent bg-secondary font-extrabold"
+                            : "border-border hover:border-primary"
+                        }`}
+                      >
+                        ✕ Doesn't fit — discard
+                      </BouncyTap>
+                      <BouncyTap
+                        onClick={() => setDiscard(c.label, false)}
+                        className={`border px-5 py-3 text-lg ${
+                          !out
+                            ? "border-transparent bg-secondary font-extrabold"
+                            : "border-border hover:border-primary"
+                        }`}
+                      >
+                        Hold
+                      </BouncyTap>
+                    </div>
                   </motion.li>
                 );
               })}
@@ -487,32 +501,48 @@ function Practice() {
                 <p className="script-type text-4xl text-success">One survivor!</p>
                 <p className="text-lg text-muted-foreground">Your sentence did its job.</p>
                 <BouncyTap
-                  onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "clean" }))}
+                  onClick={() => answer(standing[0]!.label)}
                   className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
                 >
-                  Choose my answer →
+                  Lock in ({standing[0]!.label}) {standing[0]!.pair} →
                 </BouncyTap>
+                <div>
+                  <BouncyTap
+                    onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "clean" }))}
+                    className="border border-border px-6 py-3 text-base text-muted-foreground"
+                  >
+                    Wait — let me see them all first
+                  </BouncyTap>
+                </div>
               </div>
             )}
-            {standing.length > 1 && (
+            {standing.length > 1 && discarded.length > 0 && (
               <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5 text-center">
                 <p className="text-xl font-extrabold">
                   {standing.length} still standing — your sentence is too loose.
                 </p>
                 <p className="text-base text-muted-foreground">
-                  Add the detail that only the stem pair has: how, why, or how much. Then re-test.
+                  {looseHint(q.stem, FAMILIES[q.family].label, standing.length, drill.rewrites ?? 0)}
                 </p>
                 <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
                   Build a stronger sentence
                 </BouncyTap>
+                {(drill.rewrites ?? 0) >= 2 && (
+                  <div>
+                    <BouncyTap
+                      onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "loose" }))}
+                      className="border border-border px-6 py-3 text-base text-muted-foreground"
+                    >
+                      Pick my best guess from what's left
+                    </BouncyTap>
+                  </div>
+                )}
               </div>
             )}
             {standing.length === 0 && (
               <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--warn)" }}>
                 <p className="text-xl font-extrabold text-warn">You discarded everything.</p>
-                <p className="text-base text-muted-foreground">
-                  Your sentence is too strict — loosen one word and test again.
-                </p>
+                <p className="text-base text-muted-foreground">{strictHint(q.stem)}</p>
                 <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
                   Rewrite my sentence
                 </BouncyTap>
@@ -521,19 +551,29 @@ function Practice() {
           </section>
         )}
 
-        {/* STATE 4 — final answer */}
+        {/* STATE 4 — final answer, with her crossouts still showing */}
         {drill.phase === "final" && (
           <section className="quest-card space-y-3 p-7">
             <h2 className="text-2xl font-extrabold">Your final answer</h2>
-            {q.choices.map((c) => (
-              <BouncyTap
-                key={c.label}
-                onClick={() => answer(c.label)}
-                className="block w-full border border-border bg-secondary/40 px-6 py-5 text-left text-[34px] font-bold"
-              >
-                <span className="text-primary">({c.label})</span> {c.pair}
-              </BouncyTap>
-            ))}
+            <p className="text-base text-muted-foreground">
+              Your crossouts are still here. Tap the one you're keeping.
+            </p>
+            {q.choices.map((c) => {
+              const out = drill.judgments[c.label] === "no";
+              return (
+                <BouncyTap
+                  key={c.label}
+                  onClick={() => answer(c.label)}
+                  className={`block w-full border px-6 py-5 text-left text-[34px] font-bold ${
+                    out
+                      ? "border-border bg-transparent text-muted-foreground line-through opacity-50"
+                      : "border-border bg-secondary/40 hover:border-primary"
+                  }`}
+                >
+                  <span className="text-primary">({c.label})</span> {c.pair}
+                </BouncyTap>
+              );
+            })}
             <BouncyTap
               onClick={() => answer(null)}
               className="w-full border border-border px-6 py-4 text-xl text-muted-foreground"
@@ -542,6 +582,7 @@ function Practice() {
             </BouncyTap>
           </section>
         )}
+
 
         {/* STATE 5 — feedback */}
         {drill.phase === "feedback" && (
