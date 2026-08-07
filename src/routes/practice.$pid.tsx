@@ -534,6 +534,22 @@ function Practice() {
                 <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
                   Build a stronger sentence
                 </BouncyTap>
+                {(drill.rewrites ?? 0) >= 1 && (
+                  <div className="space-y-3 rounded-3xl border border-border bg-card p-5 text-left">
+                    <p className="text-lg font-extrabold">Sentence not getting sharper? Switch methods.</p>
+                    <p className="text-base">{partsOfSpeechHint(q.stem)}</p>
+                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                      Traps hiding in these choices
+                    </p>
+                    <ul className="space-y-2 text-base">
+                      {TRAPS.map((t) => (
+                        <li key={t.name}>
+                          <span className="font-extrabold text-primary">{t.name}:</span> {t.tell}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {(drill.rewrites ?? 0) >= 2 && (
                   <div>
                     <BouncyTap
@@ -546,6 +562,7 @@ function Practice() {
                 )}
               </div>
             )}
+
             {standing.length === 0 && (
               <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--warn)" }}>
                 <p className="text-xl font-extrabold text-warn">You discarded everything.</p>
