@@ -94,28 +94,46 @@ export function Flower({
   );
 }
 
-export function DoodleField() {
+/**
+ * Scarce margin doodles — a few sketched stems tucked into corners and edges,
+ * the way flowers wander the margins of a notebook. Each page uses a different
+ * arrangement so the garden seems to continue from page to page.
+ */
+const FIELDS: Array<Array<{ c: string; s: number; r: number; o: number; v: number }>> = [
+  [
+    { c: "-left-6 -top-10", s: 122, r: 178, o: 0.3, v: 1 },
+    { c: "right-[6%] -top-12", s: 104, r: 183, o: 0.22, v: 3 },
+    { c: "-right-8 top-1/3", s: 112, r: 16, o: 0.16, v: 0 },
+    { c: "-left-5 -bottom-8", s: 128, r: -5, o: 0.26, v: 2 },
+    { c: "right-[10%] -bottom-10", s: 110, r: 4, o: 0.2, v: 0 },
+  ],
+  [
+    { c: "-right-6 -top-9", s: 116, r: 181, o: 0.26, v: 3 },
+    { c: "left-[7%] -top-12", s: 96, r: 179, o: 0.18, v: 1 },
+    { c: "-left-8 top-[45%]", s: 104, r: -18, o: 0.15, v: 2 },
+    { c: "right-[8%] -bottom-9", s: 124, r: 5, o: 0.24, v: 0 },
+    { c: "-left-6 -bottom-7", s: 100, r: -6, o: 0.18, v: 3 },
+  ],
+  [
+    { c: "-left-7 -top-8", s: 110, r: 177, o: 0.24, v: 3 },
+    { c: "-right-7 -bottom-8", s: 126, r: -4, o: 0.22, v: 2 },
+    { c: "left-[12%] -bottom-10", s: 96, r: 6, o: 0.16, v: 0 },
+  ],
+  [
+    { c: "-left-8 -top-10", s: 108, r: 180, o: 0.2, v: 1 },
+    { c: "-right-6 -top-8", s: 98, r: 184, o: 0.16, v: 0 },
+    { c: "-right-8 -bottom-9", s: 118, r: -5, o: 0.2, v: 3 },
+    { c: "left-[6%] -bottom-8", s: 104, r: 4, o: 0.14, v: 2 },
+  ],
+];
+
+export function DoodleField({ seed = 0 }: { seed?: number }) {
+  const field = FIELDS[seed % FIELDS.length] ?? FIELDS[0]!;
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* top hanging sprigs */}
-      <Flower className="-left-2 -top-8" size={150} rotate={182} opacity={0.85} variant={1} />
-      <Flower className="left-[9%] -top-12" size={112} rotate={179} opacity={0.6} variant={0} />
-      <Flower className="left-[18%] -top-10" size={124} rotate={178} opacity={0.75} variant={3} />
-      <Flower className="left-[30%] -top-6" size={94} rotate={183} opacity={0.5} variant={1} />
-      <Flower className="left-[42%] -top-11" size={116} rotate={180} opacity={0.62} variant={0} />
-      <Flower className="right-[30%] -top-7" size={100} rotate={181} opacity={0.5} variant={1} />
-      <Flower className="right-[17%] -top-10" size={132} rotate={177} opacity={0.75} variant={3} />
-      <Flower className="right-[7%] -top-12" size={108} rotate={182} opacity={0.55} variant={0} />
-      <Flower className="-right-3 -top-6" size={144} rotate={185} opacity={0.85} variant={1} />
-      {/* bottom meadow */}
-      <Flower className="-left-3 -bottom-6" size={144} rotate={-4} opacity={0.85} variant={0} />
-      <Flower className="left-[12%] -bottom-9" size={118} rotate={3} opacity={0.6} variant={3} />
-      <Flower className="left-[24%] -bottom-7" size={128} rotate={-5} opacity={0.7} variant={2} />
-      <Flower className="left-[40%] -bottom-9" size={102} rotate={4} opacity={0.5} variant={0} />
-      <Flower className="right-[34%] -bottom-8" size={96} rotate={-3} opacity={0.45} variant={3} />
-      <Flower className="right-[18%] -bottom-9" size={126} rotate={4} opacity={0.7} variant={0} />
-      <Flower className="right-[6%] -bottom-7" size={112} rotate={-6} opacity={0.55} variant={2} />
-      <Flower className="-right-2 -bottom-5" size={148} rotate={-6} opacity={0.85} variant={2} />
+      {field.map((f, i) => (
+        <Flower key={i} className={f.c} size={f.s} rotate={f.r} opacity={f.o} variant={f.v} stroke={1.4} />
+      ))}
     </div>
   );
 }
