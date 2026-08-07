@@ -155,7 +155,7 @@ function Meadow({ stalks, hanging = false }: { stalks: Stalk[]; hanging?: boolea
             height: f.s * 1.45,
             transform: `translateY(6px) rotate(${f.r}deg)`,
             transformOrigin: "bottom center",
-            opacity: f.o,
+            opacity: Math.min(0.85, f.o * 1.6),
           }}
           viewBox="0 0 40 140"
           fill="none"
@@ -163,7 +163,7 @@ function Meadow({ stalks, hanging = false }: { stalks: Stalk[]; hanging?: boolea
         >
           <g
             stroke="var(--doodle)"
-            strokeWidth={1}
+            strokeWidth={1.15}
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
