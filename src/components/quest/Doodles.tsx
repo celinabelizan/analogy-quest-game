@@ -6,50 +6,55 @@ import type { ReactNode } from "react";
  * a few oval petals, a wobbly stem and leaf — the sketchbook kind.
  */
 const VARIANTS = [
-  // daisy, 8 petals
+  // poppy on a long wispy stem
   (
     <g key="a">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <ellipse
+      <path d="M50 96V44" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <path
           key={i}
-          cx="50"
-          cy="27"
-          rx="8"
-          ry="16"
-          transform={`rotate(${i * 45} 50 50)`}
+          d="M50 40c7-2 12-8 12-15-1-6-7-9-12-6-5-3-11 0-12 6 0 7 5 13 12 15z"
+          transform={`rotate(${i * 60} 50 40)`}
         />
       ))}
-      <circle cx="50" cy="50" r="7.5" />
+      <circle cx="50" cy="40" r="4" />
+      <path d="M50 66c-8-1-13-6-14-12 7-1 13 4 14 12z" />
     </g>
   ),
-  // five round petals + curved stem and leaf
+  // hanging eucalyptus sprig
   (
     <g key="b">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <circle key={i} cx="50" cy="28" r="11" transform={`rotate(${i * 72} 50 50)`} />
+      <path d="M50 2c2 26-3 52-6 92" />
+      {Array.from({ length: 8 }).map((_, i) => (
+        <g key={i} transform={`translate(0 ${14 + i * 10})`}>
+          <ellipse cx="38" cy="0" rx="8" ry="5" transform="rotate(-24 38 0)" />
+          <ellipse cx="62" cy="5" rx="8" ry="5" transform="rotate(24 62 5)" />
+        </g>
       ))}
-      <circle cx="50" cy="50" r="6" />
-      <path d="M50 62c1 12-2 20-6 30" />
-      <path d="M47 80c-8-3-12-9-11-14 6 0 11 5 11 14z" />
     </g>
   ),
-  // tulip-ish bud on a stem
+  // daisy with thin petals and grass
   (
     <g key="c">
-      <path d="M50 20c9 6 14 15 12 24-2 8-8 12-12 12s-10-4-12-12c-2-9 3-18 12-24z" />
-      <path d="M50 24v32" />
-      <path d="M50 56v30" />
-      <path d="M50 72c9-2 14-8 14-14-7-1-13 5-14 14z" />
+      {Array.from({ length: 12 }).map((_, i) => (
+        <ellipse key={i} cx="50" cy="24" rx="3.5" ry="12" transform={`rotate(${i * 30} 50 46)`} />
+      ))}
+      <circle cx="50" cy="46" r="5" />
+      <path d="M50 58v38M50 78c-7-2-11-7-12-13 7-1 12 4 12 13z" />
+      <path d="M28 96c3-8 6-12 10-15M72 96c-3-8-6-12-10-15" />
     </g>
   ),
-  // tiny sprig of three buds
+  // berry sprig / lavender
   (
     <g key="d">
-      <path d="M50 88V32" />
-      <circle cx="50" cy="26" r="8" />
-      <circle cx="34" cy="46" r="6.5" />
-      <circle cx="66" cy="54" r="6.5" />
-      <path d="M50 52l-11-4M50 60l11-4" />
+      <path d="M50 98V20" />
+      {Array.from({ length: 7 }).map((_, i) => (
+        <g key={i}>
+          <circle cx={50 - 11 + (i % 2) * 22} cy={26 + i * 9} r="4" />
+          <path d={`M50 ${30 + i * 9}L${50 - 9 + (i % 2) * 18} ${27 + i * 9}`} />
+        </g>
+      ))}
+      <circle cx="50" cy="16" r="4.5" />
     </g>
   ),
 ];
