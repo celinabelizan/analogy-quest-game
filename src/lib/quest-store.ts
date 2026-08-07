@@ -41,6 +41,12 @@ export type Drill = {
   verdict: null | "clean" | "rewrite" | "loose";
   xpMode: "full" | "repeat" | "none";
   startedAt: number;
+  /** How many times she has gone back to rewrite the sentence. */
+  rewrites?: number;
+  /** She said she didn't know one of the stem words. */
+  stuckOnWord?: boolean;
+  /** She peeked at a model sentence. */
+  peeked?: boolean;
 };
 
 export type ProfileState = {

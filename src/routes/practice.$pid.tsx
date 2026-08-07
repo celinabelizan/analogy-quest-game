@@ -5,7 +5,15 @@ import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
 import { FAMILIES, QUESTIONS, type Family, type Question } from "@/data/questions";
-import { monkeySwap, wordCount } from "@/lib/analogy";
+import {
+  TRAPS,
+  looseHint,
+  monkeySwap,
+  partsOfSpeechHint,
+  strictHint,
+  unknownWordSteps,
+  wordCount,
+} from "@/lib/analogy";
 
 import {
   PROFILES,
@@ -90,6 +98,7 @@ function Practice() {
 
   const [draft, setDraft] = useState("");
   const [showBreak, setShowBreak] = useState(false);
+  const [showStuck, setShowStuck] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
@@ -172,36 +181,41 @@ function Practice() {
   };
 
   /* ---------------- STATE 3: discard the losers ---------------- */
-  const toggleDiscard = (label: string) => {
+  const setDiscard = (label: string, out: boolean) => {
     const already = drill.awardedJudged.includes(label);
     const isDiscarded = drill.judgments[label] === "no";
+    if (out === isDiscarded) return;
     setDrill(
       (d) => {
         const judgments = { ...d.judgments };
-        if (isDiscarded) delete judgments[label];
-        else judgments[label] = "no" as Judgment;
+        if (out) judgments[label] = "no" as Judgment;
+        else delete judgments[label];
         return {
           ...d,
           judgments,
           monkeyIndex: Object.keys(judgments).length,
-          awardedJudged: already || isDiscarded ? d.awardedJudged : [...d.awardedJudged, label],
+          awardedJudged: already || !out ? d.awardedJudged : [...d.awardedJudged, label],
         };
       },
-      (prev, d) => (already || isDiscarded ? prev : grant(prev, d, 1)),
+      (prev, d) => (already || !out ? prev : grant(prev, d, 1)),
     );
   };
 
   /* ---------------- STATE 4: repair the sentence ---------------- */
   const reopenBridge = () => {
     setDraft(drill.bridge);
+    // Keep her crossouts — the new sentence only has to sort what's still standing.
     setDrill((d) => ({
       ...d,
       locked: false,
       phase: "stem",
-      judgments: {},
-      monkeyIndex: 0,
       verdict: null,
+      rewrites: (d.rewrites ?? 0) + 1,
     }));
+  };
+
+  const peekModel = () => {
+    setDrill((d) => ({ ...d, peeked: true, stuckOnWord: true }));
   };
 
   /* ---------------- STATE 5: final answer ---------------- */
@@ -374,8 +388,23 @@ function Practice() {
         {drill.phase === "stem" && (
           <section className="quest-card space-y-4 p-7">
             <h2 className="text-2xl font-extrabold">
-              Now write your bridge sentence — how do these two words connect?
+              {(drill.rewrites ?? 0) > 0
+                ? "Rewrite it — make it fit only this pair"
+                : "Now write your bridge sentence — how do these two words connect?"}
             </h2>
+            {(drill.rewrites ?? 0) > 0 && (
+              <>
+                <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
+                  {looseHint(q.stem, FAMILIES[q.family].label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
+                </p>
+                {discarded.length > 0 && (
+                  <p className="text-base text-muted-foreground">
+                    Your {discarded.length} crossouts stay crossed out — the new sentence only has to sort the{" "}
+                    {standing.length} left.
+                  </p>
+                )}
+              </>
+            )}
             <p className="text-base text-muted-foreground">
               Use both stem words. Tap the mic on the keyboard to dictate.
             </p>
@@ -397,8 +426,37 @@ function Practice() {
                 🔒 Lock My Sentence
               </BouncyTap>
             </div>
+
+            {/* Don't know one of the words? */}
+            <BouncyTap
+              onClick={() => setShowStuck((s) => !s)}
+              className="border border-border px-5 py-3 text-base text-muted-foreground"
+            >
+              I don't know one of these words
+            </BouncyTap>
+            {showStuck && (
+              <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5">
+                <p className="text-lg font-extrabold">That's okay — do it in this order:</p>
+                <ol className="space-y-2 text-base">
+                  {unknownWordSteps(q.stem).map((s, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span className="font-extrabold text-primary">{i + 1}.</span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ol>
+                {drill.peeked ? (
+                  <p className="rounded-2xl bg-card p-4 text-[22px] leading-snug">{q.bridge}</p>
+                ) : (
+                  <BouncyTap onClick={peekModel} className="border border-border px-5 py-3 text-base">
+                    Show me a model sentence
+                  </BouncyTap>
+                )}
+              </div>
+            )}
           </section>
         )}
+
 
         {/* STATE 3 — all five choices, discard one by one */}
         {drill.phase === "monkey" && (
@@ -425,14 +483,28 @@ function Practice() {
                     <p className={`mt-2 text-[24px] leading-snug ${out ? "line-through opacity-70" : ""}`}>
                       {monkeySwap(drill.bridge, q.stem, c.pair)}
                     </p>
-                    <BouncyTap
-                      onClick={() => toggleDiscard(c.label)}
-                      className={`mt-3 border px-5 py-3 text-lg ${
-                        out ? "border-border text-muted-foreground" : "border-border hover:border-primary"
-                      }`}
-                    >
-                      {out ? "↩ Put it back" : "✕ Doesn't fit — discard"}
-                    </BouncyTap>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <BouncyTap
+                        onClick={() => setDiscard(c.label, true)}
+                        className={`border px-5 py-3 text-lg ${
+                          out
+                            ? "border-transparent bg-secondary font-extrabold"
+                            : "border-border hover:border-primary"
+                        }`}
+                      >
+                        ✕ Doesn't fit — discard
+                      </BouncyTap>
+                      <BouncyTap
+                        onClick={() => setDiscard(c.label, false)}
+                        className={`border px-5 py-3 text-lg ${
+                          !out
+                            ? "border-transparent bg-secondary font-extrabold"
+                            : "border-border hover:border-primary"
+                        }`}
+                      >
+                        Hold
+                      </BouncyTap>
+                    </div>
                   </motion.li>
                 );
               })}
@@ -444,32 +516,65 @@ function Practice() {
                 <p className="script-type text-4xl text-success">One survivor!</p>
                 <p className="text-lg text-muted-foreground">Your sentence did its job.</p>
                 <BouncyTap
-                  onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "clean" }))}
+                  onClick={() => answer(standing[0]!.label)}
                   className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
                 >
-                  Choose my answer →
+                  Lock in ({standing[0]!.label}) {standing[0]!.pair} →
                 </BouncyTap>
+                <div>
+                  <BouncyTap
+                    onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "clean" }))}
+                    className="border border-border px-6 py-3 text-base text-muted-foreground"
+                  >
+                    Wait — let me see them all first
+                  </BouncyTap>
+                </div>
               </div>
             )}
-            {standing.length > 1 && (
+            {standing.length > 1 && discarded.length > 0 && (
               <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5 text-center">
                 <p className="text-xl font-extrabold">
                   {standing.length} still standing — your sentence is too loose.
                 </p>
                 <p className="text-base text-muted-foreground">
-                  Add the detail that only the stem pair has: how, why, or how much. Then re-test.
+                  {looseHint(q.stem, FAMILIES[q.family].label, standing.length, drill.rewrites ?? 0)}
                 </p>
                 <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
                   Build a stronger sentence
                 </BouncyTap>
+                {(drill.rewrites ?? 0) >= 1 && (
+                  <div className="space-y-3 rounded-3xl border border-border bg-card p-5 text-left">
+                    <p className="text-lg font-extrabold">Sentence not getting sharper? Switch methods.</p>
+                    <p className="text-base">{partsOfSpeechHint(q.stem)}</p>
+                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                      Traps hiding in these choices
+                    </p>
+                    <ul className="space-y-2 text-base">
+                      {TRAPS.map((t) => (
+                        <li key={t.name}>
+                          <span className="font-extrabold text-primary">{t.name}:</span> {t.tell}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {(drill.rewrites ?? 0) >= 2 && (
+                  <div>
+                    <BouncyTap
+                      onClick={() => setDrill((d) => ({ ...d, phase: "final", verdict: "loose" }))}
+                      className="border border-border px-6 py-3 text-base text-muted-foreground"
+                    >
+                      Pick my best guess from what's left
+                    </BouncyTap>
+                  </div>
+                )}
               </div>
             )}
+
             {standing.length === 0 && (
               <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--warn)" }}>
                 <p className="text-xl font-extrabold text-warn">You discarded everything.</p>
-                <p className="text-base text-muted-foreground">
-                  Your sentence is too strict — loosen one word and test again.
-                </p>
+                <p className="text-base text-muted-foreground">{strictHint(q.stem)}</p>
                 <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
                   Rewrite my sentence
                 </BouncyTap>
@@ -478,19 +583,29 @@ function Practice() {
           </section>
         )}
 
-        {/* STATE 4 — final answer */}
+        {/* STATE 4 — final answer, with her crossouts still showing */}
         {drill.phase === "final" && (
           <section className="quest-card space-y-3 p-7">
             <h2 className="text-2xl font-extrabold">Your final answer</h2>
-            {q.choices.map((c) => (
-              <BouncyTap
-                key={c.label}
-                onClick={() => answer(c.label)}
-                className="block w-full border border-border bg-secondary/40 px-6 py-5 text-left text-[34px] font-bold"
-              >
-                <span className="text-primary">({c.label})</span> {c.pair}
-              </BouncyTap>
-            ))}
+            <p className="text-base text-muted-foreground">
+              Your crossouts are still here. Tap the one you're keeping.
+            </p>
+            {q.choices.map((c) => {
+              const out = drill.judgments[c.label] === "no";
+              return (
+                <BouncyTap
+                  key={c.label}
+                  onClick={() => answer(c.label)}
+                  className={`block w-full border px-6 py-5 text-left text-[34px] font-bold ${
+                    out
+                      ? "border-border bg-transparent text-muted-foreground line-through opacity-50"
+                      : "border-border bg-secondary/40 hover:border-primary"
+                  }`}
+                >
+                  <span className="text-primary">({c.label})</span> {c.pair}
+                </BouncyTap>
+              );
+            })}
             <BouncyTap
               onClick={() => answer(null)}
               className="w-full border border-border px-6 py-4 text-xl text-muted-foreground"
@@ -500,16 +615,45 @@ function Practice() {
           </section>
         )}
 
+
         {/* STATE 5 — feedback */}
         {drill.phase === "feedback" && (
           <section className="quest-card space-y-5 p-7">
             <h2 className="script-type text-5xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
+
+            {/* Wrong label, right answer — name the win. */}
+            {drill.correct && drill.familyGuess && drill.familyGuess !== q.family && (
+              <p className="rounded-3xl border p-5 text-lg" style={{ borderColor: "var(--success)" }}>
+                You called this {FAMILIES[drill.familyGuess as Family].label} and it's really{" "}
+                {FAMILIES[q.family].label} — and you still got it right. That's the whole point of the
+                technique: a sharp sentence rescues a wrong label.
+              </p>
+            )}
+            {drill.correct && drill.peeked && (
+              <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
+                You peeked at a model sentence and then finished it yourself — that's how a new word gets
+                learned. Say the bridge out loud once more and it's yours.
+              </p>
+            )}
+            {drill.correct && (drill.rewrites ?? 0) > 0 && (
+              <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
+                It took {(drill.rewrites ?? 0) + 1} sentences. That's normal — tightening the sentence is the
+                work, not a mistake.
+              </p>
+            )}
+
             <div className="rounded-3xl bg-secondary/50 p-5">
               <p className="text-sm uppercase tracking-widest text-muted-foreground">The target bridge</p>
               <p className="mt-2 text-[30px] leading-snug">{q.bridge}</p>
             </div>
+            {drill.bridge && (
+              <div className="rounded-3xl border border-border p-5">
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">Your sentence</p>
+                <p className="mt-2 text-[24px] leading-snug">{drill.bridge}</p>
+              </div>
+            )}
             <p className="text-2xl font-extrabold">
               Answer: <span className="text-success">({q.correct}) {correctChoice.pair}</span>
             </p>
