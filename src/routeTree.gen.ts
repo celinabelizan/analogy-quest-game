@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ParentRouteImport } from './routes/parent'
+import { Route as DashboardPidRouteImport } from './routes/dashboard.$pid'
+import { Route as PracticePidRouteImport } from './routes/practice.$pid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParentRoute = ParentRouteImport.update({
+  id: '/parent',
+  path: '/parent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardPidRoute = DashboardPidRouteImport.update({
+  id: '/dashboard/$pid',
+  path: '/dashboard/$pid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticePidRoute = PracticePidRouteImport.update({
+  id: '/practice/$pid',
+  path: '/practice/$pid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/parent': typeof ParentRoute
+  '/dashboard/$pid': typeof DashboardPidRoute
+  '/practice/$pid': typeof PracticePidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/parent': typeof ParentRoute
+  '/dashboard/$pid': typeof DashboardPidRoute
+  '/practice/$pid': typeof PracticePidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/parent': typeof ParentRoute
+  '/dashboard/$pid': typeof DashboardPidRoute
+  '/practice/$pid': typeof PracticePidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid'
+  id: '__root__' | '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ParentRoute: typeof ParentRoute
+  DashboardPidRoute: typeof DashboardPidRoute
+  PracticePidRoute: typeof PracticePidRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +78,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parent': {
+      id: '/parent'
+      path: '/parent'
+      fullPath: '/parent'
+      preLoaderRoute: typeof ParentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/$pid': {
+      id: '/dashboard/$pid'
+      path: '/dashboard/$pid'
+      fullPath: '/dashboard/$pid'
+      preLoaderRoute: typeof DashboardPidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice/$pid': {
+      id: '/practice/$pid'
+      path: '/practice/$pid'
+      fullPath: '/practice/$pid'
+      preLoaderRoute: typeof PracticePidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ParentRoute: ParentRoute,
+  DashboardPidRoute: DashboardPidRoute,
+  PracticePidRoute: PracticePidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

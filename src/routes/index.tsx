@@ -1,24 +1,128 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "motion/react";
+import { DoodleField, Flower } from "@/components/quest/Doodles";
+import { ProgressRing } from "@/components/quest/Bits";
+import { PROFILES, useProfile, useShared, type ProfileId } from "@/lib/quest-store";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "SSAT Quest — Analogy Practice for Bianca & Calista" },
+      {
+        name: "description",
+        content:
+          "A playful Middle Level SSAT analogy trainer: build a bridge sentence, run the monkey test, earn XP toward real rewards.",
+      },
+      { property: "og:title", content: "SSAT Quest — Analogy Practice" },
+      {
+        property: "og:description",
+        content: "Bridge sentences, the monkey test, and XP rewards for Middle Level SSAT analogies.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Landing,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function ProfileCard({ id, name, accent }: { id: ProfileId; name: string; accent: string }) {
+  const [p] = useProfile(id);
+  const [shared] = useShared();
+  const active = shared.rewards.find((r) => r.id === p.activeRewardId) ?? null;
+  const pending = p.redemptions.some((r) => r.status === "pending");
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <Link to="/dashboard/$pid" params={{ pid: id }} className="block">
+      <motion.div
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.02, y: -4 }}
+        transition={{ type: "spring", stiffness: 380, damping: 20 }}
+        className="quest-card relative overflow-hidden p-8"
+        style={{ borderColor: `${accent}66` }}
+      >
+        <Flower className="-right-5 -top-4" size={110} rotate={16} opacity={0.22} variant={1} />
+        <Flower className="-bottom-6 -left-5" size={92} rotate={-12} opacity={0.16} variant={0} />
+
+        <h2 className="stem-type text-5xl" style={{ color: accent }}>
+          {name}
+        </h2>
+
+        <div className="mt-6 flex items-center gap-7">
+          <ProgressRing
+            value={active ? p.availableXp : 0}
+            max={active ? active.xp : 1}
+            color={accent}
+            glow={!!active && p.availableXp >= active.xp}
+          >
+            <div>
+              <div className="text-3xl font-extrabold">{p.availableXp}</div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground">XP ready</div>
+            </div>
+          </ProgressRing>
+
+          <div className="space-y-2 text-left">
+            <Stat label="Lifetime XP" value={p.lifetimeXp} />
+            <Stat label="Streak" value={`${p.streak} 🔥`} />
+            <div className="text-[15px] text-muted-foreground">
+              {active ? (
+                <>
+                  <span className="font-bold text-foreground">{active.name}</span>
+                  <br />
+                  {p.availableXp} / {active.xp} XP
+                </>
+              ) : (
+                "Pick a reward to chase"
+              )}
+            </div>
+            {pending && (
+              <div className="inline-block rounded-full bg-primary/20 px-3 py-1 text-sm font-bold text-primary">
+                Waiting for Mom
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </Link>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <span className="text-2xl font-extrabold">{value}</span>
+      <span className="text-xs uppercase tracking-widest text-muted-foreground">{label}</span>
     </div>
+  );
+}
+
+function Landing() {
+  return (
+    <main className="relative min-h-screen px-6 py-12">
+      <DoodleField />
+      <div className="relative z-10 mx-auto max-w-5xl">
+        <header className="relative mb-12 text-center">
+          <Flower className="left-2 -top-4 hidden sm:block" size={70} rotate={-18} opacity={0.3} variant={2} />
+          <Flower className="right-2 -top-2 hidden sm:block" size={64} rotate={22} opacity={0.28} variant={3} />
+          <h1 className="stem-type text-6xl text-primary sm:text-7xl">SSAT Quest</h1>
+          <p className="mt-3 text-xl text-muted-foreground">Analogies. Bridges. Treasure.</p>
+        </header>
+
+        <div className="grid gap-8 md:grid-cols-2">
+          {PROFILES.map((p) => (
+            <ProfileCard key={p.id} id={p.id} name={p.name} accent={p.accent} />
+          ))}
+        </div>
+
+        <div className="mt-14 text-center">
+          <Link
+            to="/parent"
+            className="inline-flex min-h-[48px] items-center rounded-full border border-border px-6 text-base text-muted-foreground"
+          >
+            Parent
+          </Link>
+          <p className="mt-6 text-xs tracking-widest text-muted-foreground/70">SSAT Quest v8</p>
+        </div>
+      </div>
+    </main>
   );
 }
