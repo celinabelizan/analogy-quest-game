@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
+import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
 import { QUESTIONS, type Question } from "@/data/questions";
 import { monkeySwap, wordCount } from "@/lib/analogy";
+
 import {
   PROFILES,
   addXp,
