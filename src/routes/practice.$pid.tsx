@@ -5,7 +5,7 @@ import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
 import { FAMILIES, QUESTIONS, type Family, type Question } from "@/data/questions";
-import { monkeySwap, wordCount } from "@/lib/analogy";
+import { looseHint, monkeySwap, strictHint, unknownWordSteps, wordCount } from "@/lib/analogy";
 
 import {
   PROFILES,
