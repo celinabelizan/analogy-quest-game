@@ -128,7 +128,7 @@ const FIELDS: Array<Array<{ c: string; s: number; r: number; o: number; v: numbe
 ];
 
 export function DoodleField({ seed = 0 }: { seed?: number }) {
-  const field = FIELDS[seed % FIELDS.length];
+  const field = FIELDS[seed % FIELDS.length] ?? FIELDS[0]!;
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {field.map((f, i) => (
