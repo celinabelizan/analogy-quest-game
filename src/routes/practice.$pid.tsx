@@ -266,17 +266,30 @@ function Practice() {
 
   const currentChoice = q.choices[drill.monkeyIndex];
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
+  const stepIndex =
+    drill.phase === "stem"
+      ? 0
+      : drill.phase === "monkey"
+        ? 1
+        : drill.phase === "verdict"
+          ? 2
+          : drill.phase === "final"
+            ? 3
+            : 4;
+  const today = dayOf(p);
 
   return (
     <main className="relative min-h-screen px-5 py-6 sm:px-8">
       <DoodleField />
+      <Confetti fire={burst} />
 
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ y: -40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+            initial={{ y: -40, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: -40, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 480, damping: 18 }}
             className="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-full bg-primary px-6 py-3 text-lg font-extrabold text-primary-foreground shadow-lg"
           >
             {toast}
@@ -284,7 +297,7 @@ function Practice() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto max-w-4xl space-y-6 pb-24">
+      <div className="relative z-10 mx-auto max-w-3xl space-y-5 pb-24">
         <div className="flex items-center justify-between">
           <BouncyTap
             onClick={() => navigate({ to: "/dashboard/$pid", params: { pid: id } })}
@@ -293,12 +306,22 @@ function Practice() {
             ← Dashboard
           </BouncyTap>
           <div className="text-right">
-            <div className="text-2xl font-extrabold" style={{ color: meta.accent }}>
+            <motion.div
+              key={p.availableXp}
+              initial={{ scale: 1.35 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 14 }}
+              className="text-2xl font-extrabold"
+              style={{ color: meta.accent }}
+            >
               {p.availableXp} XP
-            </div>
+            </motion.div>
             <div className="text-sm text-muted-foreground">Streak {p.streak} 🔥</div>
           </div>
         </div>
+
+        <GoalBar done={today.completed} goal={Math.max(5, today.completed)} />
+        <StepTrail active={stepIndex} />
 
         {/* STEM */}
         <section className="quest-card relative overflow-hidden p-7 text-center">
@@ -308,20 +331,21 @@ function Practice() {
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
         </section>
 
-        {/* Locked bridge */}
-        {drill.locked && (
+        {/* Locked bridge — kept in view while it's the thing being tested */}
+        {drill.locked && drill.phase !== "feedback" && (
           <motion.div
             initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="quest-card flex items-start gap-3 p-6"
+            className="flex items-start gap-3 rounded-3xl border border-success/30 bg-success/10 p-5"
           >
-            <span className="text-3xl" aria-hidden="true">
-              🔒
+            <span className="text-2xl" aria-hidden="true">
+              ✓
             </span>
-            <p className="text-[30px] leading-snug">{drill.bridge}</p>
+            <p className="text-[26px] leading-snug">{drill.bridge}</p>
           </motion.div>
         )}
+
 
         {/* STATE 1 + 2 */}
         {drill.phase === "stem" && (
