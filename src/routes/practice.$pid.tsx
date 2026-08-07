@@ -622,10 +622,38 @@ function Practice() {
             <h2 className="script-type text-5xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
+
+            {/* Wrong label, right answer — name the win. */}
+            {drill.correct && drill.familyGuess && drill.familyGuess !== q.family && (
+              <p className="rounded-3xl border p-5 text-lg" style={{ borderColor: "var(--success)" }}>
+                You called this {FAMILIES[drill.familyGuess as Family].label} and it's really{" "}
+                {FAMILIES[q.family].label} — and you still got it right. That's the whole point of the
+                technique: a sharp sentence rescues a wrong label.
+              </p>
+            )}
+            {drill.correct && drill.peeked && (
+              <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
+                You peeked at a model sentence and then finished it yourself — that's how a new word gets
+                learned. Say the bridge out loud once more and it's yours.
+              </p>
+            )}
+            {drill.correct && (drill.rewrites ?? 0) > 0 && (
+              <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
+                It took {(drill.rewrites ?? 0) + 1} sentences. That's normal — tightening the sentence is the
+                work, not a mistake.
+              </p>
+            )}
+
             <div className="rounded-3xl bg-secondary/50 p-5">
               <p className="text-sm uppercase tracking-widest text-muted-foreground">The target bridge</p>
               <p className="mt-2 text-[30px] leading-snug">{q.bridge}</p>
             </div>
+            {drill.bridge && (
+              <div className="rounded-3xl border border-border p-5">
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">Your sentence</p>
+                <p className="mt-2 text-[24px] leading-snug">{drill.bridge}</p>
+              </div>
+            )}
             <p className="text-2xl font-extrabold">
               Answer: <span className="text-success">({q.correct}) {correctChoice.pair}</span>
             </p>
