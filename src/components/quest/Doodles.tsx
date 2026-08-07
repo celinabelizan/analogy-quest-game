@@ -101,17 +101,24 @@ export function DoodleField() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {/* top hanging sprigs */}
-      <Flower className="-left-2 -top-8" size={150} rotate={182} opacity={0.5} variant={1} />
-      <Flower className="left-[16%] -top-10" size={120} rotate={178} opacity={0.35} variant={3} />
-      <Flower className="left-[38%] -top-6" size={96} rotate={183} opacity={0.28} variant={1} />
-      <Flower className="right-[18%] -top-8" size={130} rotate={177} opacity={0.4} variant={3} />
-      <Flower className="-right-3 -top-6" size={140} rotate={185} opacity={0.45} variant={1} />
+      <Flower className="-left-2 -top-8" size={150} rotate={182} opacity={0.85} variant={1} />
+      <Flower className="left-[9%] -top-12" size={112} rotate={179} opacity={0.6} variant={0} />
+      <Flower className="left-[18%] -top-10" size={124} rotate={178} opacity={0.75} variant={3} />
+      <Flower className="left-[30%] -top-6" size={94} rotate={183} opacity={0.5} variant={1} />
+      <Flower className="left-[42%] -top-11" size={116} rotate={180} opacity={0.62} variant={0} />
+      <Flower className="right-[30%] -top-7" size={100} rotate={181} opacity={0.5} variant={1} />
+      <Flower className="right-[17%] -top-10" size={132} rotate={177} opacity={0.75} variant={3} />
+      <Flower className="right-[7%] -top-12" size={108} rotate={182} opacity={0.55} variant={0} />
+      <Flower className="-right-3 -top-6" size={144} rotate={185} opacity={0.85} variant={1} />
       {/* bottom meadow */}
-      <Flower className="-left-3 -bottom-6" size={140} rotate={-4} opacity={0.45} variant={0} />
-      <Flower className="left-[20%] -bottom-8" size={110} rotate={5} opacity={0.3} variant={2} />
-      <Flower className="left-[45%] -bottom-6" size={96} rotate={-3} opacity={0.24} variant={3} />
-      <Flower className="right-[16%] -bottom-8" size={124} rotate={4} opacity={0.34} variant={0} />
-      <Flower className="-right-2 -bottom-5" size={146} rotate={-6} opacity={0.42} variant={2} />
+      <Flower className="-left-3 -bottom-6" size={144} rotate={-4} opacity={0.85} variant={0} />
+      <Flower className="left-[12%] -bottom-9" size={118} rotate={3} opacity={0.6} variant={3} />
+      <Flower className="left-[24%] -bottom-7" size={128} rotate={-5} opacity={0.7} variant={2} />
+      <Flower className="left-[40%] -bottom-9" size={102} rotate={4} opacity={0.5} variant={0} />
+      <Flower className="right-[34%] -bottom-8" size={96} rotate={-3} opacity={0.45} variant={3} />
+      <Flower className="right-[18%] -bottom-9" size={126} rotate={4} opacity={0.7} variant={0} />
+      <Flower className="right-[6%] -bottom-7" size={112} rotate={-6} opacity={0.55} variant={2} />
+      <Flower className="-right-2 -bottom-5" size={148} rotate={-6} opacity={0.85} variant={2} />
     </div>
   );
 }
