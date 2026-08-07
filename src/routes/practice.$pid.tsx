@@ -196,12 +196,11 @@ function Practice() {
   /* ---------------- STATE 4: repair the sentence ---------------- */
   const reopenBridge = () => {
     setDraft(drill.bridge);
+    // Keep her crossouts — the new sentence only has to sort what's still standing.
     setDrill((d) => ({
       ...d,
       locked: false,
       phase: "stem",
-      judgments: {},
-      monkeyIndex: 0,
       verdict: null,
       rewrites: (d.rewrites ?? 0) + 1,
     }));
