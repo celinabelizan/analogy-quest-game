@@ -68,3 +68,18 @@ export function unknownWordSteps(stem: string) {
     `Still stuck? Peek at the model sentence, read it, then say it back in your own words. Peeking still teaches you the bridge.`,
   ];
 }
+
+/** Method two: match the grammar shape of the stem pair. */
+export function partsOfSpeechHint(stem: string) {
+  const [a, b] = pairWords(stem).map(lower);
+  return `Method two — grammar match. Decide what "${a}" is (noun? verb? adjective?) and what "${b}" is, then check each pair left. If a pair's words aren't the same kinds of words in the same order as ${a} : ${b}, cross it off even if it feels related.`;
+}
+
+/** The traps SSAT writers reuse on almost every analogy. */
+export const TRAPS: { name: string; tell: string }[] = [
+  { name: "Same topic, wrong bridge", tell: "It's about the same subject as the stem, so it feels right — but the connection is different. Topic never counts." },
+  { name: "Flipped pair", tell: "The right relationship, but backwards. Read your sentence in the same order both times." },
+  { name: "Part instead of whole", tell: "It swaps one word for a piece of it (needle/compass), quietly changing the bridge." },
+  { name: "Too weak or too strong", tell: "The idea is right but the degree is off — 'damp' is not 'flooded'." },
+  { name: "Two choices with the same bridge", tell: "If two pairs share one bridge, neither can be the answer. Cross off both." },
+];
