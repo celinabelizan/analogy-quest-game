@@ -90,6 +90,7 @@ function Practice() {
 
   const [draft, setDraft] = useState("");
   const [showBreak, setShowBreak] = useState(false);
+  const [showStuck, setShowStuck] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
