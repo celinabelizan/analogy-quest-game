@@ -387,35 +387,39 @@ function Practice() {
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               className="quest-card space-y-5 p-7"
             >
-              <p className="text-sm uppercase tracking-widest text-muted-foreground">
-                Monkey test — choice {drill.monkeyIndex + 1} of {q.choices.length}
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Monkey test
+                </p>
+                <ChoiceChecks total={q.choices.length} done={drill.monkeyIndex} />
+              </div>
               <p className="stem-type text-[36px]">
                 ({currentChoice.label}) {currentChoice.pair}
               </p>
-              <p className="rounded-3xl bg-secondary/50 p-5 text-[30px] leading-snug">
+              <p className="rounded-3xl bg-secondary/60 p-5 text-[30px] leading-snug">
                 {monkeySwap(drill.bridge, q.stem, currentChoice.pair)}
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "works")}
-                  className="bg-[#22C55E]/20 py-5 text-2xl text-[#22C55E] ring-1 ring-[#22C55E]/40"
+                  className="bg-success/15 py-5 text-2xl text-success ring-1 ring-success/40"
                 >
-                  Works
+                  ✓ Works
                 </BouncyTap>
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "kind")}
-                  className="bg-[#FACC15]/20 py-5 text-2xl text-[#FACC15] ring-1 ring-[#FACC15]/40"
+                  className="bg-warn/15 py-5 text-2xl text-warn ring-1 ring-warn/40"
                 >
-                  Kind of
+                  ~ Kind of
                 </BouncyTap>
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "no")}
-                  className="bg-[#EF4444]/20 py-5 text-2xl text-[#EF4444] ring-1 ring-[#EF4444]/40"
+                  className="bg-danger/15 py-5 text-2xl text-danger ring-1 ring-danger/40"
                 >
-                  Doesn't work
+                  ✕ Nope
                 </BouncyTap>
               </div>
+
             </motion.section>
           </AnimatePresence>
         )}
