@@ -320,7 +320,7 @@ function Practice() {
           </div>
         </div>
 
-        <GoalBar done={today.completed} goal={Math.max(5, today.completed)} />
+        <GoalBar done={today.completed} goal={5} />
         <StepTrail active={stepIndex} />
 
         {/* STEM */}
