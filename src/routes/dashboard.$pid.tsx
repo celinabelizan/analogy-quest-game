@@ -79,7 +79,7 @@ function Dashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 grid place-items-center bg-navy/80 px-6 text-center backdrop-blur-sm"
+            className="fixed inset-0 z-50 grid place-items-center bg-background/85 px-6 text-center backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.6, rotate: -6 }}
