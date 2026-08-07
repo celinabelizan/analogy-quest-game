@@ -122,17 +122,82 @@ export function Flower({
       aria-hidden="true"
       style={{ transform: `rotate(${rotate}deg)`, opacity }}
     >
-      <g
-        stroke="var(--doodle)"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        transform={`rotate(${skew} 20 140)`}
-      >
-        {STEMS[variant % STEMS.length]}
-      </g>
+      <InkDefs seed={variant} />
+      <InkedStem variant={variant} stroke={stroke} skew={skew} seed={variant} />
     </svg>
+  );
+}
+
+/**
+ * Per-instance ink filters: a slow turbulence displaces the vector paths so
+ * lines waver like a nib on paper, and a fine fractal noise stipples the
+ * stroke with faint grain.
+ */
+function InkDefs({ seed }: { seed: number }) {
+  const s = seed % 8;
+  return (
+    <defs>
+      <filter id={`ink-${s}`} x="-25%" y="-15%" width="150%" height="130%">
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.028"
+          numOctaves={2}
+          seed={s * 13 + 3}
+          result="warp"
+        />
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.5" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id={`grain-${s}`} x="-25%" y="-15%" width="150%" height="130%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={3} seed={s * 7 + 1} result="n" />
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" result="g" />
+        <feComposite in="g" in2="SourceGraphic" operator="in" />
+      </filter>
+    </defs>
+  );
+}
+
+/**
+ * One stem, inked in three passes: a wavering main line, a lighter ghost
+ * pass offset by a hair (the way a pen doubles back), and a grain pass that
+ * breaks the stroke up so it never reads as a clean vector.
+ */
+function InkedStem({
+  variant,
+  stroke,
+  skew,
+  seed,
+}: {
+  variant: number;
+  stroke: number;
+  skew: number;
+  seed: number;
+}) {
+  const s = seed % 8;
+  const art = STEMS[variant % STEMS.length];
+  const base = {
+    stroke: "var(--doodle)",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    fill: "none",
+  };
+  return (
+    <g transform={`rotate(${skew} 20 140)`}>
+      <g {...base} strokeWidth={stroke} opacity={0.92} filter={`url(#ink-${s})`}>
+        {art}
+      </g>
+      <g
+        {...base}
+        strokeWidth={stroke * 0.7}
+        opacity={0.35}
+        filter={`url(#ink-${s})`}
+        transform={`translate(${(s % 3) * 0.3 - 0.3} ${(s % 2) * 0.4 - 0.2})`}
+      >
+        {art}
+      </g>
+      <g {...base} strokeWidth={stroke * 2.1} opacity={0.5} filter={`url(#grain-${s})`}>
+        {art}
+      </g>
+    </g>
   );
 }
 
@@ -161,20 +226,14 @@ function Meadow({ stalks, hanging = false }: { stalks: Stalk[]; hanging?: boolea
           fill="none"
           aria-hidden="true"
         >
-          <g
-            stroke="var(--doodle)"
-            strokeWidth={1.15}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          >
-            {STEMS[f.v % STEMS.length]}
-          </g>
+          <InkDefs seed={f.v * 3 + i} />
+          <InkedStem variant={f.v} stroke={1.15} skew={((i * 5) % 7) - 3} seed={f.v * 3 + i} />
         </svg>
       ))}
     </div>
   );
 }
+
 
 /**
  * Each page gets its own sparse arrangement: a small cluster of wildflowers
