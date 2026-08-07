@@ -339,7 +339,7 @@ function Practice() {
             initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="flex items-start gap-3 rounded-3xl border border-success/30 bg-success/10 p-5"
+            className="flex items-start gap-3 rounded-3xl border border-border bg-secondary/50 p-5"
           >
             <span className="text-2xl" aria-hidden="true">
               ✓
@@ -404,19 +404,19 @@ function Practice() {
               <div className="grid gap-3 sm:grid-cols-3">
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "works")}
-                  className="bg-success/15 py-5 text-2xl text-success ring-1 ring-success/40"
+                  className="border border-border bg-card py-5 text-2xl hover:border-primary"
                 >
                   ✓ Works
                 </BouncyTap>
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "kind")}
-                  className="bg-warn/15 py-5 text-2xl text-warn ring-1 ring-warn/40"
+                  className="border border-border bg-card py-5 text-2xl hover:border-primary"
                 >
                   ~ Kind of
                 </BouncyTap>
                 <BouncyTap
                   onClick={() => judge(currentChoice.label, "no")}
-                  className="bg-danger/15 py-5 text-2xl text-danger ring-1 ring-danger/40"
+                  className="border border-border bg-card py-5 text-2xl hover:border-primary"
                 >
                   ✕ Nope
                 </BouncyTap>
@@ -515,12 +515,14 @@ function Practice() {
                     key={c.label}
                     className="rounded-2xl border p-4 text-lg"
                     style={{
-                      borderColor: isCorrect ? "var(--success)" : tempting ? "var(--warn)" : "var(--border)",
-                      backgroundColor: isCorrect ? "color-mix(in oklab, var(--success) 12%, transparent)" : tempting ? "color-mix(in oklab, var(--warn) 14%, transparent)" : "transparent",
+                      borderColor: isCorrect ? "var(--success)" : "var(--border)",
+                      backgroundColor: isCorrect
+                        ? "color-mix(in oklab, var(--success) 10%, transparent)"
+                        : "transparent",
                     }}
                   >
                     <span className="font-extrabold">({c.label}) {c.pair}</span>
-                    {tempting && <span className="ml-2 font-bold text-warn">tempting distractor</span>}
+                    {tempting && <span className="ml-2 font-bold text-muted-foreground">your pick</span>}
                     <p className="text-muted-foreground">{c.why}</p>
                   </li>
                 );
