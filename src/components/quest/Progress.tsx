@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
-export const STEPS = ["Bridge", "Test", "Verdict", "Answer", "Learn"] as const;
+export const STEPS = ["Type", "Sentence", "Discard", "Answer", "Learn"] as const;
 
 /** One-thing-at-a-time trail: past steps become checkmarks, the current one pulses. */
 export function StepTrail({ active }: { active: number }) {

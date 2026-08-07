@@ -24,7 +24,9 @@ export type Judgment = "works" | "kind" | "no";
 
 export type Drill = {
   qid: string;
-  phase: "stem" | "monkey" | "verdict" | "final" | "feedback";
+  phase: "type" | "stem" | "monkey" | "verdict" | "final" | "feedback";
+  familyGuess: string | null;
+  awardedType: boolean;
   bridge: string;
   locked: boolean;
   monkeyIndex: number;
