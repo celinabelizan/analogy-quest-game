@@ -638,14 +638,32 @@ function Practice() {
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
 
-            {/* Wrong label, right answer — name the win. */}
-            {drill.correct && drill.familyGuess && drill.familyGuess !== q.family && (
-              <p className="rounded-3xl border p-5 text-lg" style={{ borderColor: "var(--success)" }}>
-                You called this {FAMILIES[drill.familyGuess as Family].label} and it's really{" "}
-                {FAMILIES[q.family].label} — and you still got it right. That's the whole point of the
-                technique: a sharp sentence rescues a wrong label.
-              </p>
+            {/* Category scorecard — always shown, right or wrong. */}
+            {drill.familyGuess && (
+              <div
+                className="rounded-3xl border p-5 text-lg"
+                style={{
+                  borderColor: drill.familyGuess === q.family ? "var(--success)" : "var(--warn)",
+                }}
+              >
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">The category</p>
+                {drill.familyGuess === q.family ? (
+                  <p className="mt-2">
+                    ✓ You named it: <strong>{FAMILIES[q.family].label}</strong>. Naming the category is what
+                    keeps working when the words get hard.
+                  </p>
+                ) : (
+                  <p className="mt-2">
+                    You said <strong>{FAMILIES[drill.familyGuess as Family].label}</strong> — this one is{" "}
+                    <strong>{FAMILIES[q.family].label}</strong> ({q.bridge})
+                    {drill.correct
+                      ? ". You still got it right, so your sentence rescued the wrong label — but learn this category, because on hard words the label is all you'll have."
+                      : ". Learn this one: say the pair and the category out loud before you move on."}
+                  </p>
+                )}
+              </div>
             )}
+
             {drill.correct && drill.peeked && (
               <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
                 You peeked at a model sentence and then finished it yourself — that's how a new word gets
