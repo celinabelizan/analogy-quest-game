@@ -1,22 +1,30 @@
 export type Family =
-  | "synonym-antonym"
+  | "synonym"
+  | "antonym"
   | "kind-category"
-  | "young-adult"
   | "part-whole"
   | "tool-function"
+  | "worker-tool"
+  | "worker-subject"
   | "characteristic"
-  | "action-degree"
-  | "people-places";
+  | "degree"
+  | "cause-effect"
+  | "young-adult"
+  | "thing-place";
 
 export const FAMILIES: Record<Family, { label: string; color: string }> = {
-  "synonym-antonym": { label: "Synonym / Antonym", color: "#EF4444" },
-  "kind-category": { label: "Kind / Category", color: "#F97316" },
-  "young-adult": { label: "Young / Adult", color: "#EC4899" },
+  synonym: { label: "Synonym — same meaning", color: "#EF4444" },
+  antonym: { label: "Antonym — opposite meaning", color: "#F97316" },
+  "kind-category": { label: "Kind / Category", color: "#F59E0B" },
   "part-whole": { label: "Part / Whole", color: "#FACC15" },
-  "tool-function": { label: "Tool / Function", color: "#22C55E" },
-  characteristic: { label: "Characteristic", color: "#3B82F6" },
-  "action-degree": { label: "Action / Degree / Cause", color: "#A855F7" },
-  "people-places": { label: "People / Places / Roles", color: "#64748B" },
+  "tool-function": { label: "Tool / What it does", color: "#22C55E" },
+  "worker-tool": { label: "Worker / Their tool", color: "#10B981" },
+  "worker-subject": { label: "Person / Who or what they work on", color: "#06B6D4" },
+  characteristic: { label: "Thing / Its defining trait", color: "#3B82F6" },
+  degree: { label: "Degree — same idea, stronger", color: "#A855F7" },
+  "cause-effect": { label: "Cause / Effect", color: "#8B5CF6" },
+  "young-adult": { label: "Young / Adult", color: "#EC4899" },
+  "thing-place": { label: "Thing / Where it belongs", color: "#64748B" },
 };
 
 export type Choice = { label: string; pair: string; why: string };
@@ -46,7 +54,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "P2",
-    family: "action-degree",
+    family: "degree",
     stem: "SCURRY : MOVE",
     bridge: "To scurry is to move in a very quick, hurried manner.",
     correct: "D",
@@ -60,7 +68,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "P3",
-    family: "people-places",
+    family: "worker-subject",
     stem: "PATIENT : DOCTOR",
     bridge: "A patient receives medical treatment from a doctor.",
     correct: "B",
@@ -74,7 +82,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "M1",
-    family: "characteristic",
+    family: "tool-function",
     stem: "GLOVE : HAND",
     bridge: "A glove is worn on a hand.",
     correct: "B",
@@ -130,7 +138,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "G3",
-    family: "people-places",
+    family: "worker-subject",
     stem: "DENTIST : TEETH",
     bridge: "A dentist is a specialist who professionally cares for teeth.",
     correct: "A",
@@ -144,7 +152,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "G4",
-    family: "synonym-antonym",
+    family: "antonym",
     stem: "GENEROUS : SELFISH",
     bridge: "Generous and selfish describe opposite traits.",
     correct: "A",
@@ -158,7 +166,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "C1",
-    family: "people-places",
+    family: "thing-place",
     stem: "BEE : HIVE",
     bridge: "A bee characteristically lives in a hive.",
     correct: "A",
@@ -214,7 +222,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "C5",
-    family: "synonym-antonym",
+    family: "antonym",
     stem: "FREEZE : MELT",
     bridge: "To freeze is the opposite of to melt.",
     correct: "A",
@@ -228,7 +236,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "C6",
-    family: "tool-function",
+    family: "worker-tool",
     stem: "CARPENTER : HAMMER",
     bridge: "A carpenter characteristically uses a hammer as a tool.",
     correct: "A",
@@ -256,7 +264,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "H2",
-    family: "action-degree",
+    family: "degree",
     stem: "FRUGAL : MISERLY",
     bridge: "Miserly is an excessive, negatively judged extreme of being frugal.",
     correct: "A",
@@ -270,7 +278,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "H3",
-    family: "action-degree",
+    family: "cause-effect",
     stem: "BLUEPRINT : BUILDING",
     bridge: "A blueprint is a plan used to create a building.",
     correct: "A",
@@ -284,7 +292,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "H4",
-    family: "action-degree",
+    family: "degree",
     stem: "MUMBLE : SPEAK",
     bridge: "To mumble is to speak indistinctly so the words are hard to understand.",
     correct: "A",
@@ -298,7 +306,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "H5",
-    family: "people-places",
+    family: "worker-subject",
     stem: "ARCHAEOLOGIST : ARTIFACT",
     bridge: "An archaeologist is a specialist who studies artifacts.",
     correct: "A",
@@ -312,7 +320,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "H6",
-    family: "action-degree",
+    family: "cause-effect",
     stem: "VERDICT : TRIAL",
     bridge: "A verdict is a conclusion reached through a trial.",
     correct: "A",
@@ -340,7 +348,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "F2",
-    family: "action-degree",
+    family: "degree",
     stem: "SPRINT : RUN",
     bridge: "To sprint is to run very fast.",
     correct: "A",
@@ -354,7 +362,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "F3",
-    family: "people-places",
+    family: "worker-subject",
     stem: "DEFENDANT : ATTORNEY",
     bridge: "A defendant is a party that may be legally represented by an attorney.",
     correct: "A",
