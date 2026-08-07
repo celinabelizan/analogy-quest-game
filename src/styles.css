@@ -164,23 +164,20 @@
   }
 
   body {
-    background-color: #0a0f24;
+    background-color: #ffffff;
     font-size: 18px;
   }
 }
 
 @utility quest-card {
-  background: linear-gradient(
-    160deg,
-    color-mix(in oklab, var(--card) 92%, transparent),
-    color-mix(in oklab, var(--navy) 88%, transparent)
-  );
-  border: 1px solid color-mix(in oklab, var(--pink) 26%, transparent);
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--pink) 18%, transparent);
   border-radius: 2rem;
   box-shadow:
-    0 24px 60px -30px rgb(0 0 0 / 0.85),
-    inset 0 1px 0 color-mix(in oklab, white 8%, transparent);
+    0 18px 40px -28px color-mix(in oklab, var(--navy) 45%, transparent),
+    0 1px 0 color-mix(in oklab, var(--pink) 10%, transparent);
 }
+
 
 @utility stem-type {
   font-family: var(--font-serif-quest);
