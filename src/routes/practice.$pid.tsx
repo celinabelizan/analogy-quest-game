@@ -472,8 +472,8 @@ function Practice() {
         <StepTrail active={stepIndex} />
 
         {/* STEM */}
-        <section className="quest-card relative overflow-hidden p-7 text-center">
-          <Flower className="-right-4 bottom-0" size={80} rotate={20} opacity={0.12} variant={2} />
+        <section className="quest-card relative overflow-visible p-7 text-center">
+          <Flower className="right-2 -bottom-8 z-30" size={96} rotate={20} opacity={0.16} variant={2} />
           {drill.phase !== "type" && <FamilyBadge family={q.family} />}
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
           {drill.phase !== "type" && drill.familyGuess && (
