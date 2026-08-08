@@ -258,16 +258,29 @@ function RewardManager() {
   return (
     <section className="quest-card space-y-4 p-6">
       <h2 className="text-xl font-extrabold">Reward manager</h2>
+      <p className="text-sm text-muted-foreground">Each girl has her own private wishlist.</p>
+      <div className="flex gap-2">
+        {PROFILES.map((pr) => (
+          <BouncyTap
+            key={pr.id}
+            onClick={() => setWho(pr.id)}
+            className={
+              who === pr.id
+                ? "bg-primary px-5 py-2 text-primary-foreground"
+                : "border border-border px-5 py-2"
+            }
+          >
+            {pr.name}
+          </BouncyTap>
+        ))}
+      </div>
       <ul className="space-y-2">
-        {shared.rewards.map((r) => (
+        {list.map((r) => (
           <li key={r.id} className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3">
             <input
               value={r.name}
               onChange={(e) =>
-                updateShared((s) => ({
-                  ...s,
-                  rewards: s.rewards.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)),
-                }))
+                setList((l) => l.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)))
               }
               className="min-h-[48px] flex-1 rounded-xl bg-secondary/40 px-3 outline-none focus:ring-1 focus:ring-primary"
             />
@@ -275,21 +288,19 @@ function RewardManager() {
               type="number"
               value={r.xp}
               onChange={(e) =>
-                updateShared((s) => ({
-                  ...s,
-                  rewards: s.rewards.map((x) => (x.id === r.id ? { ...x, xp: Number(e.target.value) } : x)),
-                }))
+                setList((l) => l.map((x) => (x.id === r.id ? { ...x, xp: Number(e.target.value) } : x)))
               }
               className="min-h-[48px] w-24 rounded-xl bg-secondary/40 px-3 text-right outline-none focus:ring-1 focus:ring-primary"
             />
             <BouncyTap
-              onClick={() => updateShared((s) => ({ ...s, rewards: s.rewards.filter((x) => x.id !== r.id) }))}
+              onClick={() => setList((l) => l.filter((x) => x.id !== r.id))}
               className="border border-border px-4 py-2 text-destructive"
             >
               Delete
             </BouncyTap>
           </li>
         ))}
+
       </ul>
 
       <div className="space-y-3 rounded-2xl border border-border p-4">
