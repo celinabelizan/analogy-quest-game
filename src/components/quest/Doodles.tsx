@@ -296,7 +296,7 @@ const FIELDS: Array<{ bottom: Stalk[]; top: Stalk[] }> = [
 export function DoodleField({ seed = 0 }: { seed?: number }) {
   const field = FIELDS[seed % FIELDS.length] ?? FIELDS[0]!;
   return (
-    <div className="pointer-events-none fixed inset-0 z-20 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <Meadow stalks={field.bottom} />
       <Meadow stalks={field.top} hanging />
     </div>
