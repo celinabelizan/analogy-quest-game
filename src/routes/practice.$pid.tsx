@@ -307,11 +307,11 @@ function Practice() {
         orderTrap: chosenReversed,
         struggle: classifyStruggle({
           correct: d.correct === true,
-          peeked: d.peeked,
-          stuckOnWord: d.stuckOnWord,
+          peeked: !!d.peeked,
+          stuckOnWord: !!d.stuckOnWord,
           orderTrap: chosenReversed,
-          rewrites: d.rewrites,
-          coachUsed: d.coachUsed,
+          rewrites: d.rewrites ?? 0,
+          coachUsed: !!d.coachUsed,
           familyRight: !!asked && d.familyGuess === asked.family,
         }),
       };
@@ -358,10 +358,10 @@ function Practice() {
         struggle: classifyStruggle({
           correct: false,
           skipped: true,
-          peeked: d.peeked,
-          stuckOnWord: d.stuckOnWord,
-          rewrites: d.rewrites,
-          coachUsed: d.coachUsed,
+          peeked: !!d.peeked,
+          stuckOnWord: !!d.stuckOnWord,
+          rewrites: d.rewrites ?? 0,
+          coachUsed: !!d.coachUsed,
           familyRight: false,
         }),
       };
