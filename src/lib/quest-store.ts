@@ -4,8 +4,9 @@ import { SEED_REWARDS } from "@/data/questions";
 export type ProfileId = "bianca" | "calista";
 
 export const PROFILES: { id: ProfileId; name: string; age: number; accent: string }[] = [
-  { id: "bianca", name: "Bianca", age: 12, accent: "#FF7A6B" },
-  { id: "calista", name: "Calista", age: 10, accent: "#B69CFF" },
+  { id: "bianca", name: "Bianca", age: 12, accent: "#EE8FC0" },
+  { id: "calista", name: "Calista", age: 10, accent: "#8FD3D0" },
+
 ];
 
 export type Reward = { id: string; name: string; xp: number; photo?: string };
