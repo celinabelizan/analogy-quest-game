@@ -159,8 +159,8 @@ function Dashboard() {
           </section>
 
           {/* Mascot */}
-          <section className="quest-card relative overflow-hidden p-7 text-center">
-            <Flower className="-left-5 bottom-0" size={90} rotate={-14} opacity={0.14} variant={3} />
+          <section className="quest-card relative overflow-visible p-7 text-center">
+            <Flower className="-left-5 -bottom-4 z-20" size={90} rotate={-14} opacity={0.14} variant={3} />
             <h2 className="text-xl font-extrabold">Study buddy</h2>
             <div className="mt-2 flex justify-center">
               <Mascot lifetimeXp={p.lifetimeXp} size={170} />
@@ -174,8 +174,8 @@ function Dashboard() {
         </div>
 
         {/* Streaks */}
-        <section className="quest-card relative overflow-hidden p-7">
-          <Flower className="-right-4 -top-3" size={84} rotate={12} opacity={0.12} variant={2} />
+        <section className="quest-card relative overflow-visible p-7">
+          <Flower className="-right-4 -top-3 z-20" size={84} rotate={12} opacity={0.12} variant={2} />
           <h2 className="text-xl font-extrabold">Streaks</h2>
           <p className="text-sm text-muted-foreground">
             Finishing a question keeps your streak alive — skipping resets it.

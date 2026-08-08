@@ -37,10 +37,9 @@ function ProfileCard({ id, name }: { id: ProfileId; name: string; accent: string
         whileTap={{ scale: 0.97 }}
         whileHover={{ scale: 1.02, y: -4 }}
         transition={{ type: "spring", stiffness: 380, damping: 20 }}
-        className="quest-card relative overflow-hidden p-8"
+        className="quest-card relative overflow-visible p-8"
       >
-        
-        <Flower className="-bottom-6 -left-5" size={92} rotate={-6} opacity={0.18} variant={0} />
+        <Flower className="-bottom-6 -left-5 z-20" size={92} rotate={-6} opacity={0.18} variant={0} />
 
         <h2 className="script-type text-6xl text-primary">{name}</h2>
 
