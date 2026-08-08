@@ -355,7 +355,9 @@ function RewardManager() {
 /** What each girl actually did: questions finished, right/wrong, and weak categories. */
 function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
   const [p] = useProfile(id);
-  const history = p.history ?? [];
+  const all = p.history ?? [];
+  const history = all.filter((h) => !h.skipped);
+  const skipped = all.length - history.length;
   const total = history.length;
   const right = history.filter((h) => h.correct).length;
   const catRight = history.filter((h) => h.familyRight).length;
@@ -373,22 +375,23 @@ function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
     .sort((a, b) => b[1].wrong - a[1].wrong)
     .slice(0, 3);
 
-  const recent = [...history].reverse().slice(0, 8);
+  const recent = [...all].reverse().slice(0, 8);
 
   return (
     <section className="quest-card space-y-3 p-6">
       <h2 className="text-xl font-extrabold">{name}&rsquo;s progress</h2>
-      {total === 0 ? (
+      {all.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No finished questions yet. XP can be earned mid-question, but a question only counts once
           she taps through to the end.
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-4 gap-2 text-center">
             <Stat label="Answered" value={String(total)} />
             <Stat label="Correct" value={`${pct(right)}%`} />
             <Stat label="Category right" value={`${pct(catRight)}%`} />
+            <Stat label="Skipped" value={String(skipped)} />
           </div>
 
           {weak.length > 0 && (
