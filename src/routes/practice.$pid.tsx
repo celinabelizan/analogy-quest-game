@@ -104,6 +104,9 @@ function Practice() {
   const [showBreak, setShowBreak] = useState(false);
   const [showStuck, setShowStuck] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
+  const [coachStep, setCoachStep] = useState(0);
+
   const [toast, setToast] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
