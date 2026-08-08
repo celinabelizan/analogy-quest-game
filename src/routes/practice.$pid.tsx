@@ -610,7 +610,65 @@ function Practice() {
               })}
             </ul>
 
+            {/* Real-time coach — available the moment she's stuck */}
+            {standing.length > 1 && (
+              <div className="space-y-3 rounded-3xl border border-primary/40 bg-card p-5">
+                {!showCoach ? (
+                  <div className="text-center">
+                    <p className="text-base text-muted-foreground">
+                      Can't cross any more out? Don't guess yet.
+                    </p>
+                    <BouncyTap
+                      onClick={openCoach}
+                      className="mt-3 border border-primary px-6 py-3 text-lg text-primary"
+                    >
+                      🙋 Coach me
+                    </BouncyTap>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold uppercase tracking-widest text-primary">
+                      Coach · tip {coachStep + 1}
+                    </p>
+                    <p className="text-xl font-extrabold">{coach.title}</p>
+                    <p className="text-lg leading-snug">{coach.tip}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {coach.action === "rewrite" && (
+                        <BouncyTap
+                          onClick={reopenBridge}
+                          className="bg-primary px-6 py-3 text-lg text-primary-foreground"
+                        >
+                          Write a stronger sentence
+                        </BouncyTap>
+                      )}
+                      <BouncyTap
+                        onClick={() => setCoachStep((s) => s + 1)}
+                        className="border border-border px-6 py-3 text-lg"
+                      >
+                        Another tip
+                      </BouncyTap>
+                      <BouncyTap
+                        onClick={() => setShowCoach(false)}
+                        className="border border-border px-6 py-3 text-base text-muted-foreground"
+                      >
+                        I've got it
+                      </BouncyTap>
+                    </div>
+                    {standingReversed && coachStep >= 1 && (
+                      <p
+                        className="rounded-2xl border p-4 text-lg"
+                        style={{ borderColor: "var(--warn)" }}
+                      >
+                        {reversalPrompt(q.stem)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* live guidance */}
+
             {standing.length === 1 && (
               <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--success)" }}>
                 <p className="script-type text-4xl text-success">One survivor!</p>
