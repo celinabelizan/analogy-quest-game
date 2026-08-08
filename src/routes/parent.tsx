@@ -414,8 +414,12 @@ function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
               <li key={`${h.qid}-${h.at}-${i}`} className="flex items-center justify-between gap-2">
                 <span className="font-bold">{h.stem}</span>
                 <span className="shrink-0 text-muted-foreground">
-                  {h.correct ? "✓" : `✗ ${h.choice ?? "—"} → ${h.correctChoice}`}
-                  {h.familyRight ? "" : " · category off"}
+                  {h.skipped
+                    ? `skipped → ${h.correctChoice}`
+                    : h.correct
+                      ? "✓"
+                      : `✗ ${h.choice ?? "—"} → ${h.correctChoice}`}
+                  {h.skipped || h.familyRight ? "" : " · category off"}
                   {h.peeked ? " · peeked" : ""}
                 </span>
               </li>
