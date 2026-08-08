@@ -62,7 +62,8 @@ export type ProfileState = {
   current: Drill | null;
 };
 
-export type SharedState = { pin: string; rewards: Reward[] };
+/** Each girl has her own private wishlist. */
+export type SharedState = { pin: string; rewards: Record<ProfileId, Reward[]> };
 
 const SHARED_KEY = "ssatquest.v8.shared";
 const profileKey = (id: ProfileId) => `ssatquest.v8.profile.${id}`;
