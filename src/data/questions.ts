@@ -389,3 +389,8 @@ export const SEED_REWARDS = [
   { name: "Extra phone time (1 hour)", xp: 25 },
   { name: "Pick family dinner", xp: 25 },
 ];
+
+const UNKNOWN_FAMILY = { label: "Relationship", color: "#94A3B8" };
+export function famInfo(family: string | null | undefined) {
+  return (family && FAMILIES[family as Family]) || UNKNOWN_FAMILY;
+}
