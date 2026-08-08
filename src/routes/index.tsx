@@ -39,7 +39,7 @@ function ProfileCard({ id, name }: { id: ProfileId; name: string; accent: string
         transition={{ type: "spring", stiffness: 380, damping: 20 }}
         className="quest-card relative overflow-visible p-8"
       >
-        <Flower className="-bottom-6 -left-5 z-20" size={92} rotate={-6} opacity={0.18} variant={0} />
+        <Flower className="-bottom-10 left-2 z-30" size={112} rotate={-6} opacity={0.22} variant={0} />
 
         <h2 className="script-type text-6xl text-primary">{name}</h2>
 
