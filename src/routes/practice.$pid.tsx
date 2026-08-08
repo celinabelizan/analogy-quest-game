@@ -131,6 +131,12 @@ function Practice() {
   }, [drill, q, update]);
 
 
+  // Fresh question, fresh coach.
+  useEffect(() => {
+    setShowCoach(false);
+    setCoachStep(0);
+  }, [drill?.qid]);
+
   useEffect(() => {
     if (drill && !drill.locked) setDraft(drill.bridge);
   }, [drill?.qid, drill?.locked]);
