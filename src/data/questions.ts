@@ -1,3 +1,5 @@
+import { EXTRA_QUESTIONS } from "./questions-extra";
+
 export type Family =
   | "synonym"
   | "antonym"
@@ -37,7 +39,7 @@ export type Question = {
   choices: Choice[];
 };
 
-export const QUESTIONS: Question[] = [
+const BASE_QUESTIONS: Question[] = [
   {
     id: "P1",
     family: "tool-function",
@@ -375,6 +377,8 @@ export const QUESTIONS: Question[] = [
     ],
   },
 ];
+
+export const QUESTIONS: Question[] = [...BASE_QUESTIONS, ...EXTRA_QUESTIONS];
 
 export const SEED_REWARDS = [
   { name: "Concert tickets — any show", xp: 200 },
