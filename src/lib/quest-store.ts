@@ -160,7 +160,18 @@ function useStored<T>(key: string, fallback: () => T) {
 }
 
 export function useShared() {
-  return useStored<SharedState>(SHARED_KEY, defaultShared);
+  const [value, update] = useStored<SharedState>(SHARED_KEY, defaultShared);
+  const shared = normalizeShared(value);
+  const updateShared = useCallback(
+    (fn: (prev: SharedState) => SharedState) => update((prev) => fn(normalizeShared(prev))),
+    [update],
+  );
+  return [shared, updateShared] as const;
+}
+
+/** Wishlist for one girl only. */
+export function rewardsFor(shared: SharedState, id: ProfileId): Reward[] {
+  return shared.rewards[id] ?? [];
 }
 
 export function useProfile(id: ProfileId) {
