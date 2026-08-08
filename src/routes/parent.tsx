@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { famInfo } from "@/data/questions";
+import { famInfo, FOUNDATION_SIX, FOUNDATION_ORDER, type FoundationGroup } from "@/data/questions";
 import { useState } from "react";
 import { DoodleField, BouncyTap } from "@/components/quest/Doodles";
 import {
@@ -80,6 +80,11 @@ function ParentPanel() {
 
         <ChangePin pin={shared.pin} onSave={(pin) => updateShared((s) => ({ ...s, pin }))} />
 
+        <LessonSections
+          enabled={shared.enabledGroups}
+          onChange={(groups) => updateShared((s) => ({ ...s, enabledGroups: groups }))}
+        />
+
         <div className="grid gap-4 sm:grid-cols-2">
           {PROFILES.map((p) => (
             <GirlCard key={p.id} id={p.id} name={p.name} accent={p.accent} />
@@ -143,6 +148,67 @@ function ChangePin({ pin, onSave }: { pin: string; onSave: (pin: string) => void
         </div>
       )}
       <p className="mt-2 text-xs text-muted-foreground">Current PIN is {pin.replace(/./g, "•")}</p>
+    </section>
+  );
+}
+
+function LessonSections({
+  enabled,
+  onChange,
+}: {
+  enabled: string[] | undefined;
+  onChange: (groups: string[]) => void;
+}) {
+  // undefined/empty means "all six on"
+  const allOn = !enabled || enabled.length === 0;
+  const isOn = (g: FoundationGroup) => allOn || enabled!.includes(g);
+
+  const toggle = (g: FoundationGroup) => {
+    const current = allOn ? [...FOUNDATION_ORDER] : [...enabled!];
+    const next = current.includes(g) ? current.filter((x) => x !== g) : [...current, g];
+    // never allow zero sections — fall back to all-on
+    onChange(next.length === 0 ? [...FOUNDATION_ORDER] : next);
+  };
+
+  const onCount = FOUNDATION_ORDER.filter(isOn).length;
+
+  return (
+    <section className="quest-card space-y-4 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-extrabold">What they practice</h2>
+        <BouncyTap
+          onClick={() => onChange([...FOUNDATION_ORDER])}
+          className="border border-border px-4 py-2 text-sm"
+        >
+          Turn all on
+        </BouncyTap>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Turn on only the bridges you&rsquo;ve taught. Practice draws from these only — so the girls
+        drill exactly what they just learned. ({onCount} of 6 on)
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {FOUNDATION_ORDER.map((g) => {
+          const on = isOn(g);
+          return (
+            <BouncyTap
+              key={g}
+              onClick={() => toggle(g)}
+              className={`flex items-center justify-between gap-3 border px-4 py-3 text-left ${
+                on ? "border-primary bg-primary/10" : "border-border opacity-60"
+              }`}
+            >
+              <span>
+                <span className="block text-lg font-extrabold">{FOUNDATION_SIX[g].label}</span>
+                <span className="block text-xs text-muted-foreground">{FOUNDATION_SIX[g].ask}</span>
+              </span>
+              <span className={`text-sm font-bold ${on ? "text-primary" : "text-muted-foreground"}`}>
+                {on ? "ON" : "off"}
+              </span>
+            </BouncyTap>
+          );
+        })}
+      </div>
     </section>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
-import { FAMILIES, QUESTIONS, type Family, type Question, famInfo } from "@/data/questions";
+import { FAMILIES, QUESTIONS, type Family, type Question, famInfo, FOUNDATION_SIX, FOUNDATION_ORDER, groupOfFamily, type FoundationGroup } from "@/data/questions";
 import {
   TRAPS,
   coachLadder,
@@ -28,6 +28,7 @@ import {
   maybeDayBonus,
   setDay,
   useProfile,
+  useShared,
   type Drill,
   type Judgment,
   type ProfileId,
@@ -51,12 +52,19 @@ export const Route = createFileRoute("/practice/$pid")({
   component: Practice,
 });
 
-const FAMILY_KEYS = Object.keys(FAMILIES) as Family[];
-
-function pickQuestion(p: ProfileState): { qid: string; xpMode: Drill["xpMode"] } {
+function pickQuestion(p: ProfileState, allowed?: Set<FoundationGroup>): { qid: string; xpMode: Drill["xpMode"] } {
   const cycle = p.recent;
-  let pool = QUESTIONS.filter((q) => !cycle.includes(q.id));
-  if (pool.length === 0) pool = QUESTIONS.filter((q) => q.id !== cycle[cycle.length - 1]);
+  // Only questions whose Foundation group is enabled by the parent (foundation-only pool).
+  const inScope = (q: Question) => {
+    const g = groupOfFamily(q.family);
+    if (!g) return false; // Tier-2 families never appear in foundation practice
+    return !allowed || allowed.has(g);
+  };
+  const scoped = QUESTIONS.filter(inScope);
+  const base = scoped.length > 0 ? scoped : QUESTIONS.filter((q) => groupOfFamily(q.family) !== null);
+  let pool = base.filter((q) => !cycle.includes(q.id));
+  if (pool.length === 0) pool = base.filter((q) => q.id !== cycle[cycle.length - 1]);
+  if (pool.length === 0) pool = base;
   const q = pool[Math.floor(Math.random() * pool.length)]!;
   const seenAt = p.seenAt[q.id];
   let xpMode: Drill["xpMode"] = "full";
@@ -64,8 +72,8 @@ function pickQuestion(p: ProfileState): { qid: string; xpMode: Drill["xpMode"] }
   return { qid: q.id, xpMode };
 }
 
-function newDrill(p: ProfileState): Drill {
-  const { qid, xpMode } = pickQuestion(p);
+function newDrill(p: ProfileState, allowed?: Set<FoundationGroup>): Drill {
+  const { qid, xpMode } = pickQuestion(p, allowed);
   return {
     qid,
     phase: "type",
@@ -100,6 +108,13 @@ function Practice() {
   const id = (pid === "calista" ? "calista" : "bianca") as ProfileId;
   const meta = PROFILES.find((p) => p.id === id)!;
   const [p, update] = useProfile(id);
+  const [shared] = useShared();
+  // Which Foundation-Six groups the parent has enabled (undefined = all six).
+  const allowedGroups = useMemo<Set<FoundationGroup> | undefined>(() => {
+    const g = shared.enabledGroups;
+    if (!g || g.length === 0) return undefined;
+    return new Set(g as FoundationGroup[]);
+  }, [shared.enabledGroups]);
   const navigate = useNavigate();
 
   const [draft, setDraft] = useState("");
@@ -124,12 +139,12 @@ function Practice() {
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
-    update((prev) => (prev.current ? prev : { ...prev, current: newDrill(prev) }));
+    update((prev) => (prev.current ? prev : { ...prev, current: newDrill(prev, allowedGroups) }));
   }, [update]);
 
   // A saved drill can point at a question that no longer exists — start fresh instead of crashing.
   useEffect(() => {
-    if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev) }));
+    if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev, allowedGroups) }));
   }, [drill, q, update]);
 
 
@@ -172,15 +187,18 @@ function Practice() {
     });
   };
 
-  /* ---------------- STATE 1: name the bridge type ---------------- */
-  const chooseFamily = (f: Family) => {
+  /* ---------------- STATE 1: name the bridge type (Foundation Six) ---------------- */
+  const chooseGroup = (g: FoundationGroup) => {
     const first = !drill.awardedType;
-    const right = f === q.family;
+    const correctGroup = groupOfFamily(q.family);
+    const right = g === correctGroup;
+    // store a representative family from the chosen group so downstream analytics still work
+    const repFamily = FOUNDATION_SIX[g].families[0]!;
     setDrill(
-      (d) => ({ ...d, familyGuess: f, awardedType: true, phase: "stem" }),
+      (d) => ({ ...d, familyGuess: repFamily, awardedType: true, phase: "stem" }),
       (prev, d) => (first && right ? grant(prev, d, 2) : prev),
     );
-    flash(right ? "+2 XP — right kind of bridge" : `It's ${famInfo(q.family).label}`);
+    flash(right ? "+2 XP — right kind of bridge" : `It's "${FOUNDATION_SIX[correctGroup ?? "kind"].label}"`);
   };
 
   /* ---------------- STATE 2: lock the sentence ---------------- */
@@ -254,6 +272,12 @@ function Practice() {
       } else {
         streak = 0;
       }
+      // Count the question toward "today" the moment it's answered (reaches feedback),
+      // not only when she taps through to the next one. Guard against double-count.
+      if (!d.dayCounted) {
+        next = setDay(next, { completed: dayOf(next).completed + 1 });
+        next = maybeDayBonus(next);
+      }
       return {
         ...next,
         streak,
@@ -263,6 +287,7 @@ function Practice() {
           blank: label === null,
           correct: isCorrect,
           awardedFinal: isCorrect ? true : d.awardedFinal,
+          dayCounted: true,
           phase: "feedback",
         },
       };
@@ -294,7 +319,7 @@ function Practice() {
         stem: asked?.stem ?? d.qid,
         family: asked?.family ?? "",
         familyGuess: d.familyGuess,
-        familyRight: !!asked && d.familyGuess === asked.family,
+        familyRight: !!asked && groupOfFamily(d.familyGuess as Family) === groupOfFamily(asked.family),
         choice: d.finalChoice,
         correctChoice: asked?.correct ?? "",
         correct: d.correct === true,
@@ -312,7 +337,7 @@ function Practice() {
           orderTrap: chosenReversed,
           rewrites: d.rewrites ?? 0,
           coachUsed: !!d.coachUsed,
-          familyRight: !!asked && d.familyGuess === asked.family,
+          familyRight: !!asked && groupOfFamily(d.familyGuess as Family) === groupOfFamily(asked.family),
         }),
       };
       let next: ProfileState = {
@@ -323,9 +348,9 @@ function Practice() {
         history: [...(prev.history ?? []), attempt].slice(-300),
         current: null,
       };
-      next = setDay(next, { completed: dayOf(next).completed + 1 });
-      next = maybeDayBonus(next);
-      if (!goHome) next = { ...next, current: newDrill(next) };
+      // (day "completed" is incremented in answer() when the question reaches feedback,
+      // so it is NOT incremented again here — that would double-count.)
+      if (!goHome) next = { ...next, current: newDrill(next, allowedGroups) };
       return next;
     });
     setDraft("");
@@ -372,7 +397,7 @@ function Practice() {
         history: [...(prev.history ?? []), attempt].slice(-300),
         current: null,
       };
-      return { ...next, current: newDrill(next) };
+      return { ...next, current: newDrill(next, allowedGroups) };
     });
     setConfirmSkip(false);
     setDraft("");
@@ -380,6 +405,8 @@ function Practice() {
   };
 
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
+  /** Group-based correctness for the family step (picker now uses Foundation Six). */
+  const guessedRight = !!drill.familyGuess && groupOfFamily(drill.familyGuess as Family) === groupOfFamily(q.family);
   const discarded = q.choices.filter((c) => drill.judgments[c.label] === "no");
   const standing = q.choices.filter((c) => drill.judgments[c.label] !== "no");
   const standingReversed = standing.find((c) => c.label !== q.correct && isReversedTrap(c.why));
@@ -478,14 +505,14 @@ function Practice() {
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
           {drill.phase !== "type" && drill.familyGuess && (
             <p
-              className={`mt-4 text-lg ${drill.familyGuess === q.family ? "text-success" : "text-muted-foreground"}`}
+              className={`mt-4 text-lg ${guessedRight ? "text-success" : "text-muted-foreground"}`}
             >
-              {drill.familyGuess === q.family ? (
-                <>✓ You named the category right — {famInfo(q.family).label}.</>
+              {guessedRight ? (
+                <>✓ You named the category right — {FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}.</>
               ) : (
                 <>
-                  You said {famInfo(drill.familyGuess).label} — it's actually{" "}
-                  {famInfo(q.family).label}. Keep going; a strong sentence can still get you there.
+                  You said {FOUNDATION_SIX[groupOfFamily(drill.familyGuess as Family) ?? "kind"].label} — it's actually{" "}
+                  {FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}. Keep going; a strong sentence can still get you there.
                 </>
               )}
             </p>
@@ -508,21 +535,22 @@ function Practice() {
           </motion.div>
         )}
 
-        {/* STATE 1 — what kind of bridge is this? */}
+        {/* STATE 1 — what kind of bridge is this? (Foundation Six) */}
         {drill.phase === "type" && (
           <section className="quest-card space-y-4 p-7">
             <h2 className="text-2xl font-extrabold">First: what kind of bridge is this?</h2>
             <p className="text-base text-muted-foreground">
-              Name the relationship before you write anything.
+              Name the relationship before you write anything. Ask yourself each question.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
-              {FAMILY_KEYS.map((f) => (
+              {FOUNDATION_ORDER.map((g) => (
                 <BouncyTap
-                  key={f}
-                  onClick={() => chooseFamily(f)}
-                  className="w-full border border-border bg-card px-5 py-4 text-left text-xl hover:border-primary"
+                  key={g}
+                  onClick={() => chooseGroup(g)}
+                  className="w-full border border-border bg-card px-5 py-4 text-left hover:border-primary"
                 >
-                  {famInfo(f).label}
+                  <span className="block text-xl font-extrabold">{FOUNDATION_SIX[g].label}</span>
+                  <span className="block text-sm text-muted-foreground">{FOUNDATION_SIX[g].ask}</span>
                 </BouncyTap>
               ))}
             </div>
@@ -869,19 +897,19 @@ function Practice() {
               <div
                 className="rounded-3xl border p-5 text-lg"
                 style={{
-                  borderColor: drill.familyGuess === q.family ? "var(--success)" : "var(--warn)",
+                  borderColor: guessedRight ? "var(--success)" : "var(--warn)",
                 }}
               >
                 <p className="text-sm uppercase tracking-widest text-muted-foreground">The category</p>
-                {drill.familyGuess === q.family ? (
+                {guessedRight ? (
                   <p className="mt-2">
-                    ✓ You named it: <strong>{famInfo(q.family).label}</strong>. Naming the category is what
+                    ✓ You named it: <strong>{FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}</strong>. Naming the category is what
                     keeps working when the words get hard.
                   </p>
                 ) : (
                   <p className="mt-2">
-                    You said <strong>{famInfo(drill.familyGuess).label}</strong> — this one is{" "}
-                    <strong>{famInfo(q.family).label}</strong> ({q.bridge})
+                    You said <strong>{FOUNDATION_SIX[groupOfFamily(drill.familyGuess as Family) ?? "kind"].label}</strong> — this one is{" "}
+                    <strong>{FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}</strong> ({q.bridge})
                     {drill.correct
                       ? ". You still got it right, so your sentence rescued the wrong label — but learn this category, because on hard words the label is all you'll have."
                       : ". Learn this one: say the pair and the category out loud before you move on."}

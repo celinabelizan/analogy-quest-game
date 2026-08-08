@@ -55,6 +55,8 @@ export type Drill = {
   coachSteps?: number;
   /** Which coach tips she read, by title. */
   coachTips?: string[];
+  /** True once this drill has been counted toward today's question total (guards double-count). */
+  dayCounted?: boolean;
 };
 
 
@@ -132,8 +134,14 @@ export function classifyStruggle(a: {
 }
 
 
-/** Each girl has her own private wishlist. */
-export type SharedState = { pin: string; rewards: Record<ProfileId, Reward[]> };
+/** Each girl has her own private wishlist. enabledGroups gates which Foundation-Six
+ *  bridge families appear in practice (parent controls "do what I just taught").
+ *  Undefined = all six on (backward compatible with older saves). */
+export type SharedState = {
+  pin: string;
+  rewards: Record<ProfileId, Reward[]>;
+  enabledGroups?: string[];
+};
 
 const SHARED_KEY = "ssatquest.v8.shared";
 const profileKey = (id: ProfileId) => `ssatquest.v8.profile.${id}`;

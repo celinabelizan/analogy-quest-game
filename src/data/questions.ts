@@ -1,4 +1,5 @@
 import { EXTRA_QUESTIONS } from "./questions-extra";
+import { LESSON3_QUESTIONS } from "./questions-lesson3";
 
 export type Family =
   | "synonym"
@@ -28,6 +29,85 @@ export const FAMILIES: Record<Family, { label: string; color: string }> = {
   "young-adult": { label: "Young / Adult", color: "#EC4899" },
   "thing-place": { label: "Thing / Where it belongs", color: "#64748B" },
 };
+
+/* ----------------------------------------------------------------------------
+ * FOUNDATION SIX — the foolproof picker + lesson grouping (Content Contract).
+ * The 12 fine-grained families above stay on each question (for analytics and
+ * later Tier-2 lessons). But kids only ever choose from SIX friendly buttons,
+ * each phrased as a self-question. Each group maps to one or more families.
+ * A question is "foundation" if its family belongs to one of these six groups.
+ * -------------------------------------------------------------------------- */
+export type FoundationGroup =
+  | "kind"
+  | "part"
+  | "used"
+  | "degree"
+  | "same"
+  | "opposite";
+
+export const FOUNDATION_SIX: Record<
+  FoundationGroup,
+  { label: string; ask: string; color: string; families: Family[] }
+> = {
+  kind: {
+    label: "Kind of",
+    ask: "Is one a kind of the other?",
+    color: "#F59E0B",
+    families: ["kind-category"],
+  },
+  part: {
+    label: "Part of",
+    ask: "Is one a part of the other?",
+    color: "#FACC15",
+    families: ["part-whole"],
+  },
+  used: {
+    label: "Used for",
+    ask: "Is one used to do the other?",
+    color: "#22C55E",
+    families: ["tool-function", "worker-tool"],
+  },
+  degree: {
+    label: "More or less",
+    ask: "Is one a stronger version of the other?",
+    color: "#A855F7",
+    families: ["degree"],
+  },
+  same: {
+    label: "Same",
+    ask: "Do they mean the same?",
+    color: "#EF4444",
+    families: ["synonym"],
+  },
+  opposite: {
+    label: "Opposite",
+    ask: "Do they mean the opposite?",
+    color: "#F97316",
+    families: ["antonym"],
+  },
+};
+
+export const FOUNDATION_ORDER: FoundationGroup[] = [
+  "kind",
+  "part",
+  "used",
+  "degree",
+  "same",
+  "opposite",
+];
+
+/** Which Foundation-Six group a fine-grained family belongs to (or null = Tier-2). */
+export function groupOfFamily(family: Family): FoundationGroup | null {
+  for (const g of FOUNDATION_ORDER) {
+    if (FOUNDATION_SIX[g].families.includes(family)) return g;
+  }
+  return null;
+}
+
+/** True if a question belongs to the Foundation Six (safe to drill in foundation mode). */
+export function isFoundation(family: Family): boolean {
+  return groupOfFamily(family) !== null;
+}
 
 export type Choice = { label: string; pair: string; why: string };
 export type Question = {
@@ -378,7 +458,7 @@ const BASE_QUESTIONS: Question[] = [
   },
 ];
 
-export const QUESTIONS: Question[] = [...BASE_QUESTIONS, ...EXTRA_QUESTIONS];
+export const QUESTIONS: Question[] = [...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...LESSON3_QUESTIONS];
 
 export const SEED_REWARDS = [
   { name: "Concert tickets — any show", xp: 200 },
