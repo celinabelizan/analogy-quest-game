@@ -10,6 +10,9 @@ import {
   useProfile,
   useShared,
   rewardsFor,
+  milestoneProgress,
+  streakStats,
+  XP_MILESTONES,
   type ProfileId,
 } from "@/lib/quest-store";
 
@@ -39,6 +42,8 @@ function Dashboard() {
   const pending = p.redemptions.find((r) => r.status === "pending");
   const unlock = nextUnlock(p.lifetimeXp);
   const today = dayOf(p);
+  const stats = streakStats(p.history ?? []);
+  const ms = milestoneProgress(p.lifetimeXp);
 
   const [party, setParty] = useState<string | null>(null);
   useEffect(() => {
@@ -167,6 +172,80 @@ function Dashboard() {
             </p>
           </section>
         </div>
+
+        {/* Streaks */}
+        <section className="quest-card relative overflow-hidden p-7">
+          <Flower className="-right-4 -top-3" size={84} rotate={12} opacity={0.12} variant={2} />
+          <h2 className="text-xl font-extrabold">Streaks</h2>
+          <p className="text-sm text-muted-foreground">
+            Finishing a question keeps your streak alive — skipping resets it.
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "Finish streak", value: `${stats.focusStreak} 🔥`, sub: `Best ${stats.bestFocusStreak}` },
+              { label: "Correct streak", value: `${stats.correctStreak} ✨`, sub: `Best ${stats.bestCorrectStreak}` },
+              { label: "Answered", value: `${stats.answered}`, sub: `${stats.skipped} skipped` },
+              { label: "Finish rate", value: `${stats.focusRate}%`, sub: "Answered vs skipped" },
+            ].map((s) => (
+              <motion.div
+                key={s.label}
+                whileHover={{ y: -3 }}
+                transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                className="rounded-3xl border border-border px-4 py-4 text-center"
+              >
+                <div className="text-3xl font-extrabold" style={{ color: meta.accent }}>
+                  {s.value}
+                </div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {s.label}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{s.sub}</div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* XP milestones */}
+        <section className="quest-card relative overflow-hidden p-7">
+          <h2 className="text-xl font-extrabold">XP milestones</h2>
+          <p className="text-sm text-muted-foreground">
+            {ms.next
+              ? `${ms.remaining} XP to ${ms.next.name}`
+              : "Every milestone unlocked — legendary!"}
+          </p>
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-secondary">
+            <motion.div
+              animate={{ width: `${ms.pct}%` }}
+              transition={{ type: "spring", stiffness: 160, damping: 22 }}
+              className="h-full rounded-full"
+              style={{ backgroundColor: meta.accent }}
+            />
+          </div>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            {XP_MILESTONES.map((m) => {
+              const done = p.lifetimeXp >= m.xp;
+              return (
+                <li
+                  key={m.xp}
+                  className="flex items-center justify-between gap-3 rounded-3xl border px-4 py-3"
+                  style={{
+                    borderColor: done ? meta.accent : "var(--border)",
+                    backgroundColor: done ? `${meta.accent}1a` : "transparent",
+                    opacity: done ? 1 : 0.7,
+                  }}
+                >
+                  <span className="font-bold">
+                    {done ? "✓ " : "🔒 "}
+                    {m.name}
+                  </span>
+                  <span className="shrink-0 text-sm font-extrabold text-primary">{m.xp} XP</span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+
 
         <BouncyTap
           onClick={() => {

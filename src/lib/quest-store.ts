@@ -236,3 +236,56 @@ export const MASCOT_TIERS = [
   { xp: 1000, name: "Round glasses" },
   { xp: 2000, name: "Gold crown" },
 ];
+
+/* ---------------- Streaks & XP milestones ---------------- */
+
+export const XP_MILESTONES = [
+  { xp: 100, name: "First Bloom" },
+  { xp: 250, name: "Sketchbook Star" },
+  { xp: 500, name: "Bridge Builder" },
+  { xp: 1000, name: "Analogy Ace" },
+  { xp: 2000, name: "Quest Champion" },
+];
+
+export function milestoneProgress(lifetimeXp: number) {
+  const unlocked = XP_MILESTONES.filter((m) => lifetimeXp >= m.xp);
+  const next = XP_MILESTONES.find((m) => lifetimeXp < m.xp) ?? null;
+  const prevXp = unlocked.length ? (unlocked[unlocked.length - 1]?.xp ?? 0) : 0;
+  const pct = next
+    ? Math.round(((lifetimeXp - prevXp) / Math.max(1, next.xp - prevXp)) * 100)
+    : 100;
+  return { unlocked, next, pct, remaining: next ? next.xp - lifetimeXp : 0 };
+}
+
+/** Streaks derived from finished questions — skipping breaks the focus streak. */
+export function streakStats(history: Attempt[] = []) {
+  const answered = history.filter((h) => !h.skipped).length;
+  const skipped = history.filter((h) => h.skipped).length;
+
+  let focus = 0;
+  let bestFocus = 0;
+  let correct = 0;
+  let bestCorrect = 0;
+  for (const h of history) {
+    if (h.skipped) {
+      focus = 0;
+      correct = 0;
+      continue;
+    }
+    focus += 1;
+    bestFocus = Math.max(bestFocus, focus);
+    correct = h.correct ? correct + 1 : 0;
+    bestCorrect = Math.max(bestCorrect, correct);
+  }
+
+  const total = answered + skipped;
+  return {
+    answered,
+    skipped,
+    focusStreak: focus,
+    bestFocusStreak: bestFocus,
+    correctStreak: correct,
+    bestCorrectStreak: bestCorrect,
+    focusRate: total ? Math.round((answered / total) * 100) : 100,
+  };
+}
