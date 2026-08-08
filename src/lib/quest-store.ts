@@ -250,7 +250,7 @@ export const XP_MILESTONES = [
 export function milestoneProgress(lifetimeXp: number) {
   const unlocked = XP_MILESTONES.filter((m) => lifetimeXp >= m.xp);
   const next = XP_MILESTONES.find((m) => lifetimeXp < m.xp) ?? null;
-  const prevXp = unlocked.length ? unlocked[unlocked.length - 1].xp : 0;
+  const prevXp = unlocked.length ? (unlocked[unlocked.length - 1]?.xp ?? 0) : 0;
   const pct = next
     ? Math.round(((lifetimeXp - prevXp) / Math.max(1, next.xp - prevXp)) * 100)
     : 100;
