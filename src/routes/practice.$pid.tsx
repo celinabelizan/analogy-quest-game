@@ -7,13 +7,17 @@ import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/P
 import { FAMILIES, QUESTIONS, type Family, type Question, famInfo } from "@/data/questions";
 import {
   TRAPS,
+  coachLadder,
+  isReversedTrap,
   looseHint,
   monkeySwap,
   partsOfSpeechHint,
+  reversalPrompt,
   strictHint,
   unknownWordSteps,
   wordCount,
 } from "@/lib/analogy";
+
 
 import {
   PROFILES,
