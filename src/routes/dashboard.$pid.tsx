@@ -10,6 +10,9 @@ import {
   useProfile,
   useShared,
   rewardsFor,
+  milestoneProgress,
+  streakStats,
+  XP_MILESTONES,
   type ProfileId,
 } from "@/lib/quest-store";
 
