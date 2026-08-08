@@ -47,7 +47,14 @@ export type Drill = {
   stuckOnWord?: boolean;
   /** She peeked at a model sentence. */
   peeked?: boolean;
+  /** She opened the live coach during discard. */
+  coachUsed?: boolean;
+  /** How many coach tips she read. */
+  coachSteps?: number;
+  /** Which coach tips she read, by title. */
+  coachTips?: string[];
 };
+
 
 export type ProfileState = {
   lifetimeXp: number;
@@ -62,6 +69,17 @@ export type ProfileState = {
   current: Drill | null;
   /** One entry per finished question, newest last. */
   history?: Attempt[];
+};
+
+/** What tripped her up on a question. */
+export type Struggle = "vocab" | "order" | "sentence" | "category" | "none";
+
+export const STRUGGLE_LABEL: Record<Struggle, string> = {
+  vocab: "Vocabulary",
+  order: "Direction / order",
+  sentence: "Bridge sentence",
+  category: "Bridge type",
+  none: "Solo solve",
 };
 
 /** A finished question, kept so a parent can see what happened. */
@@ -80,7 +98,37 @@ export type Attempt = {
   stuckOnWord: boolean;
   /** True when she tapped Skip instead of answering — never counts as answered. */
   skipped?: boolean;
+  /** She opened the live coach on this question. */
+  coachUsed?: boolean;
+  /** Number of coach tips read. */
+  coachSteps?: number;
+  /** Coach tips read, by title. */
+  coachTips?: string[];
+  /** The pair she picked was the right relationship, backwards. */
+  orderTrap?: boolean;
+  /** Best guess at what made this one hard. */
+  struggle?: Struggle;
 };
+
+/** Rank the signals so one question reports one clear sticking point. */
+export function classifyStruggle(a: {
+  correct: boolean;
+  skipped?: boolean;
+  peeked?: boolean;
+  stuckOnWord?: boolean;
+  orderTrap?: boolean;
+  rewrites?: number;
+  coachUsed?: boolean;
+  familyRight?: boolean;
+}): Struggle {
+  if (a.stuckOnWord || a.peeked) return "vocab";
+  if (a.orderTrap) return "order";
+  if ((a.rewrites ?? 0) > 0 || a.coachUsed) return "sentence";
+  if (!a.familyRight && (!a.correct || a.skipped)) return "category";
+  if (!a.correct || a.skipped) return "sentence";
+  return "none";
+}
+
 
 /** Each girl has her own private wishlist. */
 export type SharedState = { pin: string; rewards: Record<ProfileId, Reward[]> };

@@ -14,7 +14,7 @@ export function Mascot({ lifetimeXp, size = 150 }: { lifetimeXp: number; size?: 
       width={size}
       height={size}
       loading="lazy"
-      style={{ width: size, height: size, imageRendering: "pixelated" }}
+      style={{ width: size, height: size, objectFit: "contain" }}
       animate={{ y: [0, -8, 0] }}
       transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
     />

@@ -8,7 +8,9 @@ import {
   maybeDayBonus,
   setDay,
   addXp,
+  STRUGGLE_LABEL,
   todayKey,
+
   useProfile,
   useShared,
   type ProfileId,
@@ -375,6 +377,16 @@ function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
     .sort((a, b) => b[1].wrong - a[1].wrong)
     .slice(0, 3);
 
+  const coachHelped = history.filter((h) => h.coachUsed).length;
+  const selfSolved = history.length - coachHelped;
+  const trips = new Map<string, number>();
+  for (const h of all) {
+    const k = h.struggle ?? "none";
+    if (k === "none") continue;
+    trips.set(k, (trips.get(k) ?? 0) + 1);
+  }
+  const tripped = [...trips.entries()].sort((a, b) => b[1] - a[1]);
+
   const recent = [...all].reverse().slice(0, 8);
 
   return (
@@ -393,6 +405,26 @@ function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
             <Stat label="Category right" value={`${pct(catRight)}%`} />
             <Stat label="Skipped" value={String(skipped)} />
           </div>
+
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <Stat label="Solved solo" value={String(selfSolved)} />
+            <Stat label="Coach helped" value={String(coachHelped)} />
+          </div>
+
+          {tripped.length > 0 && (
+            <div className="rounded-2xl border border-border p-3">
+              <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
+                What tripped her up
+              </h3>
+              <ul className="mt-1 space-y-1 text-sm">
+                {tripped.map(([k, n]) => (
+                  <li key={k}>
+                    {STRUGGLE_LABEL[k as keyof typeof STRUGGLE_LABEL] ?? k} — {n} question{n === 1 ? "" : "s"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {weak.length > 0 && (
             <div className="rounded-2xl border border-border p-3">
@@ -421,6 +453,10 @@ function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
                       : `✗ ${h.choice ?? "—"} → ${h.correctChoice}`}
                   {h.skipped || h.familyRight ? "" : " · category off"}
                   {h.peeked ? " · peeked" : ""}
+                  {h.coachUsed ? ` · coach ×${h.coachSteps ?? 1}` : ""}
+                  {h.struggle && h.struggle !== "none"
+                    ? ` · ${STRUGGLE_LABEL[h.struggle].toLowerCase()}`
+                    : ""}
                 </span>
               </li>
             ))}
