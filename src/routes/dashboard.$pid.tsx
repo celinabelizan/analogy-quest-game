@@ -42,6 +42,8 @@ function Dashboard() {
   const pending = p.redemptions.find((r) => r.status === "pending");
   const unlock = nextUnlock(p.lifetimeXp);
   const today = dayOf(p);
+  const stats = streakStats(p.history ?? []);
+  const ms = milestoneProgress(p.lifetimeXp);
 
   const [party, setParty] = useState<string | null>(null);
   useEffect(() => {
