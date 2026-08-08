@@ -795,6 +795,45 @@ function Practice() {
             )}
           </section>
         )}
+
+        {/* Skip — always available, but nudges her to cross out first */}
+        {drill.phase !== "feedback" && (
+          <div className="pt-2 text-center">
+            {!confirmSkip ? (
+              <BouncyTap
+                onClick={() => setConfirmSkip(true)}
+                className="border border-border px-6 py-3 text-base text-muted-foreground"
+              >
+                Skip this one →
+              </BouncyTap>
+            ) : (
+              <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5">
+                <p className="text-xl font-extrabold">
+                  {discarded.length >= 2
+                    ? `You crossed out ${discarded.length}. Take your best guess instead?`
+                    : `Try to cross out at least 2 choices first — you've crossed out ${discarded.length}.`}
+                </p>
+                <p className="text-base text-muted-foreground">
+                  Skipping is fine, but it earns no XP and won&rsquo;t count as answered.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <BouncyTap
+                    onClick={() => setConfirmSkip(false)}
+                    className="glow-pink bg-primary px-6 py-3 text-lg text-primary-foreground"
+                  >
+                    Keep trying
+                  </BouncyTap>
+                  <BouncyTap
+                    onClick={skip}
+                    className="border border-border px-6 py-3 text-lg text-muted-foreground"
+                  >
+                    Skip anyway
+                  </BouncyTap>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
