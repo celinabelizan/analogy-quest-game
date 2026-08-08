@@ -8,7 +8,9 @@ import {
   maybeDayBonus,
   setDay,
   addXp,
+  STRUGGLE_LABEL,
   todayKey,
+
   useProfile,
   useShared,
   type ProfileId,
