@@ -83,7 +83,14 @@ function ParentPanel() {
           ))}
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          {PROFILES.map((p) => (
+            <ProgressReport key={p.id} id={p.id} name={p.name} />
+          ))}
+        </div>
+
         <RewardManager />
+
 
         <section className="quest-card p-6">
           <h2 className="text-xl font-extrabold">Exit-ticket stars</h2>
