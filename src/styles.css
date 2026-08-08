@@ -23,12 +23,16 @@
   --color-pink: var(--pink);
   --color-coral: var(--coral);
   --color-lavender: var(--lavender);
+  --color-mint: var(--mint);
+  --color-sky: var(--sky);
+  --color-butter: var(--butter);
   --color-success: var(--success);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
   --font-serif-quest: "Fraunces", "Georgia", serif;
   --font-script-quest: "Caveat", "Segoe Script", cursive;
   --font-body-quest: "Karla", system-ui, sans-serif;
+
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
