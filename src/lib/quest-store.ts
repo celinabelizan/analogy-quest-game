@@ -60,6 +60,24 @@ export type ProfileState = {
   recent: string[];
   days: Record<string, { completed: number; exitTicket: boolean; dayBonus: boolean }>;
   current: Drill | null;
+  /** One entry per finished question, newest last. */
+  history?: Attempt[];
+};
+
+/** A finished question, kept so a parent can see what happened. */
+export type Attempt = {
+  qid: string;
+  at: number;
+  stem: string;
+  family: string;
+  familyGuess: string | null;
+  familyRight: boolean;
+  choice: string | null;
+  correctChoice: string;
+  correct: boolean;
+  rewrites: number;
+  peeked: boolean;
+  stuckOnWord: boolean;
 };
 
 /** Each girl has her own private wishlist. */
