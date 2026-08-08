@@ -271,11 +271,27 @@ function Practice() {
       const d = prev.current!;
       const completedCount = prev.completedCount + 1;
       const cycle = prev.recent.includes(d.qid) ? prev.recent : [...prev.recent, d.qid];
+      const asked = QUESTIONS.find((x) => x.id === d.qid);
+      const attempt = {
+        qid: d.qid,
+        at: Date.now(),
+        stem: asked?.stem ?? d.qid,
+        family: asked?.family ?? "",
+        familyGuess: d.familyGuess,
+        familyRight: !!asked && d.familyGuess === asked.family,
+        choice: d.finalChoice,
+        correctChoice: asked?.correct ?? "",
+        correct: d.correct === true,
+        rewrites: d.rewrites ?? 0,
+        peeked: !!d.peeked,
+        stuckOnWord: !!d.stuckOnWord,
+      };
       let next: ProfileState = {
         ...prev,
         completedCount,
         seenAt: { ...prev.seenAt, [d.qid]: completedCount },
         recent: cycle.length >= QUESTIONS.length ? [d.qid] : cycle,
+        history: [...(prev.history ?? []), attempt].slice(-300),
         current: null,
       };
       next = setDay(next, { completed: dayOf(next).completed + 1 });
