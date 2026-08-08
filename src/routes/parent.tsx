@@ -230,27 +230,30 @@ function ExitTicket({ id, name }: { id: ProfileId; name: string }) {
 
 function RewardManager() {
   const [shared, updateShared] = useShared();
+  const [who, setWho] = useState<ProfileId>("bianca");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [xp, setXp] = useState("");
   const [photo, setPhoto] = useState("");
 
+  const list = shared.rewards[who] ?? [];
+  const setList = (fn: (l: typeof list) => typeof list) =>
+    updateShared((s) => ({ ...s, rewards: { ...s.rewards, [who]: fn(s.rewards[who] ?? []) } }));
+
   const add = () => {
     if (!name.trim()) return;
     const cost = Number(xp) || Math.round((Number(price) || 0) * 10);
     if (cost <= 0) return;
-    updateShared((s) => ({
-      ...s,
-      rewards: [
-        ...s.rewards,
-        { id: `r-${Date.now()}`, name: name.trim(), xp: cost, ...(photo.trim() ? { photo: photo.trim() } : {}) },
-      ],
-    }));
+    setList((l) => [
+      ...l,
+      { id: `r-${Date.now()}`, name: name.trim(), xp: cost, ...(photo.trim() ? { photo: photo.trim() } : {}) },
+    ]);
     setName("");
     setPrice("");
     setXp("");
     setPhoto("");
   };
+
 
   return (
     <section className="quest-card space-y-4 p-6">
