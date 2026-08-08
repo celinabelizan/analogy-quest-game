@@ -78,6 +78,8 @@ export type Attempt = {
   rewrites: number;
   peeked: boolean;
   stuckOnWord: boolean;
+  /** True when she tapped Skip instead of answering — never counts as answered. */
+  skipped?: boolean;
 };
 
 /** Each girl has her own private wishlist. */

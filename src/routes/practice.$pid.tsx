@@ -99,6 +99,7 @@ function Practice() {
   const [draft, setDraft] = useState("");
   const [showBreak, setShowBreak] = useState(false);
   const [showStuck, setShowStuck] = useState(false);
+  const [confirmSkip, setConfirmSkip] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
@@ -301,6 +302,41 @@ function Practice() {
     });
     setDraft("");
     if (goHome) navigate({ to: "/dashboard/$pid", params: { pid: id } });
+  };
+
+  /* ---------------- Skip: moves on, but never counts as answered ---------------- */
+  const skip = () => {
+    update((prev) => {
+      const d = prev.current!;
+      const asked = QUESTIONS.find((x) => x.id === d.qid);
+      const cycle = prev.recent.includes(d.qid) ? prev.recent : [...prev.recent, d.qid];
+      const attempt = {
+        qid: d.qid,
+        at: Date.now(),
+        stem: asked?.stem ?? d.qid,
+        family: asked?.family ?? "",
+        familyGuess: d.familyGuess,
+        familyRight: false,
+        choice: null,
+        correctChoice: asked?.correct ?? "",
+        correct: false,
+        rewrites: d.rewrites ?? 0,
+        peeked: !!d.peeked,
+        stuckOnWord: !!d.stuckOnWord,
+        skipped: true,
+      };
+      let next: ProfileState = {
+        ...prev,
+        seenAt: { ...prev.seenAt, [d.qid]: prev.completedCount },
+        recent: cycle.length >= QUESTIONS.length ? [d.qid] : cycle,
+        history: [...(prev.history ?? []), attempt].slice(-300),
+        current: null,
+      };
+      return { ...next, current: newDrill(next) };
+    });
+    setConfirmSkip(false);
+    setDraft("");
+    flash("Skipped — that one doesn't count toward XP");
   };
 
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
@@ -758,6 +794,45 @@ function Practice() {
               </div>
             )}
           </section>
+        )}
+
+        {/* Skip — always available, but nudges her to cross out first */}
+        {drill.phase !== "feedback" && (
+          <div className="pt-2 text-center">
+            {!confirmSkip ? (
+              <BouncyTap
+                onClick={() => setConfirmSkip(true)}
+                className="border border-border px-6 py-3 text-base text-muted-foreground"
+              >
+                Skip this one →
+              </BouncyTap>
+            ) : (
+              <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5">
+                <p className="text-xl font-extrabold">
+                  {discarded.length >= 2
+                    ? `You crossed out ${discarded.length}. Take your best guess instead?`
+                    : `Try to cross out at least 2 choices first — you've crossed out ${discarded.length}.`}
+                </p>
+                <p className="text-base text-muted-foreground">
+                  Skipping is fine, but it earns no XP and won&rsquo;t count as answered.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <BouncyTap
+                    onClick={() => setConfirmSkip(false)}
+                    className="glow-pink bg-primary px-6 py-3 text-lg text-primary-foreground"
+                  >
+                    Keep trying
+                  </BouncyTap>
+                  <BouncyTap
+                    onClick={skip}
+                    className="border border-border px-6 py-3 text-lg text-muted-foreground"
+                  >
+                    Skip anyway
+                  </BouncyTap>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
