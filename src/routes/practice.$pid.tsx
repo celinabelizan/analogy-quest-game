@@ -303,6 +303,41 @@ function Practice() {
     if (goHome) navigate({ to: "/dashboard/$pid", params: { pid: id } });
   };
 
+  /* ---------------- Skip: moves on, but never counts as answered ---------------- */
+  const skip = () => {
+    update((prev) => {
+      const d = prev.current!;
+      const asked = QUESTIONS.find((x) => x.id === d.qid);
+      const cycle = prev.recent.includes(d.qid) ? prev.recent : [...prev.recent, d.qid];
+      const attempt = {
+        qid: d.qid,
+        at: Date.now(),
+        stem: asked?.stem ?? d.qid,
+        family: asked?.family ?? "",
+        familyGuess: d.familyGuess,
+        familyRight: false,
+        choice: null,
+        correctChoice: asked?.correct ?? "",
+        correct: false,
+        rewrites: d.rewrites ?? 0,
+        peeked: !!d.peeked,
+        stuckOnWord: !!d.stuckOnWord,
+        skipped: true,
+      };
+      let next: ProfileState = {
+        ...prev,
+        seenAt: { ...prev.seenAt, [d.qid]: prev.completedCount },
+        recent: cycle.length >= QUESTIONS.length ? [d.qid] : cycle,
+        history: [...(prev.history ?? []), attempt].slice(-300),
+        current: null,
+      };
+      return { ...next, current: newDrill(next) };
+    });
+    setConfirmSkip(false);
+    setDraft("");
+    flash("Skipped — that one doesn't count toward XP");
+  };
+
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
   const discarded = q.choices.filter((c) => drill.judgments[c.label] === "no");
   const standing = q.choices.filter((c) => drill.judgments[c.label] !== "no");
