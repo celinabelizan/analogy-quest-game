@@ -81,10 +81,36 @@ const emptyProfile = (): ProfileState => ({
   current: null,
 });
 
+const seedRewards = (prefix: string): Reward[] =>
+  SEED_REWARDS.map((r, i) => ({ id: `${prefix}-seed-${i}`, name: r.name, xp: r.xp }));
+
 const defaultShared = (): SharedState => ({
   pin: "1701",
-  rewards: SEED_REWARDS.map((r, i) => ({ id: `seed-${i}`, name: r.name, xp: r.xp })),
+  rewards: { bianca: seedRewards("bianca"), calista: seedRewards("calista") },
 });
+
+/** Older saves kept one shared list — split it so each girl gets her own copy. */
+function normalizeShared(s: SharedState): SharedState {
+  const rw = s.rewards as unknown;
+  if (Array.isArray(rw)) {
+    const list = rw as Reward[];
+    return {
+      ...s,
+      rewards: {
+        bianca: list.map((r) => ({ ...r, id: `bianca-${r.id}` })),
+        calista: list.map((r) => ({ ...r, id: `calista-${r.id}` })),
+      },
+    };
+  }
+  const rec = (rw ?? {}) as Partial<Record<ProfileId, Reward[]>>;
+  return {
+    ...s,
+    rewards: {
+      bianca: rec.bianca ?? seedRewards("bianca"),
+      calista: rec.calista ?? seedRewards("calista"),
+    },
+  };
+}
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
