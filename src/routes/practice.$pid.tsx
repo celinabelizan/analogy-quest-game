@@ -366,8 +366,8 @@ function Practice() {
   );
   const openCoach = () => {
     setShowCoach(true);
-    setDrill((d) => ({ ...d, peeked: d.peeked }));
   };
+
 
   const stepIndex =
     drill.phase === "type"
