@@ -12,15 +12,49 @@ function fixArticles(text: string) {
   });
 }
 
+function applySuffix(base: string, suffix: string) {
+  const s = suffix.toLowerCase();
+  const b = base.toLowerCase();
+  if (!s) return b;
+  if (s === "ly") {
+    if (b.endsWith("ly")) return b;
+    if (b.endsWith("y")) return b.slice(0, -1) + "ily";
+    if (b.endsWith("le")) return b.slice(0, -1) + "y";
+    return b + "ly";
+  }
+  if (s === "ies") return b.endsWith("y") ? b.slice(0, -1) + "ies" : b + "s";
+  if (s === "s" || s === "es") {
+    if (/(s|x|z|ch|sh)$/.test(b)) return b + "es";
+    if (b.endsWith("y") && !/[aeiou]y$/.test(b)) return b.slice(0, -1) + "ies";
+    return b + "s";
+  }
+  if (s === "ing") return b.endsWith("e") ? b.slice(0, -1) + "ing" : b + "ing";
+  if (s === "ed") {
+    if (b.endsWith("e")) return b + "d";
+    if (b.endsWith("y") && !/[aeiou]y$/.test(b)) return b.slice(0, -1) + "ied";
+    return b + "ed";
+  }
+  if (s === "er" || s === "est") {
+    if (b.endsWith("e")) return b + s.slice(1);
+    if (b.endsWith("y") && !/[aeiou]y$/.test(b)) return b.slice(0, -1) + "i" + s;
+    return b + s;
+  }
+  return b + s;
+}
+
 function replaceWord(text: string, from: string, to: string) {
-  const f = from.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  if (!f) return text;
-  const re = new RegExp(`\\b${f}(s|es)?\\b`, "gi");
+  const raw = from.toLowerCase();
+  // allow the bridge to use an inflected form of the stem word (slow -> slowly)
+  const stems = [raw];
+  if (raw.endsWith("e")) stems.push(raw.slice(0, -1));
+  if (raw.endsWith("y")) stems.push(raw.slice(0, -1) + "i");
+  const esc = stems.map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).filter(Boolean);
+  if (!esc.length) return text;
+  const re = new RegExp(`\\b(?:${esc.join("|")})(ly|ies|ing|ed|est|er|es|s)?\\b`, "gi");
   return text.replace(re, (match: string, suffix?: string) => {
     const isUpper = match === match.toUpperCase() && match.length > 1;
     const cap = /^[A-Z]/.test(match);
-    let out = to.toLowerCase();
-    if (suffix) out += suffix.toLowerCase();
+    const out = applySuffix(to, suffix ?? "");
     if (isUpper) return out.toUpperCase();
     if (cap) return out.charAt(0).toUpperCase() + out.slice(1);
     return out;
@@ -33,10 +67,17 @@ export function monkeySwap(bridge: string, stem: string, choicePair: string) {
   const [c1, c2] = pairWords(choicePair);
   let out = replaceWord(bridge, s1, "\u0001");
   out = replaceWord(out, s2, "\u0002");
-  out = out.replace(/\u0001/g, c1.toLowerCase()).replace(/\u0002/g, c2.toLowerCase());
+  // restore placeholders, preserving any inflection suffix the swap produced
+  out = out.replace(/\u0001(ly|ies|ing|ed|est|er|es|s)?/gi, (_m, suf?: string) =>
+    applySuffix(c1, suf ?? ""),
+  );
+  out = out.replace(/\u0002(ly|ies|ing|ed|est|er|es|s)?/gi, (_m, suf?: string) =>
+    applySuffix(c2, suf ?? ""),
+  );
   out = out.charAt(0).toUpperCase() + out.slice(1);
   return fixArticles(out);
 }
+
 
 export const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
