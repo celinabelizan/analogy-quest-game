@@ -355,6 +355,20 @@ function Practice() {
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
   const discarded = q.choices.filter((c) => drill.judgments[c.label] === "no");
   const standing = q.choices.filter((c) => drill.judgments[c.label] !== "no");
+  const standingReversed = standing.find((c) => c.label !== q.correct && isReversedTrap(c.why));
+  const chosen = q.choices.find((c) => c.label === drill.finalChoice);
+  const chosenReversed = !!chosen && chosen.label !== q.correct && isReversedTrap(chosen.why);
+  const coach = coachLadder(
+    q.stem,
+    famInfo(q.family).label,
+    standing.map((c) => c.pair),
+    coachStep,
+  );
+  const openCoach = () => {
+    setShowCoach(true);
+    setDrill((d) => ({ ...d, peeked: d.peeked }));
+  };
+
   const stepIndex =
     drill.phase === "type"
       ? 0
