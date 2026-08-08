@@ -4,7 +4,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
-import { FAMILIES, QUESTIONS, type Family, type Question, famInfo, FOUNDATION_SIX, FOUNDATION_ORDER, groupOfFamily, type FoundationGroup } from "@/data/questions";
+import {
+  FAMILIES,
+  QUESTIONS,
+  type Family,
+  type Question,
+  famInfo,
+  FOUNDATION_SIX,
+  FOUNDATION_ORDER,
+  groupOfFamily,
+  type FoundationGroup,
+} from "@/data/questions";
 import {
   TRAPS,
   coachLadder,
@@ -18,7 +28,6 @@ import {
   unknownWordSteps,
   wordCount,
 } from "@/lib/analogy";
-
 
 import {
   PROFILES,
@@ -41,10 +50,14 @@ export const Route = createFileRoute("/practice/$pid")({
       { title: "Analogy Drill — SSAT Quest" },
       {
         name: "description",
-        content: "Name the bridge type, write your sentence, then discard answer choices one by one.",
+        content:
+          "Name the bridge type, write your sentence, then discard answer choices one by one.",
       },
       { property: "og:title", content: "Analogy Drill — SSAT Quest" },
-      { property: "og:description", content: "Bridge type, your sentence, discard the losers, commit to one answer." },
+      {
+        property: "og:description",
+        content: "Bridge type, your sentence, discard the losers, commit to one answer.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -52,7 +65,10 @@ export const Route = createFileRoute("/practice/$pid")({
   component: Practice,
 });
 
-function pickQuestion(p: ProfileState, allowed?: Set<FoundationGroup>): { qid: string; xpMode: Drill["xpMode"] } {
+function pickQuestion(
+  p: ProfileState,
+  allowed?: Set<FoundationGroup>,
+): { qid: string; xpMode: Drill["xpMode"] } {
   const cycle = p.recent;
   // Only questions whose Foundation group is enabled by the parent (foundation-only pool).
   const inScope = (q: Question) => {
@@ -61,7 +77,8 @@ function pickQuestion(p: ProfileState, allowed?: Set<FoundationGroup>): { qid: s
     return !allowed || allowed.has(g);
   };
   const scoped = QUESTIONS.filter(inScope);
-  const base = scoped.length > 0 ? scoped : QUESTIONS.filter((q) => groupOfFamily(q.family) !== null);
+  const base =
+    scoped.length > 0 ? scoped : QUESTIONS.filter((q) => groupOfFamily(q.family) !== null);
   let pool = base.filter((q) => !cycle.includes(q.id));
   if (pool.length === 0) pool = base.filter((q) => q.id !== cycle[cycle.length - 1]);
   if (pool.length === 0) pool = base;
@@ -147,7 +164,6 @@ function Practice() {
     if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev, allowedGroups) }));
   }, [drill, q, update]);
 
-
   // Fresh question, fresh coach.
   useEffect(() => {
     setShowCoach(false);
@@ -173,7 +189,9 @@ function Practice() {
 
   if (!drill || !q) {
     return (
-      <main className="grid min-h-screen place-items-center text-2xl text-muted-foreground">Loading…</main>
+      <main className="grid min-h-screen place-items-center text-2xl text-muted-foreground">
+        Loading…
+      </main>
     );
   }
 
@@ -198,7 +216,11 @@ function Practice() {
       (d) => ({ ...d, familyGuess: repFamily, awardedType: true, phase: "stem" }),
       (prev, d) => (first && right ? grant(prev, d, 2) : prev),
     );
-    flash(right ? "+2 XP — right kind of bridge" : `It's "${FOUNDATION_SIX[correctGroup ?? "kind"].label}"`);
+    flash(
+      right
+        ? "+2 XP — right kind of bridge"
+        : `It's "${FOUNDATION_SIX[correctGroup ?? "kind"].label}"`,
+    );
   };
 
   /* ---------------- STATE 2: lock the sentence ---------------- */
@@ -319,7 +341,8 @@ function Practice() {
         stem: asked?.stem ?? d.qid,
         family: asked?.family ?? "",
         familyGuess: d.familyGuess,
-        familyRight: !!asked && groupOfFamily(d.familyGuess as Family) === groupOfFamily(asked.family),
+        familyRight:
+          !!asked && groupOfFamily(d.familyGuess as Family) === groupOfFamily(asked.family),
         choice: d.finalChoice,
         correctChoice: asked?.correct ?? "",
         correct: d.correct === true,
@@ -337,7 +360,8 @@ function Practice() {
           orderTrap: chosenReversed,
           rewrites: d.rewrites ?? 0,
           coachUsed: !!d.coachUsed,
-          familyRight: !!asked && groupOfFamily(d.familyGuess as Family) === groupOfFamily(asked.family),
+          familyRight:
+            !!asked && groupOfFamily(d.familyGuess as Family) === groupOfFamily(asked.family),
         }),
       };
       let next: ProfileState = {
@@ -390,7 +414,7 @@ function Practice() {
           familyRight: false,
         }),
       };
-      let next: ProfileState = {
+      const next: ProfileState = {
         ...prev,
         seenAt: { ...prev.seenAt, [d.qid]: prev.completedCount },
         recent: cycle.length >= QUESTIONS.length ? [d.qid] : cycle,
@@ -406,7 +430,8 @@ function Practice() {
 
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
   /** Group-based correctness for the family step (picker now uses Foundation Six). */
-  const guessedRight = !!drill.familyGuess && groupOfFamily(drill.familyGuess as Family) === groupOfFamily(q.family);
+  const guessedRight =
+    !!drill.familyGuess && groupOfFamily(drill.familyGuess as Family) === groupOfFamily(q.family);
   const discarded = q.choices.filter((c) => drill.judgments[c.label] === "no");
   const standing = q.choices.filter((c) => drill.judgments[c.label] !== "no");
   const standingReversed = standing.find((c) => c.label !== q.correct && isReversedTrap(c.why));
@@ -420,7 +445,9 @@ function Practice() {
   );
   const grammarOuts = posMismatches(
     q.stem,
-    standing.filter((c) => drill.judgments[c.label] !== "no").map((c) => ({ label: c.label, pair: c.pair })),
+    standing
+      .filter((c) => drill.judgments[c.label] !== "no")
+      .map((c) => ({ label: c.label, pair: c.pair })),
   );
   const logCoach = (title: string) =>
     setDrill((d) => ({
@@ -436,10 +463,14 @@ function Practice() {
   const nextCoachTip = () => {
     setCoachStep((s) => s + 1);
     logCoach(
-      coachLadder(q.stem, famInfo(q.family).label, standing.map((c) => c.pair), coachStep + 1).title,
+      coachLadder(
+        q.stem,
+        famInfo(q.family).label,
+        standing.map((c) => c.pair),
+        coachStep + 1,
+      ).title,
     );
   };
-
 
   const stepIndex =
     drill.phase === "type"
@@ -500,7 +531,13 @@ function Practice() {
 
         {/* STEM */}
         <section className="quest-card relative overflow-visible p-7 text-center">
-          <Flower className="right-2 -bottom-8 z-30" size={96} rotate={20} opacity={0.16} variant={2} />
+          <Flower
+            className="right-2 -bottom-8 z-30"
+            size={96}
+            rotate={20}
+            opacity={0.16}
+            variant={2}
+          />
           {drill.phase !== "type" && <FamilyBadge family={q.family} />}
           <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
           {drill.phase !== "type" && drill.familyGuess && (
@@ -508,17 +545,21 @@ function Practice() {
               className={`mt-4 text-lg ${guessedRight ? "text-success" : "text-muted-foreground"}`}
             >
               {guessedRight ? (
-                <>✓ You named the category right — {FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}.</>
+                <>
+                  ✓ You named the category right —{" "}
+                  {FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}.
+                </>
               ) : (
                 <>
-                  You said {FOUNDATION_SIX[groupOfFamily(drill.familyGuess as Family) ?? "kind"].label} — it's actually{" "}
-                  {FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}. Keep going; a strong sentence can still get you there.
+                  You said{" "}
+                  {FOUNDATION_SIX[groupOfFamily(drill.familyGuess as Family) ?? "kind"].label} —
+                  it's actually {FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}. Keep
+                  going; a strong sentence can still get you there.
                 </>
               )}
             </p>
           )}
         </section>
-
 
         {/* Locked sentence — kept in view while it's the thing being tested */}
         {drill.locked && drill.phase !== "feedback" && (
@@ -550,7 +591,9 @@ function Practice() {
                   className="w-full border border-border bg-card px-5 py-4 text-left hover:border-primary"
                 >
                   <span className="block text-xl font-extrabold">{FOUNDATION_SIX[g].label}</span>
-                  <span className="block text-sm text-muted-foreground">{FOUNDATION_SIX[g].ask}</span>
+                  <span className="block text-sm text-muted-foreground">
+                    {FOUNDATION_SIX[g].ask}
+                  </span>
                 </BouncyTap>
               ))}
             </div>
@@ -568,12 +611,17 @@ function Practice() {
             {(drill.rewrites ?? 0) > 0 && (
               <>
                 <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
-                  {looseHint(q.stem, famInfo(q.family).label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
+                  {looseHint(
+                    q.stem,
+                    famInfo(q.family).label,
+                    standing.length || 2,
+                    (drill.rewrites ?? 1) - 1,
+                  )}
                 </p>
                 {discarded.length > 0 && (
                   <p className="text-base text-muted-foreground">
-                    Your {discarded.length} crossouts stay crossed out — the new sentence only has to sort the{" "}
-                    {standing.length} left.
+                    Your {discarded.length} crossouts stay crossed out — the new sentence only has
+                    to sort the {standing.length} left.
                   </p>
                 )}
               </>
@@ -621,7 +669,10 @@ function Practice() {
                 {drill.peeked ? (
                   <p className="rounded-2xl bg-card p-4 text-[22px] leading-snug">{q.bridge}</p>
                 ) : (
-                  <BouncyTap onClick={peekModel} className="border border-border px-5 py-3 text-base">
+                  <BouncyTap
+                    onClick={peekModel}
+                    className="border border-border px-5 py-3 text-base"
+                  >
                     Show me a model sentence
                   </BouncyTap>
                 )}
@@ -629,7 +680,6 @@ function Practice() {
             )}
           </section>
         )}
-
 
         {/* STATE 3 — all five choices, discard one by one */}
         {drill.phase === "monkey" && (
@@ -653,7 +703,9 @@ function Practice() {
                     <p className={`stem-type text-[30px] ${out ? "line-through" : ""}`}>
                       ({c.label}) {c.pair}
                     </p>
-                    <p className={`mt-2 text-[24px] leading-snug ${out ? "line-through opacity-70" : ""}`}>
+                    <p
+                      className={`mt-2 text-[24px] leading-snug ${out ? "line-through opacity-70" : ""}`}
+                    >
                       {monkeySwap(drill.bridge, q.stem, c.pair)}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -758,18 +810,24 @@ function Practice() {
             {/* live guidance */}
 
             {standing.length === 1 && standingReversed && (
-              <div className="space-y-3 rounded-3xl border p-5" style={{ borderColor: "var(--warn)" }}>
+              <div
+                className="space-y-3 rounded-3xl border p-5"
+                style={{ borderColor: "var(--warn)" }}
+              >
                 <p className="text-xl font-extrabold text-warn">Hold on — check the direction.</p>
                 <p className="text-lg">{reversalPrompt(q.stem)}</p>
                 <p className="text-base text-muted-foreground">
-                  Read your sentence with ({standing[0]!.label}) {standing[0]!.pair} one more time, in order. If
-                  it only works backwards, discard it and un-cross the ones you rushed.
+                  Read your sentence with ({standing[0]!.label}) {standing[0]!.pair} one more time,
+                  in order. If it only works backwards, discard it and un-cross the ones you rushed.
                 </p>
               </div>
             )}
 
             {standing.length === 1 && (
-              <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--success)" }}>
+              <div
+                className="space-y-3 rounded-3xl border p-5 text-center"
+                style={{ borderColor: "var(--success)" }}
+              >
                 <p className="script-type text-4xl text-success">One survivor!</p>
                 <p className="text-lg text-muted-foreground">Your sentence did its job.</p>
 
@@ -797,12 +855,17 @@ function Practice() {
                 <p className="text-base text-muted-foreground">
                   {looseHint(q.stem, famInfo(q.family).label, standing.length, drill.rewrites ?? 0)}
                 </p>
-                <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
+                <BouncyTap
+                  onClick={reopenBridge}
+                  className="border border-border px-6 py-3 text-lg"
+                >
                   Build a stronger sentence
                 </BouncyTap>
                 {(drill.rewrites ?? 0) >= 1 && (
                   <div className="space-y-3 rounded-3xl border border-border bg-card p-5 text-left">
-                    <p className="text-lg font-extrabold">Sentence not getting sharper? Switch methods.</p>
+                    <p className="text-lg font-extrabold">
+                      Sentence not getting sharper? Switch methods.
+                    </p>
                     <p className="text-base">{partsOfSpeechHint(q.stem)}</p>
                     <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                       Traps hiding in these choices
@@ -830,10 +893,16 @@ function Practice() {
             )}
 
             {standing.length === 0 && (
-              <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--warn)" }}>
+              <div
+                className="space-y-3 rounded-3xl border p-5 text-center"
+                style={{ borderColor: "var(--warn)" }}
+              >
                 <p className="text-xl font-extrabold text-warn">You discarded everything.</p>
                 <p className="text-base text-muted-foreground">{strictHint(q.stem)}</p>
-                <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
+                <BouncyTap
+                  onClick={reopenBridge}
+                  className="border border-border px-6 py-3 text-lg"
+                >
                   Rewrite my sentence
                 </BouncyTap>
               </div>
@@ -873,21 +942,28 @@ function Practice() {
           </section>
         )}
 
-
         {/* STATE 5 — feedback */}
         {drill.phase === "feedback" && (
           <section className="quest-card space-y-5 p-7">
-            <h2 className="script-type text-5xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
+            <h2
+              className="script-type text-5xl"
+              style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}
+            >
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
 
             {chosenReversed && chosen && (
-              <div className="rounded-3xl border p-5 text-lg" style={{ borderColor: "var(--warn)" }}>
-                <p className="text-sm uppercase tracking-widest text-muted-foreground">Order trap</p>
+              <div
+                className="rounded-3xl border p-5 text-lg"
+                style={{ borderColor: "var(--warn)" }}
+              >
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                  Order trap
+                </p>
                 <p className="mt-2">{reversalPrompt(q.stem, chosen.pair)}</p>
                 <p className="mt-2 text-base text-muted-foreground">
-                  Next time, read your sentence out loud with the pair in the same order as the stem — a
-                  backwards pair always sounds right until you do.
+                  Next time, read your sentence out loud with the pair in the same order as the stem
+                  — a backwards pair always sounds right until you do.
                 </p>
               </div>
             )}
@@ -900,16 +976,24 @@ function Practice() {
                   borderColor: guessedRight ? "var(--success)" : "var(--warn)",
                 }}
               >
-                <p className="text-sm uppercase tracking-widest text-muted-foreground">The category</p>
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                  The category
+                </p>
                 {guessedRight ? (
                   <p className="mt-2">
-                    ✓ You named it: <strong>{FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}</strong>. Naming the category is what
-                    keeps working when the words get hard.
+                    ✓ You named it:{" "}
+                    <strong>{FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}</strong>.
+                    Naming the category is what keeps working when the words get hard.
                   </p>
                 ) : (
                   <p className="mt-2">
-                    You said <strong>{FOUNDATION_SIX[groupOfFamily(drill.familyGuess as Family) ?? "kind"].label}</strong> — this one is{" "}
-                    <strong>{FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}</strong> ({q.bridge})
+                    You said{" "}
+                    <strong>
+                      {FOUNDATION_SIX[groupOfFamily(drill.familyGuess as Family) ?? "kind"].label}
+                    </strong>{" "}
+                    — this one is{" "}
+                    <strong>{FOUNDATION_SIX[groupOfFamily(q.family) ?? "kind"].label}</strong> (
+                    {q.bridge})
                     {drill.correct
                       ? ". You still got it right, so your sentence rescued the wrong label — but learn this category, because on hard words the label is all you'll have."
                       : ". Learn this one: say the pair and the category out loud before you move on."}
@@ -920,29 +1004,36 @@ function Practice() {
 
             {drill.correct && drill.peeked && (
               <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
-                You peeked at a model sentence and then finished it yourself — that's how a new word gets
-                learned. Say the bridge out loud once more and it's yours.
+                You peeked at a model sentence and then finished it yourself — that's how a new word
+                gets learned. Say the bridge out loud once more and it's yours.
               </p>
             )}
             {drill.correct && (drill.rewrites ?? 0) > 0 && (
               <p className="rounded-3xl bg-secondary/50 p-5 text-lg">
-                It took {(drill.rewrites ?? 0) + 1} sentences. That's normal — tightening the sentence is the
-                work, not a mistake.
+                It took {(drill.rewrites ?? 0) + 1} sentences. That's normal — tightening the
+                sentence is the work, not a mistake.
               </p>
             )}
 
             <div className="rounded-3xl bg-secondary/50 p-5">
-              <p className="text-sm uppercase tracking-widest text-muted-foreground">The target bridge</p>
+              <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                The target bridge
+              </p>
               <p className="mt-2 text-[30px] leading-snug">{q.bridge}</p>
             </div>
             {drill.bridge && (
               <div className="rounded-3xl border border-border p-5">
-                <p className="text-sm uppercase tracking-widest text-muted-foreground">Your sentence</p>
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                  Your sentence
+                </p>
                 <p className="mt-2 text-[24px] leading-snug">{drill.bridge}</p>
               </div>
             )}
             <p className="text-2xl font-extrabold">
-              Answer: <span className="text-success">({q.correct}) {correctChoice.pair}</span>
+              Answer:{" "}
+              <span className="text-success">
+                ({q.correct}) {correctChoice.pair}
+              </span>
             </p>
             <ul className="space-y-2">
               {q.choices.map((c) => {
@@ -959,8 +1050,12 @@ function Practice() {
                         : "transparent",
                     }}
                   >
-                    <span className="font-extrabold">({c.label}) {c.pair}</span>
-                    {tempting && <span className="ml-2 font-bold text-muted-foreground">your pick</span>}
+                    <span className="font-extrabold">
+                      ({c.label}) {c.pair}
+                    </span>
+                    {tempting && (
+                      <span className="ml-2 font-bold text-muted-foreground">your pick</span>
+                    )}
                     <p className="text-muted-foreground">{c.why}</p>
                   </li>
                 );
@@ -984,7 +1079,10 @@ function Practice() {
                 >
                   Keep practicing
                 </BouncyTap>
-                <BouncyTap onClick={() => finish(true)} className="border border-border py-5 text-2xl">
+                <BouncyTap
+                  onClick={() => finish(true)}
+                  className="border border-border py-5 text-2xl"
+                >
                   Stop for now
                 </BouncyTap>
               </div>

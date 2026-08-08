@@ -37,13 +37,7 @@ export const FAMILIES: Record<Family, { label: string; color: string }> = {
  * each phrased as a self-question. Each group maps to one or more families.
  * A question is "foundation" if its family belongs to one of these six groups.
  * -------------------------------------------------------------------------- */
-export type FoundationGroup =
-  | "kind"
-  | "part"
-  | "used"
-  | "degree"
-  | "same"
-  | "opposite";
+export type FoundationGroup = "kind" | "part" | "used" | "degree" | "same" | "opposite";
 
 export const FOUNDATION_SIX: Record<
   FoundationGroup,
@@ -127,11 +121,31 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A compass is an instrument used to determine direction.",
     correct: "B",
     choices: [
-      { label: "A", pair: "MAP : JOURNEY", why: "A map may guide a journey, but it does not determine it as a measured property." },
-      { label: "B", pair: "THERMOMETER : TEMPERATURE", why: "A thermometer is an instrument used to determine temperature." },
-      { label: "C", pair: "NEEDLE : COMPASS", why: "A needle is a part of a compass — this changes to part-to-whole." },
-      { label: "D", pair: "NORTH : SOUTH", why: "North and south are opposites, not an instrument and what it determines." },
-      { label: "E", pair: "TRAVELER : ROUTE", why: "A traveler is a person who follows a route, not an instrument." },
+      {
+        label: "A",
+        pair: "MAP : JOURNEY",
+        why: "A map may guide a journey, but it does not determine it as a measured property.",
+      },
+      {
+        label: "B",
+        pair: "THERMOMETER : TEMPERATURE",
+        why: "A thermometer is an instrument used to determine temperature.",
+      },
+      {
+        label: "C",
+        pair: "NEEDLE : COMPASS",
+        why: "A needle is a part of a compass — this changes to part-to-whole.",
+      },
+      {
+        label: "D",
+        pair: "NORTH : SOUTH",
+        why: "North and south are opposites, not an instrument and what it determines.",
+      },
+      {
+        label: "E",
+        pair: "TRAVELER : ROUTE",
+        why: "A traveler is a person who follows a route, not an instrument.",
+      },
     ],
   },
   {
@@ -141,11 +155,31 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "To scurry is to move in a very quick, hurried manner.",
     correct: "D",
     choices: [
-      { label: "A", pair: "RUNNER : RACE", why: "A runner participates in a race — person to event." },
-      { label: "B", pair: "HURRY : LATE", why: "Hurrying can be a response to being late — not manner to general action." },
-      { label: "C", pair: "CRAWL : SLOW", why: "This is an action followed by a description; the structure differs." },
-      { label: "D", pair: "GOBBLE : EAT", why: "To gobble is to eat in a very quick, hurried manner." },
-      { label: "E", pair: "MOTION : SPEED", why: "Speed is a property of motion, not its general action." },
+      {
+        label: "A",
+        pair: "RUNNER : RACE",
+        why: "A runner participates in a race — person to event.",
+      },
+      {
+        label: "B",
+        pair: "HURRY : LATE",
+        why: "Hurrying can be a response to being late — not manner to general action.",
+      },
+      {
+        label: "C",
+        pair: "CRAWL : SLOW",
+        why: "This is an action followed by a description; the structure differs.",
+      },
+      {
+        label: "D",
+        pair: "GOBBLE : EAT",
+        why: "To gobble is to eat in a very quick, hurried manner.",
+      },
+      {
+        label: "E",
+        pair: "MOTION : SPEED",
+        why: "Speed is a property of motion, not its general action.",
+      },
     ],
   },
   {
@@ -155,11 +189,27 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A patient receives medical treatment from a doctor.",
     correct: "B",
     choices: [
-      { label: "A", pair: "VETERINARIAN : ANIMAL", why: "The professional and the recipient are reversed." },
-      { label: "B", pair: "ANIMAL : VETERINARIAN", why: "An animal receives medical treatment from a veterinarian." },
+      {
+        label: "A",
+        pair: "VETERINARIAN : ANIMAL",
+        why: "The professional and the recipient are reversed.",
+      },
+      {
+        label: "B",
+        pair: "ANIMAL : VETERINARIAN",
+        why: "An animal receives medical treatment from a veterinarian.",
+      },
       { label: "C", pair: "TEACHER : CLASSROOM", why: "This is a worker and a workplace." },
-      { label: "D", pair: "MEDICINE : PHARMACIST", why: "Medicine is dispensed by a pharmacist; it is not a care recipient." },
-      { label: "E", pair: "STUDENT : BOOK", why: "A student uses a book; a book is not a treating professional." },
+      {
+        label: "D",
+        pair: "MEDICINE : PHARMACIST",
+        why: "Medicine is dispensed by a pharmacist; it is not a care recipient.",
+      },
+      {
+        label: "E",
+        pair: "STUDENT : BOOK",
+        why: "A student uses a book; a book is not a treating professional.",
+      },
     ],
   },
   {
@@ -169,11 +219,23 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A glove is worn on a hand.",
     correct: "B",
     choices: [
-      { label: "A", pair: "HAT : COAT", why: "These are two clothing items; a hat is not worn on a coat." },
+      {
+        label: "A",
+        pair: "HAT : COAT",
+        why: "These are two clothing items; a hat is not worn on a coat.",
+      },
       { label: "B", pair: "SOCK : FOOT", why: "A sock is worn on a foot." },
-      { label: "C", pair: "SHOE : WALK", why: "A shoe is an item and WALK is an action, not a body part." },
+      {
+        label: "C",
+        pair: "SHOE : WALK",
+        why: "A shoe is an item and WALK is an action, not a body part.",
+      },
       { label: "D", pair: "FINGER : RING", why: "The body part and the worn item are reversed." },
-      { label: "E", pair: "HAND : WRIST", why: "These are adjacent body parts, not a worn item and a body part." },
+      {
+        label: "E",
+        pair: "HAND : WRIST",
+        why: "These are adjacent body parts, not a worn item and a body part.",
+      },
     ],
   },
   {
@@ -197,11 +259,19 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A roof is the top covering part of a house.",
     correct: "B",
     choices: [
-      { label: "A", pair: "ROOM : HOUSE", why: "A room is a part, but it is not the top covering." },
+      {
+        label: "A",
+        pair: "ROOM : HOUSE",
+        why: "A room is a part, but it is not the top covering.",
+      },
       { label: "B", pair: "LID : JAR", why: "A lid is the top covering part of a jar." },
       { label: "C", pair: "JAR : LID", why: "The whole and its covering are reversed." },
       { label: "D", pair: "WINDOW : GLASS", why: "This is an object and its material." },
-      { label: "E", pair: "GARAGE : CAR", why: "A garage shelters a car but is not its top covering part." },
+      {
+        label: "E",
+        pair: "GARAGE : CAR",
+        why: "A garage shelters a car but is not its top covering part.",
+      },
     ],
   },
   {
@@ -215,7 +285,11 @@ const BASE_QUESTIONS: Question[] = [
       { label: "B", pair: "FOAL : HORSE", why: "A foal is a young horse." },
       { label: "C", pair: "HORSE : FOAL", why: "The animal and its young form are reversed." },
       { label: "D", pair: "DOG : KENNEL", why: "This is animal-to-dwelling." },
-      { label: "E", pair: "CHICKEN : EGG", why: "This is an animal and an earlier reproductive stage." },
+      {
+        label: "E",
+        pair: "CHICKEN : EGG",
+        why: "This is an animal and an earlier reproductive stage.",
+      },
     ],
   },
   {
@@ -225,8 +299,16 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A dentist is a specialist who professionally cares for teeth.",
     correct: "A",
     choices: [
-      { label: "A", pair: "OPTOMETRIST : EYES", why: "An optometrist professionally cares for eyes and vision." },
-      { label: "B", pair: "EYES : OPTOMETRIST", why: "The body area and the specialist are reversed." },
+      {
+        label: "A",
+        pair: "OPTOMETRIST : EYES",
+        why: "An optometrist professionally cares for eyes and vision.",
+      },
+      {
+        label: "B",
+        pair: "EYES : OPTOMETRIST",
+        why: "The body area and the specialist are reversed.",
+      },
       { label: "C", pair: "NURSE : HOSPITAL", why: "This is professional-to-workplace." },
       { label: "D", pair: "TEETH : TOOTHBRUSH", why: "This is body area-to-tool." },
       { label: "E", pair: "CHEF : KITCHEN", why: "This is worker-to-workplace." },
@@ -242,7 +324,11 @@ const BASE_QUESTIONS: Question[] = [
       { label: "A", pair: "ANCIENT : MODERN", why: "Ancient and modern are opposites." },
       { label: "B", pair: "WARM : SUMMER", why: "This is description-to-season." },
       { label: "C", pair: "JOYFUL : SMILE", why: "This is emotion-to-expression." },
-      { label: "D", pair: "SELFISH : GREEDY", why: "These are related negative traits, not opposites." },
+      {
+        label: "D",
+        pair: "SELFISH : GREEDY",
+        why: "These are related negative traits, not opposites.",
+      },
       { label: "E", pair: "KIND : FRIEND", why: "This is trait-to-person." },
     ],
   },
@@ -253,7 +339,11 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A bee characteristically lives in a hive.",
     correct: "A",
     choices: [
-      { label: "A", pair: "RABBIT : BURROW", why: "A rabbit characteristically lives in a burrow." },
+      {
+        label: "A",
+        pair: "RABBIT : BURROW",
+        why: "A rabbit characteristically lives in a burrow.",
+      },
       { label: "B", pair: "HIVE : BEE", why: "The dwelling and the animal are reversed." },
       { label: "C", pair: "HONEY : BEE", why: "This is product-to-producer." },
       { label: "D", pair: "FLOWER : NECTAR", why: "This is a source and a substance." },
@@ -281,7 +371,11 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A calf is a young cow.",
     correct: "A",
     choices: [
-      { label: "A", pair: "CHICK : HEN", why: "A chick is a young chicken and a hen is the corresponding adult." },
+      {
+        label: "A",
+        pair: "CHICK : HEN",
+        why: "A chick is a young chicken and a hen is the corresponding adult.",
+      },
       { label: "B", pair: "COW : CALF", why: "The adult and the young are reversed." },
       { label: "C", pair: "LAMB : WOOL", why: "This is young animal-to-covering or product." },
       { label: "D", pair: "PONY : SADDLE", why: "This is animal-to-equipment." },
@@ -312,7 +406,11 @@ const BASE_QUESTIONS: Question[] = [
       { label: "A", pair: "ASCEND : DESCEND", why: "To ascend is the opposite of to descend." },
       { label: "B", pair: "HEAT : OVEN", why: "This is effect-to-source." },
       { label: "C", pair: "ICE : WATER", why: "This is a state or form relationship." },
-      { label: "D", pair: "MELT : LIQUID", why: "This is action-to-resulting state, not opposite actions." },
+      {
+        label: "D",
+        pair: "MELT : LIQUID",
+        why: "This is action-to-resulting state, not opposite actions.",
+      },
       { label: "E", pair: "COLD : SHIVER", why: "This is cause-to-response." },
     ],
   },
@@ -323,8 +421,16 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A carpenter characteristically uses a hammer as a tool.",
     correct: "A",
     choices: [
-      { label: "A", pair: "SURGEON : SCALPEL", why: "A surgeon characteristically uses a scalpel as a tool." },
-      { label: "B", pair: "HAMMER : CARPENTER", why: "The tool and the professional are reversed." },
+      {
+        label: "A",
+        pair: "SURGEON : SCALPEL",
+        why: "A surgeon characteristically uses a scalpel as a tool.",
+      },
+      {
+        label: "B",
+        pair: "HAMMER : CARPENTER",
+        why: "The tool and the professional are reversed.",
+      },
       { label: "C", pair: "BUILDER : HOUSE", why: "This is creator-to-product." },
       { label: "D", pair: "WOOD : SAW", why: "This is material-to-tool." },
       { label: "E", pair: "CHEF : MEAL", why: "This is creator-to-product." },
@@ -334,10 +440,15 @@ const BASE_QUESTIONS: Question[] = [
     id: "H1",
     family: "characteristic",
     stem: "OASIS : DESERT",
-    bridge: "An oasis is a smaller area with contrasting physical conditions located within a desert.",
+    bridge:
+      "An oasis is a smaller area with contrasting physical conditions located within a desert.",
     correct: "A",
     choices: [
-      { label: "A", pair: "ISLAND : OCEAN", why: "An island is a smaller land area that contrasts with and lies within the surrounding ocean." },
+      {
+        label: "A",
+        pair: "ISLAND : OCEAN",
+        why: "An island is a smaller land area that contrasts with and lies within the surrounding ocean.",
+      },
       { label: "B", pair: "OCEAN : ISLAND", why: "The environment and the feature are reversed." },
       { label: "C", pair: "WATER : OASIS", why: "This is component-to-place." },
       { label: "D", pair: "SAND : BEACH", why: "This is material-to-place." },
@@ -351,9 +462,21 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "Miserly is an excessive, negatively judged extreme of being frugal.",
     correct: "A",
     choices: [
-      { label: "A", pair: "CONFIDENT : ARROGANT", why: "Arrogance is a negatively judged excess of confidence." },
-      { label: "B", pair: "CAREFUL : RECKLESS", why: "These are opposites, not moderate-to-excessive degree." },
-      { label: "C", pair: "MISERLY : FRUGAL", why: "The excessive-to-moderate direction is reversed." },
+      {
+        label: "A",
+        pair: "CONFIDENT : ARROGANT",
+        why: "Arrogance is a negatively judged excess of confidence.",
+      },
+      {
+        label: "B",
+        pair: "CAREFUL : RECKLESS",
+        why: "These are opposites, not moderate-to-excessive degree.",
+      },
+      {
+        label: "C",
+        pair: "MISERLY : FRUGAL",
+        why: "The excessive-to-moderate direction is reversed.",
+      },
       { label: "D", pair: "WEALTHY : GENEROUS", why: "There is no necessary relationship." },
       { label: "E", pair: "THRIFTY : SAVE", why: "This is trait-to-associated action." },
     ],
@@ -365,11 +488,19 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A blueprint is a plan used to create a building.",
     correct: "A",
     choices: [
-      { label: "A", pair: "RECIPE : DISH", why: "A recipe is a set of instructions used to create a dish." },
+      {
+        label: "A",
+        pair: "RECIPE : DISH",
+        why: "A recipe is a set of instructions used to create a dish.",
+      },
       { label: "B", pair: "DISH : RECIPE", why: "The product and the instructions are reversed." },
       { label: "C", pair: "ARCHITECT : BLUEPRINT", why: "This is creator-to-plan." },
       { label: "D", pair: "BRICK : BUILDING", why: "This is material-to-whole." },
-      { label: "E", pair: "MAP : ROAD", why: "A map represents a road; it is not a plan used to create it." },
+      {
+        label: "E",
+        pair: "MAP : ROAD",
+        why: "A map represents a road; it is not a plan used to create it.",
+      },
     ],
   },
   {
@@ -379,11 +510,23 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "To mumble is to speak indistinctly so the words are hard to understand.",
     correct: "A",
     choices: [
-      { label: "A", pair: "SCRIBBLE : WRITE", why: "To scribble is to write unclearly so the words are hard to read." },
+      {
+        label: "A",
+        pair: "SCRIBBLE : WRITE",
+        why: "To scribble is to write unclearly so the words are hard to read.",
+      },
       { label: "B", pair: "LISTEN : HEAR", why: "This is intentional-to-passive perception." },
-      { label: "C", pair: "SPEAK : MUMBLE", why: "The general action and its specific manner are reversed." },
+      {
+        label: "C",
+        pair: "SPEAK : MUMBLE",
+        why: "The general action and its specific manner are reversed.",
+      },
       { label: "D", pair: "VOICE : SOUND", why: "This is source-to-output." },
-      { label: "E", pair: "QUIET : SILENCE", why: "These are related states, not manner-to-action." },
+      {
+        label: "E",
+        pair: "QUIET : SILENCE",
+        why: "These are related states, not manner-to-action.",
+      },
     ],
   },
   {
@@ -393,10 +536,22 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "An archaeologist is a specialist who studies artifacts.",
     correct: "A",
     choices: [
-      { label: "A", pair: "ASTRONOMER : STAR", why: "An astronomer is a specialist who studies stars." },
-      { label: "B", pair: "FOSSIL : PALEONTOLOGIST", why: "The object and the specialist are reversed." },
+      {
+        label: "A",
+        pair: "ASTRONOMER : STAR",
+        why: "An astronomer is a specialist who studies stars.",
+      },
+      {
+        label: "B",
+        pair: "FOSSIL : PALEONTOLOGIST",
+        why: "The object and the specialist are reversed.",
+      },
       { label: "C", pair: "ARTIST : PAINTING", why: "This is creator-to-creation." },
-      { label: "D", pair: "LIBRARIAN : BOOK", why: "A librarian organizes books rather than defining a field by studying them." },
+      {
+        label: "D",
+        pair: "LIBRARIAN : BOOK",
+        why: "A librarian organizes books rather than defining a field by studying them.",
+      },
       { label: "E", pair: "MUSEUM : ARTIFACT", why: "This is place-to-contained object." },
     ],
   },
@@ -407,7 +562,11 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A verdict is a conclusion reached through a trial.",
     correct: "A",
     choices: [
-      { label: "A", pair: "DIAGNOSIS : EXAMINATION", why: "A diagnosis is a conclusion reached through an examination." },
+      {
+        label: "A",
+        pair: "DIAGNOSIS : EXAMINATION",
+        why: "A diagnosis is a conclusion reached through an examination.",
+      },
       { label: "B", pair: "TRIAL : VERDICT", why: "The process and the conclusion are reversed." },
       { label: "C", pair: "JUDGE : COURT", why: "This is person-to-workplace." },
       { label: "D", pair: "QUESTION : ANSWER", why: "This is prompt-to-response." },
@@ -421,9 +580,21 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A barometer is an instrument used to measure air pressure.",
     correct: "A",
     choices: [
-      { label: "A", pair: "THERMOMETER : TEMPERATURE", why: "A thermometer is an instrument used to measure temperature." },
-      { label: "B", pair: "CLOCK : APPOINTMENT", why: "A clock measures time, not an appointment." },
-      { label: "C", pair: "PRESSURE : BAROMETER", why: "The quantity and the instrument are reversed." },
+      {
+        label: "A",
+        pair: "THERMOMETER : TEMPERATURE",
+        why: "A thermometer is an instrument used to measure temperature.",
+      },
+      {
+        label: "B",
+        pair: "CLOCK : APPOINTMENT",
+        why: "A clock measures time, not an appointment.",
+      },
+      {
+        label: "C",
+        pair: "PRESSURE : BAROMETER",
+        why: "The quantity and the instrument are reversed.",
+      },
       { label: "D", pair: "RAIN : CLOUD", why: "This is result-to-source." },
       { label: "E", pair: "WEATHER : FORECAST", why: "This is subject-to-prediction." },
     ],
@@ -436,8 +607,16 @@ const BASE_QUESTIONS: Question[] = [
     correct: "A",
     choices: [
       { label: "A", pair: "GOBBLE : EAT", why: "To gobble is to eat very fast." },
-      { label: "B", pair: "WALK : MOVE", why: "Walking is movement, but the very-fast degree is missing." },
-      { label: "C", pair: "RUN : SPRINT", why: "The general action and the specific fast manner are reversed." },
+      {
+        label: "B",
+        pair: "WALK : MOVE",
+        why: "Walking is movement, but the very-fast degree is missing.",
+      },
+      {
+        label: "C",
+        pair: "RUN : SPRINT",
+        why: "The general action and the specific fast manner are reversed.",
+      },
       { label: "D", pair: "RACE : TROPHY", why: "This is event-to-award." },
       { label: "E", pair: "QUICK : SPEED", why: "This is adjective-to-property noun." },
     ],
@@ -449,11 +628,23 @@ const BASE_QUESTIONS: Question[] = [
     bridge: "A defendant is a party that may be legally represented by an attorney.",
     correct: "A",
     choices: [
-      { label: "A", pair: "NATION : AMBASSADOR", why: "A nation may be officially represented by an ambassador." },
-      { label: "B", pair: "AMBASSADOR : NATION", why: "The representative and the represented party are reversed." },
+      {
+        label: "A",
+        pair: "NATION : AMBASSADOR",
+        why: "A nation may be officially represented by an ambassador.",
+      },
+      {
+        label: "B",
+        pair: "AMBASSADOR : NATION",
+        why: "The representative and the represented party are reversed.",
+      },
       { label: "C", pair: "JUDGE : DEFENDANT", why: "This is decision-maker-to-party." },
       { label: "D", pair: "CLIENT : PAYMENT", why: "This is payer-to-object transferred." },
-      { label: "E", pair: "LAW : COURT", why: "This is a rule or system and a place of application." },
+      {
+        label: "E",
+        pair: "LAW : COURT",
+        why: "This is a rule or system and a place of application.",
+      },
     ],
   },
 ];

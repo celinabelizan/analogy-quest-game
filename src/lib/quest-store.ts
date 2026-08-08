@@ -6,8 +6,6 @@ export type ProfileId = "bianca" | "calista";
 export const PROFILES: { id: ProfileId; name: string; age: number; accent: string }[] = [
   { id: "bianca", name: "Bianca", age: 12, accent: "#FF2E93" },
   { id: "calista", name: "Calista", age: 10, accent: "#00C4B4" },
-
-
 ];
 
 export type Reward = { id: string; name: string; xp: number; photo?: string };
@@ -58,7 +56,6 @@ export type Drill = {
   /** True once this drill has been counted toward today's question total (guards double-count). */
   dayCounted?: boolean;
 };
-
 
 export type ProfileState = {
   lifetimeXp: number;
@@ -132,7 +129,6 @@ export function classifyStruggle(a: {
   if (!a.correct || a.skipped) return "sentence";
   return "none";
 }
-
 
 /** Each girl has her own private wishlist. enabledGroups gates which Foundation-Six
  *  bridge families appear in practice (parent controls "do what I just taught").

@@ -10,7 +10,6 @@ import {
   addXp,
   STRUGGLE_LABEL,
   todayKey,
-
   useProfile,
   useShared,
   type ProfileId,
@@ -20,9 +19,15 @@ export const Route = createFileRoute("/parent")({
   head: () => ({
     meta: [
       { title: "Parent Panel — SSAT Quest" },
-      { name: "description", content: "Manage rewards, approve redemptions, and award exit-ticket stars." },
+      {
+        name: "description",
+        content: "Manage rewards, approve redemptions, and award exit-ticket stars.",
+      },
       { property: "og:title", content: "Parent Panel — SSAT Quest" },
-      { property: "og:description", content: "Rewards, approvals, and daily stars for SSAT Quest." },
+      {
+        property: "og:description",
+        content: "Rewards, approvals, and daily stars for SSAT Quest.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -98,7 +103,6 @@ function ParentPanel() {
         </div>
 
         <RewardManager />
-
 
         <section className="quest-card p-6">
           <h2 className="text-xl font-extrabold">Exit-ticket stars</h2>
@@ -202,7 +206,9 @@ function LessonSections({
                 <span className="block text-lg font-extrabold">{FOUNDATION_SIX[g].label}</span>
                 <span className="block text-xs text-muted-foreground">{FOUNDATION_SIX[g].ask}</span>
               </span>
-              <span className={`text-sm font-bold ${on ? "text-primary" : "text-muted-foreground"}`}>
+              <span
+                className={`text-sm font-bold ${on ? "text-primary" : "text-muted-foreground"}`}
+              >
                 {on ? "ON" : "off"}
               </span>
             </BouncyTap>
@@ -226,7 +232,9 @@ function GirlCard({ id, name, accent }: { id: ProfileId; name: string; accent: s
         ...prev,
         availableXp: Math.max(0, prev.availableXp - red.cost),
         redemptions: prev.redemptions.map((r) =>
-          r.id === rid ? { ...r, status: "approved" as const, resolvedAt: new Date().toISOString() } : r,
+          r.id === rid
+            ? { ...r, status: "approved" as const, resolvedAt: new Date().toISOString() }
+            : r,
         ),
       };
     });
@@ -235,7 +243,9 @@ function GirlCard({ id, name, accent }: { id: ProfileId; name: string; accent: s
     update((prev) => ({
       ...prev,
       redemptions: prev.redemptions.map((r) =>
-        r.id === rid ? { ...r, status: "declined" as const, resolvedAt: new Date().toISOString() } : r,
+        r.id === rid
+          ? { ...r, status: "declined" as const, resolvedAt: new Date().toISOString() }
+          : r,
       ),
     }));
 
@@ -259,7 +269,10 @@ function GirlCard({ id, name, accent }: { id: ProfileId; name: string; accent: s
                 {r.name} — {r.cost} XP
               </p>
               <div className="mt-2 flex gap-2">
-                <BouncyTap onClick={() => approve(r.id)} className="bg-primary px-5 py-3 text-primary-foreground">
+                <BouncyTap
+                  onClick={() => approve(r.id)}
+                  className="bg-primary px-5 py-3 text-primary-foreground"
+                >
                   Approve
                 </BouncyTap>
                 <BouncyTap onClick={() => decline(r.id)} className="border border-border px-5 py-3">
@@ -322,14 +335,18 @@ function RewardManager() {
     if (cost <= 0) return;
     setList((l) => [
       ...l,
-      { id: `r-${Date.now()}`, name: name.trim(), xp: cost, ...(photo.trim() ? { photo: photo.trim() } : {}) },
+      {
+        id: `r-${Date.now()}`,
+        name: name.trim(),
+        xp: cost,
+        ...(photo.trim() ? { photo: photo.trim() } : {}),
+      },
     ]);
     setName("");
     setPrice("");
     setXp("");
     setPhoto("");
   };
-
 
   return (
     <section className="quest-card space-y-4 p-6">
@@ -352,7 +369,10 @@ function RewardManager() {
       </div>
       <ul className="space-y-2">
         {list.map((r) => (
-          <li key={r.id} className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3">
+          <li
+            key={r.id}
+            className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3"
+          >
             <input
               value={r.name}
               onChange={(e) =>
@@ -364,7 +384,9 @@ function RewardManager() {
               type="number"
               value={r.xp}
               onChange={(e) =>
-                setList((l) => l.map((x) => (x.id === r.id ? { ...x, xp: Number(e.target.value) } : x)))
+                setList((l) =>
+                  l.map((x) => (x.id === r.id ? { ...x, xp: Number(e.target.value) } : x)),
+                )
               }
               className="min-h-[48px] w-24 rounded-xl bg-secondary/40 px-3 text-right outline-none focus:ring-1 focus:ring-primary"
             />
@@ -376,7 +398,6 @@ function RewardManager() {
             </BouncyTap>
           </li>
         ))}
-
       </ul>
 
       <div className="space-y-3 rounded-2xl border border-border p-4">
@@ -485,7 +506,8 @@ function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
               <ul className="mt-1 space-y-1 text-sm">
                 {tripped.map(([k, n]) => (
                   <li key={k}>
-                    {STRUGGLE_LABEL[k as keyof typeof STRUGGLE_LABEL] ?? k} — {n} question{n === 1 ? "" : "s"}
+                    {STRUGGLE_LABEL[k as keyof typeof STRUGGLE_LABEL] ?? k} — {n} question
+                    {n === 1 ? "" : "s"}
                   </li>
                 ))}
               </ul>
