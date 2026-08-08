@@ -793,6 +793,17 @@ function Practice() {
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
 
+            {chosenReversed && chosen && (
+              <div className="rounded-3xl border p-5 text-lg" style={{ borderColor: "var(--warn)" }}>
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">Order trap</p>
+                <p className="mt-2">{reversalPrompt(q.stem, chosen.pair)}</p>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Next time, read your sentence out loud with the pair in the same order as the stem — a
+                  backwards pair always sounds right until you do.
+                </p>
+              </div>
+            )}
+
             {/* Category scorecard — always shown, right or wrong. */}
             {drill.familyGuess && (
               <div
