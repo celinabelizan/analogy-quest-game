@@ -117,6 +117,12 @@ function Practice() {
     update((prev) => (prev.current ? prev : { ...prev, current: newDrill(prev) }));
   }, [update]);
 
+  // A saved drill can point at a question that no longer exists — start fresh instead of crashing.
+  useEffect(() => {
+    if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev) }));
+  }, [drill, q, update]);
+
+
   useEffect(() => {
     if (drill && !drill.locked) setDraft(drill.bridge);
   }, [drill?.qid, drill?.locked]);
