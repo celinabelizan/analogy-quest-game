@@ -669,10 +669,22 @@ function Practice() {
 
             {/* live guidance */}
 
+            {standing.length === 1 && standingReversed && (
+              <div className="space-y-3 rounded-3xl border p-5" style={{ borderColor: "var(--warn)" }}>
+                <p className="text-xl font-extrabold text-warn">Hold on — check the direction.</p>
+                <p className="text-lg">{reversalPrompt(q.stem)}</p>
+                <p className="text-base text-muted-foreground">
+                  Read your sentence with ({standing[0]!.label}) {standing[0]!.pair} one more time, in order. If
+                  it only works backwards, discard it and un-cross the ones you rushed.
+                </p>
+              </div>
+            )}
+
             {standing.length === 1 && (
               <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--success)" }}>
                 <p className="script-type text-4xl text-success">One survivor!</p>
                 <p className="text-lg text-muted-foreground">Your sentence did its job.</p>
+
                 <BouncyTap
                   onClick={() => answer(standing[0]!.label)}
                   className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
