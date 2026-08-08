@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { DoodleField, Flower } from "@/components/quest/Doodles";
 import { ProgressRing } from "@/components/quest/Bits";
-import { PROFILES, useProfile, useShared, type ProfileId } from "@/lib/quest-store";
+import { PROFILES, useProfile, useShared, rewardsFor, type ProfileId } from "@/lib/quest-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
 function ProfileCard({ id, name }: { id: ProfileId; name: string; accent: string }) {
   const [p] = useProfile(id);
   const [shared] = useShared();
-  const active = shared.rewards.find((r) => r.id === p.activeRewardId) ?? null;
+  const active = rewardsFor(shared, id).find((r) => r.id === p.activeRewardId) ?? null;
   const pending = p.redemptions.some((r) => r.status === "pending");
 
   return (

@@ -60,9 +60,28 @@ export type ProfileState = {
   recent: string[];
   days: Record<string, { completed: number; exitTicket: boolean; dayBonus: boolean }>;
   current: Drill | null;
+  /** One entry per finished question, newest last. */
+  history?: Attempt[];
 };
 
-export type SharedState = { pin: string; rewards: Reward[] };
+/** A finished question, kept so a parent can see what happened. */
+export type Attempt = {
+  qid: string;
+  at: number;
+  stem: string;
+  family: string;
+  familyGuess: string | null;
+  familyRight: boolean;
+  choice: string | null;
+  correctChoice: string;
+  correct: boolean;
+  rewrites: number;
+  peeked: boolean;
+  stuckOnWord: boolean;
+};
+
+/** Each girl has her own private wishlist. */
+export type SharedState = { pin: string; rewards: Record<ProfileId, Reward[]> };
 
 const SHARED_KEY = "ssatquest.v8.shared";
 const profileKey = (id: ProfileId) => `ssatquest.v8.profile.${id}`;
@@ -80,10 +99,36 @@ const emptyProfile = (): ProfileState => ({
   current: null,
 });
 
+const seedRewards = (prefix: string): Reward[] =>
+  SEED_REWARDS.map((r, i) => ({ id: `${prefix}-seed-${i}`, name: r.name, xp: r.xp }));
+
 const defaultShared = (): SharedState => ({
   pin: "1701",
-  rewards: SEED_REWARDS.map((r, i) => ({ id: `seed-${i}`, name: r.name, xp: r.xp })),
+  rewards: { bianca: seedRewards("bianca"), calista: seedRewards("calista") },
 });
+
+/** Older saves kept one shared list — split it so each girl gets her own copy. */
+function normalizeShared(s: SharedState): SharedState {
+  const rw = s.rewards as unknown;
+  if (Array.isArray(rw)) {
+    const list = rw as Reward[];
+    return {
+      ...s,
+      rewards: {
+        bianca: list.map((r) => ({ ...r, id: `bianca-${r.id}` })),
+        calista: list.map((r) => ({ ...r, id: `calista-${r.id}` })),
+      },
+    };
+  }
+  const rec = (rw ?? {}) as Partial<Record<ProfileId, Reward[]>>;
+  return {
+    ...s,
+    rewards: {
+      bianca: rec.bianca ?? seedRewards("bianca"),
+      calista: rec.calista ?? seedRewards("calista"),
+    },
+  };
+}
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -133,7 +178,18 @@ function useStored<T>(key: string, fallback: () => T) {
 }
 
 export function useShared() {
-  return useStored<SharedState>(SHARED_KEY, defaultShared);
+  const [value, update] = useStored<SharedState>(SHARED_KEY, defaultShared);
+  const shared = normalizeShared(value);
+  const updateShared = useCallback(
+    (fn: (prev: SharedState) => SharedState) => update((prev) => fn(normalizeShared(prev))),
+    [update],
+  );
+  return [shared, updateShared] as const;
+}
+
+/** Wishlist for one girl only. */
+export function rewardsFor(shared: SharedState, id: ProfileId): Reward[] {
+  return shared.rewards[id] ?? [];
 }
 
 export function useProfile(id: ProfileId) {

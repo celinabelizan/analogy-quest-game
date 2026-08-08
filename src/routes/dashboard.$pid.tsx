@@ -9,6 +9,7 @@ import {
   dayOf,
   useProfile,
   useShared,
+  rewardsFor,
   type ProfileId,
 } from "@/lib/quest-store";
 
@@ -33,7 +34,7 @@ function Dashboard() {
   const [p, update] = useProfile(id);
   const [shared] = useShared();
 
-  const active = shared.rewards.find((r) => r.id === p.activeRewardId) ?? null;
+  const active = rewardsFor(shared, id).find((r) => r.id === p.activeRewardId) ?? null;
   const reached = !!active && p.availableXp >= active.xp;
   const pending = p.redemptions.find((r) => r.status === "pending");
   const unlock = nextUnlock(p.lifetimeXp);
@@ -181,7 +182,7 @@ function Dashboard() {
           <h2 className="text-xl font-extrabold">Wishlist</h2>
           <p className="text-sm text-muted-foreground">Tap one to make it your goal.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {shared.rewards.map((r) => {
+            {rewardsFor(shared, id).map((r) => {
               const isActive = r.id === p.activeRewardId;
               return (
                 <motion.button

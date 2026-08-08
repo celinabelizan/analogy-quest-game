@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { famInfo } from "@/data/questions";
 import { useState } from "react";
 import { DoodleField, BouncyTap } from "@/components/quest/Doodles";
 import {
@@ -83,7 +84,14 @@ function ParentPanel() {
           ))}
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          {PROFILES.map((p) => (
+            <ProgressReport key={p.id} id={p.id} name={p.name} />
+          ))}
+        </div>
+
         <RewardManager />
+
 
         <section className="quest-card p-6">
           <h2 className="text-xl font-extrabold">Exit-ticket stars</h2>
@@ -230,41 +238,57 @@ function ExitTicket({ id, name }: { id: ProfileId; name: string }) {
 
 function RewardManager() {
   const [shared, updateShared] = useShared();
+  const [who, setWho] = useState<ProfileId>("bianca");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [xp, setXp] = useState("");
   const [photo, setPhoto] = useState("");
 
+  const list = shared.rewards[who] ?? [];
+  const setList = (fn: (l: typeof list) => typeof list) =>
+    updateShared((s) => ({ ...s, rewards: { ...s.rewards, [who]: fn(s.rewards[who] ?? []) } }));
+
   const add = () => {
     if (!name.trim()) return;
     const cost = Number(xp) || Math.round((Number(price) || 0) * 10);
     if (cost <= 0) return;
-    updateShared((s) => ({
-      ...s,
-      rewards: [
-        ...s.rewards,
-        { id: `r-${Date.now()}`, name: name.trim(), xp: cost, ...(photo.trim() ? { photo: photo.trim() } : {}) },
-      ],
-    }));
+    setList((l) => [
+      ...l,
+      { id: `r-${Date.now()}`, name: name.trim(), xp: cost, ...(photo.trim() ? { photo: photo.trim() } : {}) },
+    ]);
     setName("");
     setPrice("");
     setXp("");
     setPhoto("");
   };
 
+
   return (
     <section className="quest-card space-y-4 p-6">
       <h2 className="text-xl font-extrabold">Reward manager</h2>
+      <p className="text-sm text-muted-foreground">Each girl has her own private wishlist.</p>
+      <div className="flex gap-2">
+        {PROFILES.map((pr) => (
+          <BouncyTap
+            key={pr.id}
+            onClick={() => setWho(pr.id)}
+            className={
+              who === pr.id
+                ? "bg-primary px-5 py-2 text-primary-foreground"
+                : "border border-border px-5 py-2"
+            }
+          >
+            {pr.name}
+          </BouncyTap>
+        ))}
+      </div>
       <ul className="space-y-2">
-        {shared.rewards.map((r) => (
+        {list.map((r) => (
           <li key={r.id} className="flex flex-wrap items-center gap-2 rounded-2xl border border-border p-3">
             <input
               value={r.name}
               onChange={(e) =>
-                updateShared((s) => ({
-                  ...s,
-                  rewards: s.rewards.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)),
-                }))
+                setList((l) => l.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)))
               }
               className="min-h-[48px] flex-1 rounded-xl bg-secondary/40 px-3 outline-none focus:ring-1 focus:ring-primary"
             />
@@ -272,21 +296,19 @@ function RewardManager() {
               type="number"
               value={r.xp}
               onChange={(e) =>
-                updateShared((s) => ({
-                  ...s,
-                  rewards: s.rewards.map((x) => (x.id === r.id ? { ...x, xp: Number(e.target.value) } : x)),
-                }))
+                setList((l) => l.map((x) => (x.id === r.id ? { ...x, xp: Number(e.target.value) } : x)))
               }
               className="min-h-[48px] w-24 rounded-xl bg-secondary/40 px-3 text-right outline-none focus:ring-1 focus:ring-primary"
             />
             <BouncyTap
-              onClick={() => updateShared((s) => ({ ...s, rewards: s.rewards.filter((x) => x.id !== r.id) }))}
+              onClick={() => setList((l) => l.filter((x) => x.id !== r.id))}
               className="border border-border px-4 py-2 text-destructive"
             >
               Delete
             </BouncyTap>
           </li>
         ))}
+
       </ul>
 
       <div className="space-y-3 rounded-2xl border border-border p-4">
@@ -327,5 +349,86 @@ function RewardManager() {
         </BouncyTap>
       </div>
     </section>
+  );
+}
+
+/** What each girl actually did: questions finished, right/wrong, and weak categories. */
+function ProgressReport({ id, name }: { id: ProfileId; name: string }) {
+  const [p] = useProfile(id);
+  const history = p.history ?? [];
+  const total = history.length;
+  const right = history.filter((h) => h.correct).length;
+  const catRight = history.filter((h) => h.familyRight).length;
+  const pct = (n: number) => (total ? Math.round((n / total) * 100) : 0);
+
+  const byFamily = new Map<string, { total: number; wrong: number }>();
+  for (const h of history) {
+    const row = byFamily.get(h.family) ?? { total: 0, wrong: 0 };
+    row.total += 1;
+    if (!h.correct) row.wrong += 1;
+    byFamily.set(h.family, row);
+  }
+  const weak = [...byFamily.entries()]
+    .filter(([, r]) => r.wrong > 0)
+    .sort((a, b) => b[1].wrong - a[1].wrong)
+    .slice(0, 3);
+
+  const recent = [...history].reverse().slice(0, 8);
+
+  return (
+    <section className="quest-card space-y-3 p-6">
+      <h2 className="text-xl font-extrabold">{name}&rsquo;s progress</h2>
+      {total === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No finished questions yet. XP can be earned mid-question, but a question only counts once
+          she taps through to the end.
+        </p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <Stat label="Answered" value={String(total)} />
+            <Stat label="Correct" value={`${pct(right)}%`} />
+            <Stat label="Category right" value={`${pct(catRight)}%`} />
+          </div>
+
+          {weak.length > 0 && (
+            <div className="rounded-2xl border border-border p-3">
+              <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
+                Needs work
+              </h3>
+              <ul className="mt-1 space-y-1 text-sm">
+                {weak.map(([fam, r]) => (
+                  <li key={fam}>
+                    {famInfo(fam).label} — missed {r.wrong} of {r.total}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <ul className="space-y-1 text-sm">
+            {recent.map((h, i) => (
+              <li key={`${h.qid}-${h.at}-${i}`} className="flex items-center justify-between gap-2">
+                <span className="font-bold">{h.stem}</span>
+                <span className="shrink-0 text-muted-foreground">
+                  {h.correct ? "✓" : `✗ ${h.choice ?? "—"} → ${h.correctChoice}`}
+                  {h.familyRight ? "" : " · category off"}
+                  {h.peeked ? " · peeked" : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border p-3">
+      <div className="text-2xl font-extrabold text-primary">{value}</div>
+      <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
+    </div>
   );
 }
