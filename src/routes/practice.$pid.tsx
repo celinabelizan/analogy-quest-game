@@ -12,6 +12,7 @@ import {
   looseHint,
   monkeySwap,
   partsOfSpeechHint,
+  posMismatches,
   reversalPrompt,
   strictHint,
   unknownWordSteps,
@@ -22,6 +23,7 @@ import {
 import {
   PROFILES,
   addXp,
+  classifyStruggle,
   dayOf,
   maybeDayBonus,
   setDay,
@@ -299,6 +301,19 @@ function Practice() {
         rewrites: d.rewrites ?? 0,
         peeked: !!d.peeked,
         stuckOnWord: !!d.stuckOnWord,
+        coachUsed: !!d.coachUsed,
+        coachSteps: d.coachSteps ?? 0,
+        coachTips: d.coachTips ?? [],
+        orderTrap: chosenReversed,
+        struggle: classifyStruggle({
+          correct: d.correct === true,
+          peeked: d.peeked,
+          stuckOnWord: d.stuckOnWord,
+          orderTrap: chosenReversed,
+          rewrites: d.rewrites,
+          coachUsed: d.coachUsed,
+          familyRight: !!asked && d.familyGuess === asked.family,
+        }),
       };
       let next: ProfileState = {
         ...prev,
@@ -337,6 +352,18 @@ function Practice() {
         peeked: !!d.peeked,
         stuckOnWord: !!d.stuckOnWord,
         skipped: true,
+        coachUsed: !!d.coachUsed,
+        coachSteps: d.coachSteps ?? 0,
+        coachTips: d.coachTips ?? [],
+        struggle: classifyStruggle({
+          correct: false,
+          skipped: true,
+          peeked: d.peeked,
+          stuckOnWord: d.stuckOnWord,
+          rewrites: d.rewrites,
+          coachUsed: d.coachUsed,
+          familyRight: false,
+        }),
       };
       let next: ProfileState = {
         ...prev,
@@ -364,8 +391,26 @@ function Practice() {
     standing.map((c) => c.pair),
     coachStep,
   );
+  const grammarOuts = posMismatches(
+    q.stem,
+    standing.filter((c) => drill.judgments[c.label] !== "no").map((c) => ({ label: c.label, pair: c.pair })),
+  );
+  const logCoach = (title: string) =>
+    setDrill((d) => ({
+      ...d,
+      coachUsed: true,
+      coachSteps: (d.coachSteps ?? 0) + 1,
+      coachTips: [...(d.coachTips ?? []), title],
+    }));
   const openCoach = () => {
     setShowCoach(true);
+    logCoach(coach.title);
+  };
+  const nextCoachTip = () => {
+    setCoachStep((s) => s + 1);
+    logCoach(
+      coachLadder(q.stem, famInfo(q.family).label, standing.map((c) => c.pair), coachStep + 1).title,
+    );
   };
 
 
@@ -642,7 +687,7 @@ function Practice() {
                         </BouncyTap>
                       )}
                       <BouncyTap
-                        onClick={() => setCoachStep((s) => s + 1)}
+                        onClick={nextCoachTip}
                         className="border border-border px-6 py-3 text-lg"
                       >
                         Another tip
@@ -654,6 +699,21 @@ function Practice() {
                         I've got it
                       </BouncyTap>
                     </div>
+                    {grammarOuts.length > 0 && (
+                      <div className="space-y-2 rounded-2xl border border-border p-4">
+                        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                          Grammar check
+                        </p>
+                        {grammarOuts.map((g) => (
+                          <p key={g.label} className="text-lg leading-snug">
+                            <span className="font-extrabold">
+                              ({g.label}) {g.pair}
+                            </span>{" "}
+                            — {g.reason}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                     {standingReversed && coachStep >= 1 && (
                       <p
                         className="rounded-2xl border p-4 text-lg"
