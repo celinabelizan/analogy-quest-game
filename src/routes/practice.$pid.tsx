@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
-import { FAMILIES, QUESTIONS, type Family, type Question } from "@/data/questions";
+import { FAMILIES, QUESTIONS, type Family, type Question, famInfo } from "@/data/questions";
 import {
   TRAPS,
   looseHint,
@@ -117,6 +117,12 @@ function Practice() {
     update((prev) => (prev.current ? prev : { ...prev, current: newDrill(prev) }));
   }, [update]);
 
+  // A saved drill can point at a question that no longer exists — start fresh instead of crashing.
+  useEffect(() => {
+    if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev) }));
+  }, [drill, q, update]);
+
+
   useEffect(() => {
     if (drill && !drill.locked) setDraft(drill.bridge);
   }, [drill?.qid, drill?.locked]);
@@ -158,7 +164,7 @@ function Practice() {
       (d) => ({ ...d, familyGuess: f, awardedType: true, phase: "stem" }),
       (prev, d) => (first && right ? grant(prev, d, 2) : prev),
     );
-    flash(right ? "+2 XP — right kind of bridge" : `It's ${FAMILIES[q.family].label}`);
+    flash(right ? "+2 XP — right kind of bridge" : `It's ${famInfo(q.family).label}`);
   };
 
   /* ---------------- STATE 2: lock the sentence ---------------- */
@@ -351,11 +357,11 @@ function Practice() {
               className={`mt-4 text-lg ${drill.familyGuess === q.family ? "text-success" : "text-muted-foreground"}`}
             >
               {drill.familyGuess === q.family ? (
-                <>✓ You named the category right — {FAMILIES[q.family].label}.</>
+                <>✓ You named the category right — {famInfo(q.family).label}.</>
               ) : (
                 <>
-                  You said {FAMILIES[drill.familyGuess as Family].label} — it's actually{" "}
-                  {FAMILIES[q.family].label}. Keep going; a strong sentence can still get you there.
+                  You said {famInfo(drill.familyGuess).label} — it's actually{" "}
+                  {famInfo(q.family).label}. Keep going; a strong sentence can still get you there.
                 </>
               )}
             </p>
@@ -392,7 +398,7 @@ function Practice() {
                   onClick={() => chooseFamily(f)}
                   className="w-full border border-border bg-card px-5 py-4 text-left text-xl hover:border-primary"
                 >
-                  {FAMILIES[f].label}
+                  {famInfo(f).label}
                 </BouncyTap>
               ))}
             </div>
@@ -410,7 +416,7 @@ function Practice() {
             {(drill.rewrites ?? 0) > 0 && (
               <>
                 <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
-                  {looseHint(q.stem, FAMILIES[q.family].label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
+                  {looseHint(q.stem, famInfo(q.family).label, standing.length || 2, (drill.rewrites ?? 1) - 1)}
                 </p>
                 {discarded.length > 0 && (
                   <p className="text-base text-muted-foreground">
@@ -552,7 +558,7 @@ function Practice() {
                   {standing.length} still standing — your sentence is too loose.
                 </p>
                 <p className="text-base text-muted-foreground">
-                  {looseHint(q.stem, FAMILIES[q.family].label, standing.length, drill.rewrites ?? 0)}
+                  {looseHint(q.stem, famInfo(q.family).label, standing.length, drill.rewrites ?? 0)}
                 </p>
                 <BouncyTap onClick={reopenBridge} className="border border-border px-6 py-3 text-lg">
                   Build a stronger sentence
@@ -649,13 +655,13 @@ function Practice() {
                 <p className="text-sm uppercase tracking-widest text-muted-foreground">The category</p>
                 {drill.familyGuess === q.family ? (
                   <p className="mt-2">
-                    ✓ You named it: <strong>{FAMILIES[q.family].label}</strong>. Naming the category is what
+                    ✓ You named it: <strong>{famInfo(q.family).label}</strong>. Naming the category is what
                     keeps working when the words get hard.
                   </p>
                 ) : (
                   <p className="mt-2">
-                    You said <strong>{FAMILIES[drill.familyGuess as Family].label}</strong> — this one is{" "}
-                    <strong>{FAMILIES[q.family].label}</strong> ({q.bridge})
+                    You said <strong>{famInfo(drill.familyGuess).label}</strong> — this one is{" "}
+                    <strong>{famInfo(q.family).label}</strong> ({q.bridge})
                     {drill.correct
                       ? ". You still got it right, so your sentence rescued the wrong label — but learn this category, because on hard words the label is all you'll have."
                       : ". Learn this one: say the pair and the category out loud before you move on."}

@@ -1,7 +1,7 @@
-import { FAMILIES, type Family } from "@/data/questions";
+import { famInfo, type Family } from "@/data/questions";
 
 export function FamilyBadge({ family, small }: { family: Family; small?: boolean }) {
-  const f = FAMILIES[family];
+  const f = famInfo(family);
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full border font-bold uppercase tracking-wide ${
