@@ -181,3 +181,61 @@ export function reversalPrompt(stem: string, pair?: string) {
   return `Order check: one pair still standing has the right relationship, but backwards. Read your sentence in the same direction every time — ${a} first, ${b} second.`;
 }
 
+
+/* ---------------- Parts of speech: heuristic grammar check ---------------- */
+
+export type Pos = "noun" | "verb" | "adjective" | "adverb";
+
+/** Confident guesses only — returns null when the ending gives nothing away. */
+export function guessPos(word: string): Pos | null {
+  const w = word.toLowerCase().trim();
+  if (!w) return null;
+  if (/ly$/.test(w) && w.length > 4) return "adverb";
+  if (/(tion|sion|ment|ness|ity|ance|ence|ship|hood|ism|ist|ology|ure|age)$/.test(w)) return "noun";
+  if (/(ous|ful|less|ive|able|ible|ish|ic|al)$/.test(w) && w.length > 4) return "adjective";
+  if (/(ate|ify|ize|ise)$/.test(w) && w.length > 4) return "verb";
+  return null;
+}
+
+/** Grammar shape of a "X : Y" pair, with nulls where we can't tell. */
+export function posShape(pair: string): [Pos | null, Pos | null] {
+  const [a, b] = pairWords(pair);
+  return [guessPos(a), guessPos(b)];
+}
+
+/**
+ * Choices whose grammar shape clearly disagrees with the stem's.
+ * Only reports when BOTH sides are confident guesses, so it never bluffs.
+ */
+export function posMismatches(
+  stem: string,
+  pairs: { label: string; pair: string }[],
+): { label: string; pair: string; reason: string }[] {
+  const [sa, sb] = posShape(stem);
+  const [s1, s2] = pairWords(stem).map((w) => w.toLowerCase());
+  const out: { label: string; pair: string; reason: string }[] = [];
+  for (const c of pairs) {
+    const [ca, cb] = posShape(c.pair);
+    const [c1, c2] = pairWords(c.pair).map((w) => w.toLowerCase());
+    if (sa && ca && sa !== ca) {
+      out.push({
+        label: c.label,
+        pair: c.pair,
+        reason: `"${s1}" is ${article(sa)} ${sa}, but "${c1}" is ${article(ca)} ${ca}. Different kinds of words in the first slot — cross it off.`,
+      });
+      continue;
+    }
+    if (sb && cb && sb !== cb) {
+      out.push({
+        label: c.label,
+        pair: c.pair,
+        reason: `"${s2}" is ${article(sb)} ${sb}, but "${c2}" is ${article(cb)} ${cb}. Different kinds of words in the second slot — cross it off.`,
+      });
+    }
+  }
+  return out;
+}
+
+function article(p: Pos) {
+  return p === "adjective" || p === "adverb" ? "an" : "a";
+}
