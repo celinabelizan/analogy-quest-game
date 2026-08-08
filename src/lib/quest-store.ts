@@ -47,7 +47,14 @@ export type Drill = {
   stuckOnWord?: boolean;
   /** She peeked at a model sentence. */
   peeked?: boolean;
+  /** She opened the live coach during discard. */
+  coachUsed?: boolean;
+  /** How many coach tips she read. */
+  coachSteps?: number;
+  /** Which coach tips she read, by title. */
+  coachTips?: string[];
 };
+
 
 export type ProfileState = {
   lifetimeXp: number;
