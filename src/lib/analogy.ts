@@ -124,3 +124,60 @@ export const TRAPS: { name: string; tell: string }[] = [
   { name: "Too weak or too strong", tell: "The idea is right but the degree is off — 'damp' is not 'flooded'." },
   { name: "Two choices with the same bridge", tell: "If two pairs share one bridge, neither can be the answer. Cross off both." },
 ];
+
+/** A choice whose explanation says the relationship runs backwards. */
+export function isReversedTrap(why: string) {
+  return /revers|backward|flipped|wrong order|other order/i.test(why);
+}
+
+/** Live coaching ladder for the discard screen — one step at a time, on demand. */
+export function coachLadder(
+  stem: string,
+  familyLabel: string,
+  standingPairs: string[],
+  step: number,
+): { title: string; tip: string; action: "rewrite" | "reread" } {
+  const [a, b] = pairWords(stem).map(lower);
+  const fam = familyLabel.toLowerCase();
+  const steps: { title: string; tip: string; action: "rewrite" | "reread" }[] = [
+    {
+      title: "Start with the one word that matters",
+      tip: `Finish this out loud: "A ${a} is the thing that ____ a ${b}." The blank should be a verb, not "is related to". That verb is your whole sentence.`,
+      action: "rewrite",
+    },
+    {
+      title: "Add a limiter",
+      tip: `Drop "only", "always", "must", or "in order to" into your sentence — that is what a ${fam} bridge needs. "A ${a} is ALWAYS used to ____ a ${b}."`,
+      action: "rewrite",
+    },
+    {
+      title: "Compare survivors head to head",
+      tip: standingPairs.length
+        ? `Read your sentence with ${standingPairs.join(" and then with ")}. The moment one sounds even a little bit "sort of true", cross it out — "sort of" is a no.`
+        : `Read your sentence with each pair left. "Sort of true" is a no.`,
+      action: "reread",
+    },
+    {
+      title: "Check the order",
+      tip: `Say it both ways: "${a} to ${b}" and "${b} to ${a}". They are different sentences. A pair that only works backwards is out.`,
+      action: "reread",
+    },
+    {
+      title: "Grammar match",
+      tip: partsOfSpeechHint(stem),
+      action: "reread",
+    },
+  ];
+  return steps[Math.min(step, steps.length - 1)]!;
+}
+
+/** Nudge when a backwards pair is still standing (or was chosen). */
+export function reversalPrompt(stem: string, pair?: string) {
+  const [a, b] = pairWords(stem).map(lower);
+  if (pair) {
+    const [x, y] = pairWords(pair).map(lower);
+    return `"${x} : ${y}" is the right idea running backwards. Your bridge goes ${a} → ${b}, so the answer has to go the same way — "${y} : ${x}" would have worked.`;
+  }
+  return `Order check: one pair still standing has the right relationship, but backwards. Read your sentence in the same direction every time — ${a} first, ${b} second.`;
+}
+

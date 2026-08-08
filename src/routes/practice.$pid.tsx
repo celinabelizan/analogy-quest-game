@@ -7,13 +7,17 @@ import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/P
 import { FAMILIES, QUESTIONS, type Family, type Question, famInfo } from "@/data/questions";
 import {
   TRAPS,
+  coachLadder,
+  isReversedTrap,
   looseHint,
   monkeySwap,
   partsOfSpeechHint,
+  reversalPrompt,
   strictHint,
   unknownWordSteps,
   wordCount,
 } from "@/lib/analogy";
+
 
 import {
   PROFILES,
@@ -100,6 +104,9 @@ function Practice() {
   const [showBreak, setShowBreak] = useState(false);
   const [showStuck, setShowStuck] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
+  const [coachStep, setCoachStep] = useState(0);
+
   const [toast, setToast] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
   const sessionStart = useRef(Date.now());
@@ -123,6 +130,12 @@ function Practice() {
     if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev) }));
   }, [drill, q, update]);
 
+
+  // Fresh question, fresh coach.
+  useEffect(() => {
+    setShowCoach(false);
+    setCoachStep(0);
+  }, [drill?.qid]);
 
   useEffect(() => {
     if (drill && !drill.locked) setDraft(drill.bridge);
@@ -342,6 +355,20 @@ function Practice() {
   const correctChoice = q.choices.find((c) => c.label === q.correct)!;
   const discarded = q.choices.filter((c) => drill.judgments[c.label] === "no");
   const standing = q.choices.filter((c) => drill.judgments[c.label] !== "no");
+  const standingReversed = standing.find((c) => c.label !== q.correct && isReversedTrap(c.why));
+  const chosen = q.choices.find((c) => c.label === drill.finalChoice);
+  const chosenReversed = !!chosen && chosen.label !== q.correct && isReversedTrap(chosen.why);
+  const coach = coachLadder(
+    q.stem,
+    famInfo(q.family).label,
+    standing.map((c) => c.pair),
+    coachStep,
+  );
+  const openCoach = () => {
+    setShowCoach(true);
+  };
+
+
   const stepIndex =
     drill.phase === "type"
       ? 0
@@ -583,11 +610,81 @@ function Practice() {
               })}
             </ul>
 
+            {/* Real-time coach — available the moment she's stuck */}
+            {standing.length > 1 && (
+              <div className="space-y-3 rounded-3xl border border-primary/40 bg-card p-5">
+                {!showCoach ? (
+                  <div className="text-center">
+                    <p className="text-base text-muted-foreground">
+                      Can't cross any more out? Don't guess yet.
+                    </p>
+                    <BouncyTap
+                      onClick={openCoach}
+                      className="mt-3 border border-primary px-6 py-3 text-lg text-primary"
+                    >
+                      🙋 Coach me
+                    </BouncyTap>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold uppercase tracking-widest text-primary">
+                      Coach · tip {coachStep + 1}
+                    </p>
+                    <p className="text-xl font-extrabold">{coach.title}</p>
+                    <p className="text-lg leading-snug">{coach.tip}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {coach.action === "rewrite" && (
+                        <BouncyTap
+                          onClick={reopenBridge}
+                          className="bg-primary px-6 py-3 text-lg text-primary-foreground"
+                        >
+                          Write a stronger sentence
+                        </BouncyTap>
+                      )}
+                      <BouncyTap
+                        onClick={() => setCoachStep((s) => s + 1)}
+                        className="border border-border px-6 py-3 text-lg"
+                      >
+                        Another tip
+                      </BouncyTap>
+                      <BouncyTap
+                        onClick={() => setShowCoach(false)}
+                        className="border border-border px-6 py-3 text-base text-muted-foreground"
+                      >
+                        I've got it
+                      </BouncyTap>
+                    </div>
+                    {standingReversed && coachStep >= 1 && (
+                      <p
+                        className="rounded-2xl border p-4 text-lg"
+                        style={{ borderColor: "var(--warn)" }}
+                      >
+                        {reversalPrompt(q.stem)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* live guidance */}
+
+            {standing.length === 1 && standingReversed && (
+              <div className="space-y-3 rounded-3xl border p-5" style={{ borderColor: "var(--warn)" }}>
+                <p className="text-xl font-extrabold text-warn">Hold on — check the direction.</p>
+                <p className="text-lg">{reversalPrompt(q.stem)}</p>
+                <p className="text-base text-muted-foreground">
+                  Read your sentence with ({standing[0]!.label}) {standing[0]!.pair} one more time, in order. If
+                  it only works backwards, discard it and un-cross the ones you rushed.
+                </p>
+              </div>
+            )}
+
             {standing.length === 1 && (
               <div className="space-y-3 rounded-3xl border p-5 text-center" style={{ borderColor: "var(--success)" }}>
                 <p className="script-type text-4xl text-success">One survivor!</p>
                 <p className="text-lg text-muted-foreground">Your sentence did its job.</p>
+
                 <BouncyTap
                   onClick={() => answer(standing[0]!.label)}
                   className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
@@ -695,6 +792,17 @@ function Practice() {
             <h2 className="script-type text-5xl" style={{ color: drill.correct ? "var(--success)" : "var(--danger)" }}>
               {drill.correct ? "Correct!" : drill.blank ? "Left blank" : "Not this time"}
             </h2>
+
+            {chosenReversed && chosen && (
+              <div className="rounded-3xl border p-5 text-lg" style={{ borderColor: "var(--warn)" }}>
+                <p className="text-sm uppercase tracking-widest text-muted-foreground">Order trap</p>
+                <p className="mt-2">{reversalPrompt(q.stem, chosen.pair)}</p>
+                <p className="mt-2 text-base text-muted-foreground">
+                  Next time, read your sentence out loud with the pair in the same order as the stem — a
+                  backwards pair always sounds right until you do.
+                </p>
+              </div>
+            )}
 
             {/* Category scorecard — always shown, right or wrong. */}
             {drill.familyGuess && (
