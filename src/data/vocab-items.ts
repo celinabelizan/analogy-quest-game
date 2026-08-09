@@ -1672,4 +1672,604 @@ export const VOCAB_ITEMS: VocabItem[] = [
       },
     ],
   },
+  {
+    id: "LD-01",
+    word: "Evoke",
+    root: "vok",
+    rootMeaning: "call",
+    ask: "What does EVOKE mean? (root: vok = call)",
+    correct: "D",
+    choices: [
+      {
+        label: "A",
+        text: "using far too many words",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "a roundabout way of saying it",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to dodge by being deliberately unclear",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "to call out a feeling or memory",
+        why: "Yes! Root vok = call. Evoke = to call out a feeling or memory.",
+      },
+    ],
+  },
+  {
+    id: "LD-02",
+    word: "Irrevocable",
+    root: "voc",
+    rootMeaning: "call",
+    ask: "What does IRREVOCABLE mean? (root: voc = call)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "pompous, high-flown in speech",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "impossible to take back",
+        why: "Yes! Root voc = call. Irrevocable = impossible to take back.",
+      },
+      {
+        label: "D",
+        text: "to formally accuse",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-03",
+    word: "Vociferous",
+    root: "voc",
+    rootMeaning: "voice",
+    ask: "What does VOCIFEROUS mean? (root: voc = voice)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "using far too many words",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "to call out a feeling or memory",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "loud and forceful in speech",
+        why: "Yes! Root voc = voice (🇪🇸 fer = carry, like *transferir*). Vociferous = loud and forceful in speech.",
+      },
+      {
+        label: "D",
+        text: "gentle, harmless",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-04",
+    word: "Equivocate",
+    root: "voc",
+    rootMeaning: "voice",
+    ask: "What does EQUIVOCATE mean? (root: voc = voice)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "to dodge by being deliberately unclear",
+        why: "Yes! Root voc = voice (🇪🇸 equi = equal, like *igual*). Equivocate = to dodge by being deliberately unclear.",
+      },
+      {
+        label: "B",
+        text: "using far too many words",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to fake illness to dodge work",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "a curse — a bad-saying",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-05",
+    word: "Verdict",
+    root: "dict",
+    rootMeaning: "say",
+    ask: "What does VERDICT mean? (root: dict = say)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "fluent and expressive",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "very talkative",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "the decision handed down",
+        why: "Yes! Root dict = say (🇪🇸 ver = truth, like *verdad*). Verdict = the decision handed down.",
+      },
+      {
+        label: "D",
+        text: "pompous, high-flown in speech",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-06",
+    word: "Edict",
+    root: "dict",
+    rootMeaning: "say",
+    ask: "What does EDICT mean? (root: dict = say)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "an official order",
+        why: "Yes! Root dict = say. Edict = an official order.",
+      },
+      {
+        label: "B",
+        text: "to formally accuse",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to call out a feeling or memory",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "fluent and expressive",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-07",
+    word: "Indict",
+    root: "dict",
+    rootMeaning: "say",
+    ask: "What does INDICT mean? (root: dict = say)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "to formally accuse",
+        why: "Yes! Root dict = say. Indict = to formally accuse.",
+      },
+      {
+        label: "B",
+        text: "fluent and expressive",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "very talkative",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-08",
+    word: "Interdict",
+    root: "dict",
+    rootMeaning: "say",
+    ask: "What does INTERDICT mean? (root: dict = say)",
+    correct: "D",
+    choices: [
+      {
+        label: "A",
+        text: "loud and forceful in speech",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "gentle, harmless",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "to officially forbid",
+        why: "Yes! Root dict = say (🇪🇸 justicia*) + dict = *where the law gets to speak). Interdict = to officially forbid.",
+      },
+    ],
+  },
+  {
+    id: "LD-09",
+    word: "Jurisdiction",
+    root: "dict",
+    rootMeaning: "say",
+    ask: "What does JURISDICTION mean? (root: dict = say)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "the territory or scope of legal power",
+        why: "Yes! Root dict = say (🇪🇸 juris = law — *justicia, jurado). Jurisdiction = the territory or scope of legal power.",
+      },
+      {
+        label: "B",
+        text: "a roundabout way of saying it",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to formally accuse",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "one who does good for others",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-10",
+    word: "Eloquent",
+    root: "loqu",
+    rootMeaning: "talk",
+    ask: "What does ELOQUENT mean? (root: loqu = talk)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "fluent and expressive",
+        why: "Yes! Root loqu = talk (🇪🇸 elocuente — this one IS the Spanish word). Eloquent = fluent and expressive.",
+      },
+      {
+        label: "B",
+        text: "to formally accuse",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to call out a feeling or memory",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "a roundabout way of saying it",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-11",
+    word: "Loquacious",
+    root: "loqu",
+    rootMeaning: "talk",
+    ask: "What does LOQUACIOUS mean? (root: loqu = talk)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "one who does good for others",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "to dodge by being deliberately unclear",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "very talkative",
+        why: "Yes! Root loqu = talk. Loquacious = very talkative.",
+      },
+      {
+        label: "D",
+        text: "gentle, harmless",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-12",
+    word: "Soliloquy",
+    root: "loqu",
+    rootMeaning: "talk",
+    ask: "What does SOLILOQUY mean? (root: loqu = talk)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "to fake illness to dodge work",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "a curse — a bad-saying",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "a speech to yourself",
+        why: "Yes! Root loqu = talk (🇪🇸 soli = alone, like *solo*). Soliloquy = a speech to yourself.",
+      },
+      {
+        label: "D",
+        text: "impossible to take back",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-13",
+    word: "Circumlocution",
+    root: "locut",
+    rootMeaning: "talk",
+    ask: "What does CIRCUMLOCUTION mean? (root: locut = talk)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "to fake illness to dodge work",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "loud and forceful in speech",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "a roundabout way of saying it",
+        why: "Yes! Root locut = talk (🇪🇸 circum = around, like *círculo*). Circumlocution = a roundabout way of saying it.",
+      },
+      {
+        label: "D",
+        text: "impossible to take back",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-14",
+    word: "Grandiloquent",
+    root: "loqu",
+    rootMeaning: "talk",
+    ask: "What does GRANDILOQUENT mean? (root: loqu = talk)",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "to officially forbid",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "the territory or scope of legal power",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "pompous, high-flown in speech",
+        why: "Yes! Root loqu = talk (🇪🇸 grandi = grand — *grande). Grandiloquent = pompous, high-flown in speech.",
+      },
+      {
+        label: "D",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-15",
+    word: "Malinger",
+    root: "",
+    rootMeaning: "",
+    ask: "What does MALINGER mean?",
+    correct: "C",
+    choices: [
+      {
+        label: "A",
+        text: "the territory or scope of legal power",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to fake illness to dodge work",
+        why: "Yes — Malinger = to fake illness to dodge work.",
+      },
+      {
+        label: "D",
+        text: "very talkative",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-16",
+    word: "Malfeasance",
+    root: "",
+    rootMeaning: "",
+    ask: "What does MALFEASANCE mean?",
+    correct: "D",
+    choices: [
+      {
+        label: "A",
+        text: "to dodge by being deliberately unclear",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "fluent and expressive",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "a speech to yourself",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "wrongdoing by someone in power",
+        why: "Yes — Malfeasance = wrongdoing by someone in power.",
+      },
+    ],
+  },
+  {
+    id: "LD-17",
+    word: "Benign",
+    root: "bene",
+    rootMeaning: "good",
+    ask: "What does BENIGN mean? (root: bene = good)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "gentle, harmless",
+        why: "Yes! Root bene = good (🇪🇸 bueno). Benign = gentle, harmless.",
+      },
+      {
+        label: "B",
+        text: "pompous, high-flown in speech",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "a speech to yourself",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-18",
+    word: "Benefactor",
+    root: "bene",
+    rootMeaning: "good",
+    ask: "What does BENEFACTOR mean? (root: bene = good)",
+    correct: "A",
+    choices: [
+      {
+        label: "A",
+        text: "one who does good for others",
+        why: "Yes! Root bene = good (🇪🇸 bueno). Benefactor = one who does good for others.",
+      },
+      {
+        label: "B",
+        text: "a speech to yourself",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "the decision handed down",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "an official order",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-19",
+    word: "Malediction",
+    root: "male",
+    rootMeaning: "bad",
+    ask: "What does MALEDICTION mean? (root: male = bad)",
+    correct: "B",
+    choices: [
+      {
+        label: "A",
+        text: "the territory or scope of legal power",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "a curse — a bad-saying",
+        why: "Yes! Root male = bad (🇪🇸 malo). Malediction = a curse — a bad-saying.",
+      },
+      {
+        label: "C",
+        text: "to call out a feeling or memory",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "to fake illness to dodge work",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+    ],
+  },
+  {
+    id: "LD-20",
+    word: "Verbose",
+    root: "verb",
+    rootMeaning: "word",
+    ask: "What does VERBOSE mean? (root: verb = word)",
+    correct: "D",
+    choices: [
+      {
+        label: "A",
+        text: "one who does good for others",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "B",
+        text: "impossible to take back",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "C",
+        text: "to dodge by being deliberately unclear",
+        why: "Different word's meaning — decode the root before you pick.",
+      },
+      {
+        label: "D",
+        text: "using far too many words",
+        why: "Yes! Root verb = word. Verbose = using far too many words.",
+      },
+    ],
+  },
 ];
