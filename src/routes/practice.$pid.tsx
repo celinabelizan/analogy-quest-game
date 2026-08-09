@@ -510,12 +510,12 @@ function Practice() {
 
       <div className="relative z-10 mx-auto max-w-3xl space-y-5 pb-24">
         <div className="flex items-center justify-between">
-          <BouncyTap
+          <button
             onClick={() => navigate({ to: "/dashboard/$pid", params: { pid: id } })}
-            className="border border-border px-5 py-3 text-base"
+            className="rounded-full border border-border/50 px-3 py-1.5 text-xs text-muted-foreground/60"
           >
-            ⏸ Pause
-          </BouncyTap>
+            ⏸ pause
+          </button>
           <div className="text-right">
             <motion.div
               key={p.availableXp}
@@ -646,7 +646,7 @@ function Practice() {
               <span className="text-base text-muted-foreground">
                 {wordCount(draft) < MIN_BRIDGE_WORDS
                   ? `${wordCount(draft)} words — write a full sentence`
-                  : "looks good ✓"}
+                  : "ready to lock"}
               </span>
               <BouncyTap
                 onClick={lockBridge}
@@ -711,6 +711,17 @@ function Practice() {
                 Discard the ones your sentence rejects
               </p>
               <ChoiceChecks total={q.choices.length} done={discarded.length} />
+            </div>
+
+            {/* Her sentence, with an always-available fix button (typo escape hatch) */}
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-secondary/40 p-3">
+              <span className="text-base italic text-muted-foreground">“{drill.bridge}”</span>
+              <BouncyTap
+                onClick={reopenBridge}
+                className="rounded-full border border-border px-4 py-2 text-sm"
+              >
+                ✏️ Fix my sentence
+              </BouncyTap>
             </div>
 
             <ul className="space-y-3">
@@ -1098,19 +1109,19 @@ function Practice() {
             )}
 
             {(drill.correct || drill.ackCorrection) && (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-3">
                 <BouncyTap
                   onClick={() => finish(false)}
-                  className="glow-pink bg-primary py-5 text-2xl text-primary-foreground"
+                  className="glow-pink w-full bg-primary py-6 text-3xl text-primary-foreground"
                 >
-                  Keep practicing
+                  Next question →
                 </BouncyTap>
-                <BouncyTap
+                <button
                   onClick={() => finish(true)}
-                  className="border border-border py-5 text-2xl"
+                  className="mx-auto block text-sm text-muted-foreground/60 underline"
                 >
-                  Stop for now
-                </BouncyTap>
+                  end session
+                </button>
               </div>
             )}
           </section>
