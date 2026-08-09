@@ -6,6 +6,7 @@ import { ProgressRing } from "@/components/quest/Bits";
 import { Mascot, nextUnlock } from "@/components/quest/Mascot";
 import {
   PROFILES,
+  TEST_PROFILE,
   dayOf,
   useProfile,
   useShared,
@@ -35,8 +36,8 @@ export const Route = createFileRoute("/dashboard/$pid")({
 
 function Dashboard() {
   const { pid } = useParams({ from: "/dashboard/$pid" });
-  const id = (pid === "calista" ? "calista" : "bianca") as ProfileId;
-  const meta = PROFILES.find((p) => p.id === id)!;
+  const id = (pid === "calista" ? "calista" : pid === "test" ? "test" : "bianca") as ProfileId;
+  const meta = [...PROFILES, TEST_PROFILE].find((p) => p.id === id)!;
   const [p, update] = useProfile(id);
   const [shared] = useShared();
 

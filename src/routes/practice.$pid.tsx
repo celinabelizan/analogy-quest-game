@@ -31,6 +31,7 @@ import {
 
 import {
   PROFILES,
+  TEST_PROFILE,
   addXp,
   classifyStruggle,
   dayOf,
@@ -126,8 +127,8 @@ function grant(p: ProfileState, d: Drill, amount: number): ProfileState {
 
 function Practice() {
   const { pid } = useParams({ from: "/practice/$pid" });
-  const id = (pid === "calista" ? "calista" : "bianca") as ProfileId;
-  const meta = PROFILES.find((p) => p.id === id)!;
+  const id = (pid === "calista" ? "calista" : pid === "test" ? "test" : "bianca") as ProfileId;
+  const meta = [...PROFILES, TEST_PROFILE].find((p) => p.id === id)!;
   const [p, update] = useProfile(id);
   const [shared] = useShared();
   // Which Foundation-Six groups the parent has enabled (undefined = all six).

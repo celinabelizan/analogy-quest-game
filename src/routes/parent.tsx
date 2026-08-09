@@ -4,10 +4,12 @@ import { useState } from "react";
 import { DoodleField, BouncyTap } from "@/components/quest/Doodles";
 import {
   PROFILES,
+  TEST_PROFILE,
   dayOf,
   maybeDayBonus,
   setDay,
   addXp,
+  resetProfile,
   STRUGGLE_LABEL,
   todayKey,
   useProfile,
@@ -90,6 +92,8 @@ function ParentPanel() {
           onChange={(groups) => updateShared((s) => ({ ...s, enabledGroups: groups }))}
         />
 
+        <TestAndReset />
+
         <div className="grid gap-4 sm:grid-cols-2">
           {PROFILES.map((p) => (
             <GirlCard key={p.id} id={p.id} name={p.name} accent={p.accent} />
@@ -152,6 +156,64 @@ function ChangePin({ pin, onSave }: { pin: string; onSave: (pin: string) => void
         </div>
       )}
       <p className="mt-2 text-xs text-muted-foreground">Current PIN is {pin.replace(/./g, "•")}</p>
+    </section>
+  );
+}
+
+function TestAndReset() {
+  const [confirmId, setConfirmId] = useState<ProfileId | null>(null);
+  const targets = [...PROFILES, TEST_PROFILE];
+  return (
+    <section className="quest-card space-y-4 p-6">
+      <h2 className="text-xl font-extrabold">Test drive & reset</h2>
+      <p className="text-sm text-muted-foreground">
+        Practice as the Test profile to try things without touching the girls&rsquo; data. Reset
+        wipes a profile&rsquo;s XP, streak, and history back to zero.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <a
+          href="/practice/test"
+          className="rounded-full bg-primary px-5 py-3 font-bold text-primary-foreground"
+        >
+          ▶ Test drive the drill
+        </a>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {targets.map((t) => (
+          <div key={t.id} className="rounded-2xl border border-border p-3">
+            <div className="font-bold">{t.name}</div>
+            {confirmId === t.id ? (
+              <div className="mt-2 space-y-2">
+                <p className="text-xs text-destructive">Erase all of {t.name}&rsquo;s progress?</p>
+                <div className="flex gap-2">
+                  <BouncyTap
+                    onClick={() => {
+                      resetProfile(t.id);
+                      setConfirmId(null);
+                    }}
+                    className="bg-destructive px-4 py-2 text-sm text-white"
+                  >
+                    Yes, erase
+                  </BouncyTap>
+                  <BouncyTap
+                    onClick={() => setConfirmId(null)}
+                    className="border border-border px-4 py-2 text-sm"
+                  >
+                    Cancel
+                  </BouncyTap>
+                </div>
+              </div>
+            ) : (
+              <BouncyTap
+                onClick={() => setConfirmId(t.id)}
+                className="mt-2 border border-border px-4 py-2 text-sm text-muted-foreground"
+              >
+                Reset progress
+              </BouncyTap>
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

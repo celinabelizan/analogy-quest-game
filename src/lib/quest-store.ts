@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { REWARDS_BY_GIRL } from "@/data/questions";
 
-export type ProfileId = "bianca" | "calista";
+export type ProfileId = "bianca" | "calista" | "test";
 
 export const PROFILES: { id: ProfileId; name: string; age: number; accent: string }[] = [
   { id: "bianca", name: "Bianca", age: 12, accent: "#FF2E93" },
   { id: "calista", name: "Calista", age: 10, accent: "#00C4B4" },
 ];
+
+/** Test profile — a sandbox for the parent to try the app without touching the
+ *  girls' real data. Excluded from PROFILES so it never shows on the kid switcher;
+ *  reachable only via the parent panel's "Test drive" link. */
+export const TEST_PROFILE = { id: "test" as ProfileId, name: "Test", age: 0, accent: "#8A8398" };
+
+/** All profiles including test, for reward seeding / iteration where needed. */
+export const ALL_PROFILE_IDS: ProfileId[] = ["bianca", "calista", "test"];
 
 export type Reward = { id: string; name: string; xp: number; photo?: string };
 export type Redemption = {
@@ -135,7 +143,7 @@ export function classifyStruggle(a: {
  *  Undefined = all six on (backward compatible with older saves). */
 export type SharedState = {
   pin: string;
-  rewards: Record<ProfileId, Reward[]>;
+  rewards: Partial<Record<ProfileId, Reward[]>>;
   enabledGroups?: string[];
 };
 
@@ -155,8 +163,11 @@ const emptyProfile = (): ProfileState => ({
   current: null,
 });
 
-const seedRewards = (prefix: ProfileId): Reward[] =>
-  REWARDS_BY_GIRL[prefix].map((r, i) => ({ id: `${prefix}-seed-${i}`, name: r.name, xp: r.xp }));
+const seedRewards = (prefix: ProfileId): Reward[] => {
+  const src = REWARDS_BY_GIRL[prefix as "bianca" | "calista"];
+  if (!src) return []; // test profile starts with no rewards
+  return src.map((r, i) => ({ id: `${prefix}-seed-${i}`, name: r.name, xp: r.xp }));
+};
 
 const defaultShared = (): SharedState => ({
   pin: "1701",
@@ -270,6 +281,11 @@ export function readProfile(id: ProfileId) {
 }
 export function writeProfile(id: ProfileId, p: ProfileState) {
   write(profileKey(id), p);
+}
+
+/** Wipe one profile's progress back to zero (XP, streak, history, current drill). */
+export function resetProfile(id: ProfileId) {
+  write(profileKey(id), emptyProfile());
 }
 
 /** Award XP (lifetime + available together). */
