@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { SEED_REWARDS } from "@/data/questions";
+import { REWARDS_BY_GIRL } from "@/data/questions";
 
 export type ProfileId = "bianca" | "calista";
 
@@ -155,13 +155,26 @@ const emptyProfile = (): ProfileState => ({
   current: null,
 });
 
-const seedRewards = (prefix: string): Reward[] =>
-  SEED_REWARDS.map((r, i) => ({ id: `${prefix}-seed-${i}`, name: r.name, xp: r.xp }));
+const seedRewards = (prefix: ProfileId): Reward[] =>
+  REWARDS_BY_GIRL[prefix].map((r, i) => ({ id: `${prefix}-seed-${i}`, name: r.name, xp: r.xp }));
 
 const defaultShared = (): SharedState => ({
   pin: "1701",
   rewards: { bianca: seedRewards("bianca"), calista: seedRewards("calista") },
 });
+
+/** Made-up rewards from an earlier seed that were never specified by the parent.
+ *  Purged once from existing saves so the lists only hold real items. */
+const PURGE_REWARD_NAMES = new Set([
+  "Concert tickets — any show",
+  "Gold hoop earrings (Amazon)",
+  "The rhode kit",
+  "Sephora item under $25",
+  "Book of her choice (up to $15)",
+  "Extra phone time (1 hour)",
+  "Pick family dinner",
+]);
+const dropMadeUp = (list: Reward[]) => list.filter((r) => !PURGE_REWARD_NAMES.has(r.name));
 
 /** Older saves kept one shared list — split it so each girl gets her own copy. */
 function normalizeShared(s: SharedState): SharedState {
@@ -171,8 +184,8 @@ function normalizeShared(s: SharedState): SharedState {
     return {
       ...s,
       rewards: {
-        bianca: list.map((r) => ({ ...r, id: `bianca-${r.id}` })),
-        calista: list.map((r) => ({ ...r, id: `calista-${r.id}` })),
+        bianca: dropMadeUp(list.map((r) => ({ ...r, id: `bianca-${r.id}` }))),
+        calista: dropMadeUp(list.map((r) => ({ ...r, id: `calista-${r.id}` }))),
       },
     };
   }
@@ -180,8 +193,8 @@ function normalizeShared(s: SharedState): SharedState {
   return {
     ...s,
     rewards: {
-      bianca: rec.bianca ?? seedRewards("bianca"),
-      calista: rec.calista ?? seedRewards("calista"),
+      bianca: rec.bianca ? dropMadeUp(rec.bianca) : seedRewards("bianca"),
+      calista: rec.calista ? dropMadeUp(rec.calista) : seedRewards("calista"),
     },
   };
 }

@@ -219,6 +219,49 @@ function LessonSections({
   );
 }
 
+function ManualPoints({ id, name }: { id: ProfileId; name: string }) {
+  const [, update] = useProfile(id);
+  const [custom, setCustom] = useState("");
+  const give = (amount: number) => {
+    if (amount === 0) return;
+    update((prev) => addXp(prev, amount));
+  };
+  const giveCustom = () => {
+    const n = Math.round(Number(custom));
+    if (!n) return;
+    give(n);
+    setCustom("");
+  };
+  return (
+    <div className="mt-4 space-y-2 rounded-2xl border border-border p-3">
+      <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
+        Add session points
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {[10, 25, 50].map((n) => (
+          <BouncyTap
+            key={n}
+            onClick={() => give(n)}
+            className="bg-primary px-4 py-2 text-primary-foreground"
+          >
+            +{n}
+          </BouncyTap>
+        ))}
+        <input
+          value={custom}
+          onChange={(e) => setCustom(e.target.value)}
+          inputMode="numeric"
+          placeholder="#"
+          className="min-h-[44px] w-20 rounded-xl bg-secondary/40 px-3 text-center outline-none focus:ring-1 focus:ring-primary"
+        />
+        <BouncyTap onClick={giveCustom} className="border border-border px-4 py-2">
+          Give {name.split(" ")[0]}
+        </BouncyTap>
+      </div>
+    </div>
+  );
+}
+
 function GirlCard({ id, name, accent }: { id: ProfileId; name: string; accent: string }) {
   const [p, update] = useProfile(id);
   const today = dayOf(p);
@@ -260,6 +303,8 @@ function GirlCard({ id, name, accent }: { id: ProfileId; name: string; accent: s
         <Row label="Questions today" value={today.completed} />
         <Row label="Streak" value={p.streak} />
       </dl>
+
+      <ManualPoints id={id} name={name} />
       {pending.length > 0 && (
         <div className="mt-4 space-y-3">
           <h3 className="font-extrabold text-primary">Waiting for Mom</h3>

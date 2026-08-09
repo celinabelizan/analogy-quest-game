@@ -651,19 +651,22 @@ const BASE_QUESTIONS: Question[] = [
 
 export const QUESTIONS: Question[] = [...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...LESSON3_QUESTIONS];
 
-export const SEED_REWARDS = [
-  { name: "Concert tickets — any show", xp: 200 },
-  { name: "Gold hoop earrings (Amazon)", xp: 150 },
-  { name: "The rhode kit", xp: 300 },
-  { name: "Sephora item under $25", xp: 100 },
-  { name: "Book of her choice (up to $15)", xp: 50 },
+// Per-girl reward wishlists. ONLY items the parent has actually specified.
+// Calista's confirmed items (from her screenshots). Bianca's list is empty until
+// the parent adds hers in the parent panel — no made-up rewards.
+export const CALISTA_REWARDS = [
   { name: "White Fox 'Don't Need Anyone' tank", xp: 350 },
   { name: "Below the Blue — The Lila Ring", xp: 550 },
   { name: "Below the Blue — Trident Pearl Bracelet", xp: 1350 },
   { name: "Below the Blue — Islay Necklace 003", xp: 1450 },
-  { name: "Extra phone time (1 hour)", xp: 25 },
-  { name: "Pick family dinner", xp: 25 },
 ];
+
+export const BIANCA_REWARDS: { name: string; xp: number }[] = [];
+
+export const REWARDS_BY_GIRL: Record<"bianca" | "calista", { name: string; xp: number }[]> = {
+  bianca: BIANCA_REWARDS,
+  calista: CALISTA_REWARDS,
+};
 
 const UNKNOWN_FAMILY = { label: "Relationship", color: "#94A3B8" };
 export function famInfo(family: string | null | undefined) {
