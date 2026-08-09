@@ -1,5 +1,6 @@
 import { EXTRA_QUESTIONS } from "./questions-extra";
 import { LESSON3_QUESTIONS } from "./questions-lesson3";
+import { HARD_QUESTIONS } from "./questions-hard";
 
 export type Family =
   | "synonym"
@@ -133,6 +134,9 @@ export type Question = {
   bridge: string;
   correct: string;
   choices: Choice[];
+  /** Kid-friendly one-liner for the unknown word(s) in the stem (hard questions).
+   *  Shown AFTER the technique cracks it — Solvability Law, Contract §6. */
+  gloss?: string;
 };
 
 const BASE_QUESTIONS: Question[] = [
@@ -671,7 +675,12 @@ const BASE_QUESTIONS: Question[] = [
   },
 ];
 
-export const QUESTIONS: Question[] = [...BASE_QUESTIONS, ...EXTRA_QUESTIONS, ...LESSON3_QUESTIONS];
+export const QUESTIONS: Question[] = [
+  ...BASE_QUESTIONS,
+  ...EXTRA_QUESTIONS,
+  ...LESSON3_QUESTIONS,
+  ...HARD_QUESTIONS,
+];
 
 // Difficulty per question (1=easy, 2=medium, 3=hard). VOCAB-FIRST rubric (word rarity;
 // traps are secondary since every analogy has a flip-trap). See Content Contract §5.
@@ -781,6 +790,31 @@ export const DIFFICULTY: Record<string, 1 | 2 | 3> = {
   "S3-43": 2,
   "S3-44": 2,
   "S3-45": 2,
+  // H4 hard-ceiling set — all level 3 by construction (Upper-SSAT stems)
+  "H4-01": 3,
+  "H4-02": 3,
+  "H4-03": 3,
+  "H4-04": 3,
+  "H4-05": 3,
+  "H4-06": 3,
+  "H4-07": 3,
+  "H4-08": 3,
+  "H4-09": 3,
+  "H4-10": 3,
+  "H4-11": 3,
+  "H4-12": 3,
+  "H4-13": 3,
+  "H4-14": 3,
+  "H4-15": 3,
+  "H4-16": 3,
+  "H4-17": 3,
+  "H4-18": 3,
+  "H4-19": 3,
+  "H4-20": 3,
+  "H4-21": 3,
+  "H4-22": 3,
+  "H4-23": 3,
+  "H4-24": 3,
 };
 
 // Questions whose vocabulary is too basic for a 95th-percentile target — kept as
