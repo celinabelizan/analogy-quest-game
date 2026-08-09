@@ -513,7 +513,7 @@ function Practice() {
             onClick={() => navigate({ to: "/dashboard/$pid", params: { pid: id } })}
             className="border border-border px-5 py-3 text-base"
           >
-            ← Dashboard
+            ⏸ Pause
           </BouncyTap>
           <div className="text-right">
             <motion.div

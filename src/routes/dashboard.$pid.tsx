@@ -20,7 +20,10 @@ export const Route = createFileRoute("/dashboard/$pid")({
   head: () => ({
     meta: [
       { title: "Quest Dashboard — SSAT Quest" },
-      { name: "description", content: "Your XP, streak, mascot, and reward progress in SSAT Quest." },
+      {
+        name: "description",
+        content: "Your XP, streak, mascot, and reward progress in SSAT Quest.",
+      },
       { property: "og:title", content: "Quest Dashboard — SSAT Quest" },
       { property: "og:description", content: "XP, streak, mascot unlocks, and reward progress." },
       { property: "og:type", content: "website" },
@@ -52,7 +55,9 @@ function Dashboard() {
     setParty(fresh.name);
     update((prev) => ({
       ...prev,
-      redemptions: prev.redemptions.map((r) => (r.id === fresh.id ? { ...r, celebrated: true } : r)),
+      redemptions: prev.redemptions.map((r) =>
+        r.id === fresh.id ? { ...r, celebrated: true } : r,
+      ),
     }));
     const t = setTimeout(() => setParty(null), 4000);
     return () => clearTimeout(t);
@@ -102,21 +107,51 @@ function Dashboard() {
       </AnimatePresence>
       <div className="relative z-10 mx-auto max-w-5xl space-y-7">
         <div className="flex items-center justify-between gap-4">
-          <Link to="/" className="min-h-[48px] rounded-full border border-border px-5 py-3 text-base">
+          <Link to="/" className="min-h-[44px] rounded-full border border-border px-4 py-2 text-sm">
             ← Switch
           </Link>
           <h1 className="script-type text-5xl sm:text-6xl" style={{ color: meta.accent }}>
             {meta.name}
           </h1>
-          <Link to="/parent" className="min-h-[48px] rounded-full border border-border px-5 py-3 text-base text-muted-foreground">
-            Parent
+          {/* Parent access — discreet gear, not a prominent button */}
+          <Link
+            to="/parent"
+            aria-label="Parent panel"
+            className="grid min-h-[44px] min-w-[44px] place-items-center rounded-full border border-border text-lg text-muted-foreground/60"
+          >
+            ⚙
           </Link>
         </div>
+
+        {/* HERO — the primary action, first thing they see */}
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 400, damping: 18 }}
+          onClick={() => {
+            window.location.href = `/practice/${id}`;
+          }}
+          className="glow-pink relative w-full overflow-hidden rounded-3xl bg-primary px-6 py-8 text-center text-primary-foreground"
+        >
+          <div className="text-4xl font-extrabold sm:text-5xl">
+            {p.current ? "Resume practice" : "Start practice"} →
+          </div>
+          <div className="mt-2 text-lg font-bold opacity-90">
+            {p.current
+              ? "Pick up right where you left off"
+              : today.completed > 0
+                ? `${today.completed} done today — keep the streak going 🔥`
+                : "Today's goal: 5 questions"}
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-6 text-base font-bold opacity-95">
+            <span>⚡ {p.availableXp} XP</span>
+            <span>🔥 {p.streak} streak</span>
+            <span>✓ {today.completed} today</span>
+          </div>
+        </motion.button>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* XP + reward ring */}
           <section className="quest-card relative overflow-hidden p-7">
-            
             <h2 className="text-xl font-extrabold">Reward progress</h2>
             <div className="mt-5 flex items-center gap-6">
               <ProgressRing
@@ -149,7 +184,10 @@ function Dashboard() {
                   </div>
                 ) : (
                   reached && (
-                    <BouncyTap onClick={redeem} className="glow-pink bg-primary px-6 py-3 text-lg text-primary-foreground">
+                    <BouncyTap
+                      onClick={redeem}
+                      className="glow-pink bg-primary px-6 py-3 text-lg text-primary-foreground"
+                    >
                       Redeem
                     </BouncyTap>
                   )
@@ -160,7 +198,13 @@ function Dashboard() {
 
           {/* Mascot */}
           <section className="quest-card relative overflow-visible p-7 text-center">
-            <Flower className="left-3 -bottom-8 z-30" size={104} rotate={-14} opacity={0.18} variant={3} />
+            <Flower
+              className="left-3 -bottom-8 z-30"
+              size={104}
+              rotate={-14}
+              opacity={0.18}
+              variant={3}
+            />
             <h2 className="text-xl font-extrabold">Study buddy</h2>
             <div className="mt-2 flex justify-center">
               <Mascot lifetimeXp={p.lifetimeXp} size={170} />
@@ -175,15 +219,29 @@ function Dashboard() {
 
         {/* Streaks */}
         <section className="quest-card relative overflow-visible p-7">
-          <Flower className="right-2 -top-8 z-30" size={92} rotate={12} opacity={0.16} variant={2} />
+          <Flower
+            className="right-2 -top-8 z-30"
+            size={92}
+            rotate={12}
+            opacity={0.16}
+            variant={2}
+          />
           <h2 className="text-xl font-extrabold">Streaks</h2>
           <p className="text-sm text-muted-foreground">
             Finishing a question keeps your streak alive — skipping resets it.
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { label: "Finish streak", value: `${stats.focusStreak} 🔥`, sub: `Best ${stats.bestFocusStreak}` },
-              { label: "Correct streak", value: `${stats.correctStreak} ✨`, sub: `Best ${stats.bestCorrectStreak}` },
+              {
+                label: "Finish streak",
+                value: `${stats.focusStreak} 🔥`,
+                sub: `Best ${stats.bestFocusStreak}`,
+              },
+              {
+                label: "Correct streak",
+                value: `${stats.correctStreak} ✨`,
+                sub: `Best ${stats.bestCorrectStreak}`,
+              },
               { label: "Answered", value: `${stats.answered}`, sub: `${stats.skipped} skipped` },
               { label: "Finish rate", value: `${stats.focusRate}%`, sub: "Answered vs skipped" },
             ].map((s) => (
@@ -245,17 +303,6 @@ function Dashboard() {
           </ul>
         </section>
 
-
-
-        <BouncyTap
-          onClick={() => {
-            window.location.href = `/practice/${id}`;
-          }}
-          className="glow-pink w-full bg-primary py-6 text-3xl text-primary-foreground"
-        >
-          {p.current ? "Resume practice →" : "Start practicing →"}
-        </BouncyTap>
-
         {/* Wishlist */}
         <section className="quest-card p-7">
           <h2 className="text-xl font-extrabold">Wishlist</h2>
@@ -291,7 +338,11 @@ function Dashboard() {
                 <li key={r.id} className="flex justify-between gap-3 text-base">
                   <span>{r.name}</span>
                   <span className="text-muted-foreground">
-                    {r.status === "pending" ? "Waiting for Mom" : r.status === "approved" ? "Redeemed! 🎉" : "Not yet"}
+                    {r.status === "pending"
+                      ? "Waiting for Mom"
+                      : r.status === "approved"
+                        ? "Redeemed! 🎉"
+                        : "Not yet"}
                   </span>
                 </li>
               ))}
@@ -299,7 +350,9 @@ function Dashboard() {
           </section>
         )}
 
-        <p className="pb-6 text-center text-xs tracking-widest text-muted-foreground/70">SSAT Quest v8</p>
+        <p className="pb-6 text-center text-xs tracking-widest text-muted-foreground/70">
+          SSAT Quest v8
+        </p>
       </div>
     </main>
   );
