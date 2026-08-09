@@ -336,13 +336,13 @@ const BASE_QUESTIONS: Question[] = [
     id: "C1",
     family: "thing-place",
     stem: "BEE : HIVE",
-    bridge: "A bee characteristically lives in a hive.",
+    bridge: "A bee lives in a hive.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "RABBIT : BURROW",
-        why: "A rabbit characteristically lives in a burrow.",
+        why: "A rabbit lives in a burrow.",
       },
       { label: "B", pair: "HIVE : BEE", why: "The dwelling and the animal are reversed." },
       { label: "C", pair: "HONEY : BEE", why: "This is product-to-producer." },
@@ -418,13 +418,13 @@ const BASE_QUESTIONS: Question[] = [
     id: "C6",
     family: "worker-tool",
     stem: "CARPENTER : HAMMER",
-    bridge: "A carpenter characteristically uses a hammer as a tool.",
+    bridge: "A carpenter uses a hammer.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "SURGEON : SCALPEL",
-        why: "A surgeon characteristically uses a scalpel as a tool.",
+        why: "A surgeon uses a scalpel.",
       },
       {
         label: "B",
@@ -625,7 +625,7 @@ const BASE_QUESTIONS: Question[] = [
     id: "F3",
     family: "worker-subject",
     stem: "DEFENDANT : ATTORNEY",
-    bridge: "A defendant is a party that may be legally represented by an attorney.",
+    bridge: "A defendant is represented by an attorney.",
     correct: "A",
     choices: [
       {

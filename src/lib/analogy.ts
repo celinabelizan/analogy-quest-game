@@ -78,7 +78,6 @@ export function monkeySwap(bridge: string, stem: string, choicePair: string) {
   return fixArticles(out);
 }
 
-
 export const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
 const lower = (w: string) => w.toLowerCase();
@@ -99,14 +98,16 @@ export function strictHint(stem: string) {
   return `Your sentence is doing too much. Keep only the part that a ${a} and a ${b} must have, and drop the extra detail — then test again.`;
 }
 
-/** Help for when she doesn't know one of the stem words. */
+/** The Back-Solve Trick — for when she doesn't know one of the stem words.
+ *  Simple, kid-level, elimination-first. This is THE test-taking trick. */
 export function unknownWordSteps(stem: string) {
   const [a, b] = pairWords(stem).map(lower);
   return [
-    `Say "${a}" and "${b}" out loud. Do you know a piece of either word — a root, a smaller word inside it, or a word it sounds like?`,
-    `Use the word you DO know. Write a sentence about ${b} first, then guess what ${a} must be for the sentence to work.`,
-    `Work backwards: build a bridge for each answer choice. Two choices with the SAME bridge can both be crossed off — the answer is never a tie.`,
-    `Still stuck? Peek at the model sentence, read it, then say it back in your own words. Peeking still teaches you the bridge.`,
+    `Don't panic — you can win without knowing "${a}". This is the Back-Solve Trick.`,
+    `Make a bridge for each ANSWER PAIR instead. Say a simple sentence linking its two words.`,
+    `If two answer pairs have the SAME kind of bridge, cross BOTH out — the answer is never a tie.`,
+    `Cross out any pair whose two words have no real connection.`,
+    `Whatever is left is your best answer. Even 2 crossed out means you should guess, not skip.`,
   ];
 }
 
@@ -118,11 +119,26 @@ export function partsOfSpeechHint(stem: string) {
 
 /** The traps SSAT writers reuse on almost every analogy. */
 export const TRAPS: { name: string; tell: string }[] = [
-  { name: "Same topic, wrong bridge", tell: "It's about the same subject as the stem, so it feels right — but the connection is different. Topic never counts." },
-  { name: "Flipped pair", tell: "The right relationship, but backwards. Read your sentence in the same order both times." },
-  { name: "Part instead of whole", tell: "It swaps one word for a piece of it (needle/compass), quietly changing the bridge." },
-  { name: "Too weak or too strong", tell: "The idea is right but the degree is off — 'damp' is not 'flooded'." },
-  { name: "Two choices with the same bridge", tell: "If two pairs share one bridge, neither can be the answer. Cross off both." },
+  {
+    name: "Same topic, wrong bridge",
+    tell: "It's about the same subject as the stem, so it feels right — but the connection is different. Topic never counts.",
+  },
+  {
+    name: "Flipped pair",
+    tell: "The right relationship, but backwards. Read your sentence in the same order both times.",
+  },
+  {
+    name: "Part instead of whole",
+    tell: "It swaps one word for a piece of it (needle/compass), quietly changing the bridge.",
+  },
+  {
+    name: "Too weak or too strong",
+    tell: "The idea is right but the degree is off — 'damp' is not 'flooded'.",
+  },
+  {
+    name: "Two choices with the same bridge",
+    tell: "If two pairs share one bridge, neither can be the answer. Cross off both.",
+  },
 ];
 
 /** A choice whose explanation says the relationship runs backwards. */
@@ -180,7 +196,6 @@ export function reversalPrompt(stem: string, pair?: string) {
   }
   return `Order check: one pair still standing has the right relationship, but backwards. Read your sentence in the same direction every time — ${a} first, ${b} second.`;
 }
-
 
 /* ---------------- Parts of speech: heuristic grammar check ---------------- */
 

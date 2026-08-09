@@ -659,7 +659,7 @@ function Practice() {
             </BouncyTap>
             {showStuck && (
               <div className="space-y-3 rounded-3xl border border-border bg-secondary/40 p-5">
-                <p className="text-lg font-extrabold">That's okay — do it in this order:</p>
+                <p className="text-lg font-extrabold">🕵️ The Back-Solve Trick</p>
                 <ol className="space-y-2 text-base">
                   {unknownWordSteps(q.stem).map((s, i) => (
                     <li key={i} className="flex gap-3">
@@ -669,15 +669,26 @@ function Practice() {
                   ))}
                 </ol>
                 {drill.peeked ? (
-                  <p className="rounded-2xl bg-card p-4 text-lg leading-snug break-words sm:text-[22px]">
-                    {q.bridge}
-                  </p>
+                  <div className="space-y-3">
+                    <p className="rounded-2xl bg-card p-4 text-lg leading-snug break-words sm:text-[22px]">
+                      {q.bridge}
+                    </p>
+                    <BouncyTap
+                      onClick={() => {
+                        setDraft(q.bridge);
+                        setShowStuck(false);
+                      }}
+                      className="glow-pink w-full bg-primary px-6 py-4 text-xl text-primary-foreground"
+                    >
+                      Try with the new sentence →
+                    </BouncyTap>
+                  </div>
                 ) : (
                   <BouncyTap
                     onClick={peekModel}
                     className="border border-border px-5 py-3 text-base"
                   >
-                    Show me a model sentence
+                    Show me a good sentence
                   </BouncyTap>
                 )}
               </div>
