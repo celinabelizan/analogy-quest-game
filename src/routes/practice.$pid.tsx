@@ -383,7 +383,12 @@ function Practice() {
       return next;
     });
     setDraft("");
-    if (goHome) navigate({ to: "/dashboard/$pid", params: { pid: id } });
+    if (goHome) {
+      navigate({ to: "/dashboard/$pid", params: { pid: id } });
+    } else {
+      // New question starts at the top — don't leave her scrolled at the bottom.
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   /* ---------------- Skip: moves on, but never counts as answered ---------------- */
@@ -430,6 +435,7 @@ function Practice() {
     });
     setConfirmSkip(false);
     setDraft("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     flash("Skipped — that one doesn't count toward XP");
   };
 
