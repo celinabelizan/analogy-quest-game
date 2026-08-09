@@ -41,45 +41,61 @@ export type FoundationGroup = "kind" | "part" | "used" | "degree" | "same" | "op
 
 export const FOUNDATION_SIX: Record<
   FoundationGroup,
-  { label: string; ask: string; color: string; families: Family[] }
+  { label: string; ask: string; frame: string; color: string; families: Family[] }
 > = {
   kind: {
     label: "Kind of",
     ask: "Is one a kind of the other?",
+    frame: "A {a} is a kind of {b}.",
     color: "#F59E0B",
     families: ["kind-category"],
   },
   part: {
     label: "Part of",
     ask: "Is one a part of the other?",
+    frame: "A {a} is the part of a {b} that ___.",
     color: "#FACC15",
     families: ["part-whole"],
   },
   used: {
-    label: "Used for",
-    ask: "Is one used to do the other?",
+    label: "Used for / a tool",
+    ask: "Is one a tool used to do the other?",
+    frame: "A {a} is a tool used to {b}.",
     color: "#22C55E",
     families: ["tool-function", "worker-tool"],
   },
   degree: {
     label: "More or less",
     ask: "Is one a stronger version of the other?",
+    frame: "{a} is a stronger version of {b}.",
     color: "#A855F7",
     families: ["degree"],
   },
   same: {
     label: "Same",
     ask: "Do they mean the same?",
+    frame: "{a} means the same as {b}.",
     color: "#EF4444",
     families: ["synonym"],
   },
   opposite: {
     label: "Opposite",
     ask: "Do they mean the opposite?",
+    frame: "{a} is the opposite of {b}.",
     color: "#F97316",
     families: ["antonym"],
   },
 };
+
+/** Fill a family's bridge frame with the stem's two words as a starting sentence.
+ *  Words go in lowercase; the first letter of the whole sentence is capitalized. */
+export function bridgeFrameFor(group: FoundationGroup, stem: string): string {
+  const parts = stem.split(":").map((w) => w.trim().toLowerCase());
+  const a = parts[0] ?? "";
+  const b = parts[1] ?? "";
+  const filled = FOUNDATION_SIX[group].frame.replace("{a}", a).replace("{b}", b);
+  return filled ? filled[0]!.toUpperCase() + filled.slice(1) : filled;
+}
 
 export const FOUNDATION_ORDER: FoundationGroup[] = [
   "kind",

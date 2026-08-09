@@ -13,6 +13,7 @@ import {
   FOUNDATION_SIX,
   FOUNDATION_ORDER,
   groupOfFamily,
+  bridgeFrameFor,
   type FoundationGroup,
 } from "@/data/questions";
 import {
@@ -629,6 +630,28 @@ function Practice() {
                 ? "Rewrite it — make it fit only this pair"
                 : "Now write your bridge sentence — how do these two words connect?"}
             </h2>
+
+            {/* The actual sentence frame for the family she picked — start here, don't invent one */}
+            {drill.familyGuess &&
+              (() => {
+                const g = groupOfFamily(drill.familyGuess as Family);
+                if (!g) return null;
+                const suggestion = bridgeFrameFor(g, q.stem);
+                return (
+                  <div className="rounded-3xl border border-primary/40 bg-primary/5 p-4">
+                    <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                      {FOUNDATION_SIX[g].label} — start with this
+                    </p>
+                    <p className="mt-1 text-xl font-bold">&ldquo;{suggestion}&rdquo;</p>
+                    <BouncyTap
+                      onClick={() => setDraft(suggestion)}
+                      className="mt-3 border border-primary px-5 py-2 text-base text-primary"
+                    >
+                      Use this sentence ↓
+                    </BouncyTap>
+                  </div>
+                );
+              })()}
             {(drill.rewrites ?? 0) > 0 && (
               <>
                 <p className="rounded-3xl bg-secondary/50 p-4 text-lg">
