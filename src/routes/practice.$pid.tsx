@@ -539,7 +539,9 @@ function Practice() {
             variant={2}
           />
           {drill.phase !== "type" && <FamilyBadge family={q.family} />}
-          <h1 className="stem-type mt-5 text-[48px] leading-tight sm:text-[60px]">{q.stem} ::</h1>
+          <h1 className="stem-type mt-5 text-[32px] leading-tight sm:text-[48px] lg:text-[60px] break-words">
+            {q.stem} ::
+          </h1>
           {drill.phase !== "type" && drill.familyGuess && (
             <p
               className={`mt-4 text-lg ${guessedRight ? "text-success" : "text-muted-foreground"}`}
@@ -572,7 +574,7 @@ function Practice() {
             <span className="text-2xl" aria-hidden="true">
               ✓
             </span>
-            <p className="text-[26px] leading-snug">{drill.bridge}</p>
+            <p className="text-xl leading-snug break-words sm:text-[26px]">{drill.bridge}</p>
           </motion.div>
         )}
 
@@ -633,7 +635,7 @@ function Practice() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={3}
-              className="w-full rounded-3xl border border-border bg-secondary/50 p-5 text-[26px] leading-snug outline-none focus:border-primary"
+              className="w-full rounded-3xl border border-border bg-secondary/50 p-4 text-xl leading-snug outline-none focus:border-primary sm:p-5 sm:text-[26px]"
             />
             <div className="flex flex-wrap items-center justify-between gap-4">
               <span className="text-base text-muted-foreground">
@@ -667,7 +669,9 @@ function Practice() {
                   ))}
                 </ol>
                 {drill.peeked ? (
-                  <p className="rounded-2xl bg-card p-4 text-[22px] leading-snug">{q.bridge}</p>
+                  <p className="rounded-2xl bg-card p-4 text-lg leading-snug break-words sm:text-[22px]">
+                    {q.bridge}
+                  </p>
                 ) : (
                   <BouncyTap
                     onClick={peekModel}
@@ -700,11 +704,13 @@ function Practice() {
                     animate={{ opacity: out ? 0.45 : 1 }}
                     className="rounded-3xl border border-border p-5"
                   >
-                    <p className={`stem-type text-[30px] ${out ? "line-through" : ""}`}>
+                    <p
+                      className={`stem-type text-xl break-words sm:text-[30px] ${out ? "line-through" : ""}`}
+                    >
                       ({c.label}) {c.pair}
                     </p>
                     <p
-                      className={`mt-2 text-[24px] leading-snug ${out ? "line-through opacity-70" : ""}`}
+                      className={`mt-2 text-lg leading-snug break-words sm:text-[24px] ${out ? "line-through opacity-70" : ""}`}
                     >
                       {monkeySwap(drill.bridge, q.stem, c.pair)}
                     </p>
@@ -923,7 +929,7 @@ function Practice() {
                 <BouncyTap
                   key={c.label}
                   onClick={() => answer(c.label)}
-                  className={`block w-full border px-6 py-5 text-left text-[34px] font-bold ${
+                  className={`block w-full border px-4 py-4 text-left text-xl font-bold break-words sm:px-6 sm:py-5 sm:text-[34px] ${
                     out
                       ? "border-border bg-transparent text-muted-foreground line-through opacity-50"
                       : "border-border bg-secondary/40 hover:border-primary"
@@ -1019,14 +1025,16 @@ function Practice() {
               <p className="text-sm uppercase tracking-widest text-muted-foreground">
                 The target bridge
               </p>
-              <p className="mt-2 text-[30px] leading-snug">{q.bridge}</p>
+              <p className="mt-2 text-xl leading-snug break-words sm:text-[30px]">{q.bridge}</p>
             </div>
             {drill.bridge && (
               <div className="rounded-3xl border border-border p-5">
                 <p className="text-sm uppercase tracking-widest text-muted-foreground">
                   Your sentence
                 </p>
-                <p className="mt-2 text-[24px] leading-snug">{drill.bridge}</p>
+                <p className="mt-2 text-lg leading-snug break-words sm:text-[24px]">
+                  {drill.bridge}
+                </p>
               </div>
             )}
             <p className="text-2xl font-extrabold">
