@@ -140,11 +140,15 @@ export function classifyStruggle(a: {
 
 /** Each girl has her own private wishlist. enabledGroups gates which Foundation-Six
  *  bridge families appear in practice (parent controls "do what I just taught").
- *  Undefined = all six on (backward compatible with older saves). */
+ *  Undefined = all six on (backward compatible with older saves).
+ *  classMode: when set, practice draws ONLY that difficulty (1|2|3) — the parent's
+ *  live teaching control ("I just taught this; drill easy ones now"). Undefined = all
+ *  levels, excluding tooEasy teaching examples. */
 export type SharedState = {
   pin: string;
   rewards: Partial<Record<ProfileId, Reward[]>>;
   enabledGroups?: string[];
+  classDifficulty?: 1 | 2 | 3 | undefined;
 };
 
 const SHARED_KEY = "ssatquest.v8.shared";

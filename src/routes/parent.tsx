@@ -92,6 +92,11 @@ function ParentPanel() {
           onChange={(groups) => updateShared((s) => ({ ...s, enabledGroups: groups }))}
         />
 
+        <ClassMode
+          level={shared.classDifficulty}
+          onChange={(level) => updateShared((s) => ({ ...s, classDifficulty: level }))}
+        />
+
         <TestAndReset />
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -156,6 +161,64 @@ function ChangePin({ pin, onSave }: { pin: string; onSave: (pin: string) => void
         </div>
       )}
       <p className="mt-2 text-xs text-muted-foreground">Current PIN is {pin.replace(/./g, "•")}</p>
+    </section>
+  );
+}
+
+function ClassMode({
+  level,
+  onChange,
+}: {
+  level: 1 | 2 | 3 | undefined;
+  onChange: (level: 1 | 2 | 3 | undefined) => void;
+}) {
+  const LEVELS: { value: 1 | 2 | 3; name: string; desc: string }[] = [
+    { value: 1, name: "Easy", desc: "everyday words — for right after teaching a bridge" },
+    { value: 2, name: "Medium", desc: "real SSAT vocabulary — the everyday drill" },
+    { value: 3, name: "Hard", desc: "95th-percentile words — once they own the method" },
+  ];
+  return (
+    <section className="quest-card space-y-4 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-extrabold">Class Mode — difficulty</h2>
+        {level !== undefined && (
+          <span className="rounded-full bg-primary/15 px-3 py-1 text-sm font-bold text-primary">
+            ON — {LEVELS.find((l) => l.value === level)?.name} only
+          </span>
+        )}
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Pick a level while teaching (&ldquo;I just taught this — drill a couple easy ones&rdquo;).
+        Practice serves ONLY that level until you turn it off. Combine with the bridge toggles above
+        to drill exactly one family at one level.
+      </p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {LEVELS.map((l) => {
+          const on = level === l.value;
+          return (
+            <BouncyTap
+              key={l.value}
+              onClick={() => onChange(on ? undefined : l.value)}
+              className={`border px-4 py-3 text-left ${
+                on ? "border-primary bg-primary/10" : "border-border"
+              }`}
+            >
+              <span className="block text-lg font-extrabold">
+                {l.name} {on ? "✓" : ""}
+              </span>
+              <span className="block text-xs text-muted-foreground">{l.desc}</span>
+            </BouncyTap>
+          );
+        })}
+      </div>
+      {level !== undefined && (
+        <BouncyTap
+          onClick={() => onChange(undefined)}
+          className="border border-border px-5 py-2 text-sm text-muted-foreground"
+        >
+          Turn off — back to normal mix
+        </BouncyTap>
+      )}
     </section>
   );
 }

@@ -14,6 +14,8 @@ import {
   FOUNDATION_ORDER,
   groupOfFamily,
   bridgeFrameFor,
+  difficultyOf,
+  isTooEasy,
   type FoundationGroup,
 } from "@/data/questions";
 import {
@@ -74,13 +76,21 @@ const MIN_BRIDGE_WORDS = 3;
 function pickQuestion(
   p: ProfileState,
   allowed?: Set<FoundationGroup>,
+  classDifficulty?: 1 | 2 | 3,
 ): { qid: string; xpMode: Drill["xpMode"] } {
   const cycle = p.recent;
   // Only questions whose Foundation group is enabled by the parent (foundation-only pool).
   const inScope = (q: Question) => {
     const g = groupOfFamily(q.family);
     if (!g) return false; // Tier-2 families never appear in foundation practice
-    return !allowed || allowed.has(g);
+    if (allowed && !allowed.has(g)) return false;
+    if (classDifficulty !== undefined) {
+      // Class Mode: exactly the level the parent picked. (tooEasy items are allowed
+      // at level 1 — easy scaffolding is exactly what class-mode-easy is for.)
+      return difficultyOf(q.id) === classDifficulty;
+    }
+    // Normal mode: all levels, but exclude tooEasy teaching examples from real drilling.
+    return !isTooEasy(q.id);
   };
   const scoped = QUESTIONS.filter(inScope);
   const base =
@@ -95,8 +105,12 @@ function pickQuestion(
   return { qid: q.id, xpMode };
 }
 
-function newDrill(p: ProfileState, allowed?: Set<FoundationGroup>): Drill {
-  const { qid, xpMode } = pickQuestion(p, allowed);
+function newDrill(
+  p: ProfileState,
+  allowed?: Set<FoundationGroup>,
+  classDifficulty?: 1 | 2 | 3,
+): Drill {
+  const { qid, xpMode } = pickQuestion(p, allowed, classDifficulty);
   return {
     qid,
     phase: "type",
@@ -160,12 +174,20 @@ function Practice() {
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
-    update((prev) => (prev.current ? prev : { ...prev, current: newDrill(prev, allowedGroups) }));
+    update((prev) =>
+      prev.current
+        ? prev
+        : { ...prev, current: newDrill(prev, allowedGroups, shared.classDifficulty) },
+    );
   }, [update]);
 
   // A saved drill can point at a question that no longer exists — start fresh instead of crashing.
   useEffect(() => {
-    if (drill && !q) update((prev) => ({ ...prev, current: newDrill(prev, allowedGroups) }));
+    if (drill && !q)
+      update((prev) => ({
+        ...prev,
+        current: newDrill(prev, allowedGroups, shared.classDifficulty),
+      }));
   }, [drill, q, update]);
 
   // Fresh question, fresh coach.
@@ -371,7 +393,8 @@ function Practice() {
       };
       // (day "completed" is incremented in answer() when the question reaches feedback,
       // so it is NOT incremented again here — that would double-count.)
-      if (!goHome) next = { ...next, current: newDrill(next, allowedGroups) };
+      if (!goHome)
+        next = { ...next, current: newDrill(next, allowedGroups, shared.classDifficulty) };
       return next;
     });
     setDraft("");
@@ -423,7 +446,7 @@ function Practice() {
         history: [...(prev.history ?? []), attempt].slice(-300),
         current: null,
       };
-      return { ...next, current: newDrill(next, allowedGroups) };
+      return { ...next, current: newDrill(next, allowedGroups, shared.classDifficulty) };
     });
     setConfirmSkip(false);
     setDraft("");
