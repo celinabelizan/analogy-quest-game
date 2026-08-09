@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ParentRouteImport } from './routes/parent'
 import { Route as DashboardPidRouteImport } from './routes/dashboard.$pid'
 import { Route as PracticePidRouteImport } from './routes/practice.$pid'
+import { Route as VocabPidRouteImport } from './routes/vocab.$pid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const PracticePidRoute = PracticePidRouteImport.update({
   path: '/practice/$pid',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VocabPidRoute = VocabPidRouteImport.update({
+  id: '/vocab/$pid',
+  path: '/vocab/$pid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/parent': typeof ParentRoute
   '/dashboard/$pid': typeof DashboardPidRoute
   '/practice/$pid': typeof PracticePidRoute
+  '/vocab/$pid': typeof VocabPidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/parent': typeof ParentRoute
   '/dashboard/$pid': typeof DashboardPidRoute
   '/practice/$pid': typeof PracticePidRoute
+  '/vocab/$pid': typeof VocabPidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,21 @@ export interface FileRoutesById {
   '/parent': typeof ParentRoute
   '/dashboard/$pid': typeof DashboardPidRoute
   '/practice/$pid': typeof PracticePidRoute
+  '/vocab/$pid': typeof VocabPidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid'
+  fullPaths:
+    '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid' | '/vocab/$pid'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid'
-  id: '__root__' | '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid'
+  to: '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid' | '/vocab/$pid'
+  id:
+    | '__root__'
+    | '/'
+    | '/parent'
+    | '/dashboard/$pid'
+    | '/practice/$pid'
+    | '/vocab/$pid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +83,7 @@ export interface RootRouteChildren {
   ParentRoute: typeof ParentRoute
   DashboardPidRoute: typeof DashboardPidRoute
   PracticePidRoute: typeof PracticePidRoute
+  VocabPidRoute: typeof VocabPidRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticePidRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vocab/$pid': {
+      id: '/vocab/$pid'
+      path: '/vocab/$pid'
+      fullPath: '/vocab/$pid'
+      preLoaderRoute: typeof VocabPidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +131,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParentRoute: ParentRoute,
   DashboardPidRoute: DashboardPidRoute,
   PracticePidRoute: PracticePidRoute,
+  VocabPidRoute: VocabPidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

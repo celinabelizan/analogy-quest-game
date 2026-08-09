@@ -74,10 +74,23 @@ export type ProfileState = {
   seenAt: Record<string, number>;
   completedCount: number;
   recent: string[];
-  days: Record<string, { completed: number; exitTicket: boolean; dayBonus: boolean }>;
+  days: Record<
+    string,
+    {
+      completed: number;
+      exitTicket: boolean;
+      dayBonus: boolean;
+      vocabDone?: number;
+      vocabBonus?: boolean;
+    }
+  >;
   current: Drill | null;
   /** One entry per finished question, newest last. */
   history?: Attempt[];
+  /** Vocab words missed and not yet redeemed: word-item id -> consecutive corrects needed info. */
+  tricky?: Record<string, { misses: number; streak: number; addedAt: number }>;
+  /** Per-vocab-item stats: last seen + total corrects (drives rotation). */
+  vocabSeen?: Record<string, { at: number; corrects: number }>;
 };
 
 /** What tripped her up on a question. */
@@ -303,7 +316,13 @@ export function dayOf(p: ProfileState, day = todayKey()) {
 
 export function setDay(
   p: ProfileState,
-  patch: Partial<{ completed: number; exitTicket: boolean; dayBonus: boolean }>,
+  patch: Partial<{
+    completed: number;
+    exitTicket: boolean;
+    dayBonus: boolean;
+    vocabDone: number;
+    vocabBonus: boolean;
+  }>,
   day = todayKey(),
 ): ProfileState {
   return { ...p, days: { ...p.days, [day]: { ...dayOf(p, day), ...patch } } };

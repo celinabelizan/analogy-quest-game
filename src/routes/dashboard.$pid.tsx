@@ -150,6 +150,28 @@ function Dashboard() {
           </div>
         </motion.button>
 
+        {/* WORD LAB — the daily 20 vocab drill */}
+        <Link to="/vocab/$pid" params={{ pid: id }} className="block">
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="quest-card flex items-center justify-between gap-4 border-2 px-6 py-5"
+            style={{ borderColor: meta.accent }}
+          >
+            <div>
+              <div className="text-2xl font-extrabold">🔑 Word Lab</div>
+              <div className="text-base text-muted-foreground">
+                {(today.vocabDone ?? 0) >= 20
+                  ? `${today.vocabDone} words today — goal smashed 🎉`
+                  : `Today's words: ${today.vocabDone ?? 0} / 20`}
+                {Object.keys(p.tricky ?? {}).length > 0 &&
+                  ` · ${Object.keys(p.tricky ?? {}).length} tricky waiting`}
+              </div>
+            </div>
+            <div className="text-3xl">→</div>
+          </motion.div>
+        </Link>
+
         <div className="grid gap-6 md:grid-cols-2">
           {/* XP + reward ring */}
           <section className="quest-card relative overflow-hidden p-7">
