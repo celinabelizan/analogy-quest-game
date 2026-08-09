@@ -595,7 +595,7 @@ function Practice() {
           <section className="quest-card space-y-4 p-7">
             <h2 className="text-2xl font-extrabold">First: what kind of bridge is this?</h2>
             <p className="text-base text-muted-foreground">
-              Name the relationship before you write anything. Ask yourself each question.
+              Pick the connection — then your sentence is already written for you.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {FOUNDATION_ORDER.map((g) => (
@@ -607,6 +607,12 @@ function Practice() {
                   <span className="block text-xl font-extrabold">{FOUNDATION_SIX[g].label}</span>
                   <span className="block text-sm text-muted-foreground">
                     {FOUNDATION_SIX[g].ask}
+                  </span>
+                  <span
+                    className="mt-2 block rounded-lg bg-secondary/50 px-2 py-1 text-sm italic"
+                    style={{ color: FOUNDATION_SIX[g].color }}
+                  >
+                    → &ldquo;{bridgeFrameFor(g, q.stem)}&rdquo;
                   </span>
                 </BouncyTap>
               ))}
