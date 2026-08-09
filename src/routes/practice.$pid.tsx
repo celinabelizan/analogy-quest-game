@@ -65,6 +65,10 @@ export const Route = createFileRoute("/practice/$pid")({
   component: Practice,
 });
 
+/** Minimum words to lock a bridge. Low on purpose — a concise correct sentence
+ *  like "carpenter uses hammer" should pass; this only blocks blanks/one-word junk. */
+const MIN_BRIDGE_WORDS = 3;
+
 function pickQuestion(
   p: ProfileState,
   allowed?: Set<FoundationGroup>,
@@ -225,7 +229,7 @@ function Practice() {
 
   /* ---------------- STATE 2: lock the sentence ---------------- */
   const lockBridge = () => {
-    if (wordCount(draft) < 5) return;
+    if (wordCount(draft) < MIN_BRIDGE_WORDS) return;
     const first = !drill.awardedBridge;
     setDrill(
       (d) => ({ ...d, bridge: draft.trim(), locked: true, phase: "monkey", awardedBridge: true }),
@@ -639,11 +643,13 @@ function Practice() {
             />
             <div className="flex flex-wrap items-center justify-between gap-4">
               <span className="text-base text-muted-foreground">
-                {wordCount(draft)} / 5 words minimum
+                {wordCount(draft) < MIN_BRIDGE_WORDS
+                  ? `${wordCount(draft)} words — write a full sentence`
+                  : "looks good ✓"}
               </span>
               <BouncyTap
                 onClick={lockBridge}
-                disabled={wordCount(draft) < 5}
+                disabled={wordCount(draft) < MIN_BRIDGE_WORDS}
                 className="glow-pink bg-primary px-8 py-4 text-2xl text-primary-foreground"
               >
                 🔒 Lock My Sentence
