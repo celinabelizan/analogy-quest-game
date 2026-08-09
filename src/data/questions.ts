@@ -41,19 +41,21 @@ export type FoundationGroup = "kind" | "part" | "used" | "degree" | "same" | "op
 
 export const FOUNDATION_SIX: Record<
   FoundationGroup,
-  { label: string; ask: string; frame: string; color: string; families: Family[] }
+  { label: string; ask: string; frame: string; hint: string; color: string; families: Family[] }
 > = {
   kind: {
     label: "Kind of",
-    ask: "Is one a kind of the other?",
+    ask: "Is one a type of the other?",
     frame: "A {a} is a kind of {b}.",
+    hint: "one is a type / example of the other",
     color: "#F59E0B",
     families: ["kind-category"],
   },
   part: {
     label: "Part of",
-    ask: "Is one a part of the other?",
+    ask: "Is one a piece of the other?",
     frame: "A {a} is the part of a {b} that ___.",
+    hint: "one is a piece of the whole — add what it does",
     color: "#FACC15",
     families: ["part-whole"],
   },
@@ -61,6 +63,7 @@ export const FOUNDATION_SIX: Record<
     label: "Used for / a tool",
     ask: "Is one a tool used to do the other?",
     frame: "A {a} is a tool used to {b}.",
+    hint: "one is a tool; the other is its job",
     color: "#22C55E",
     families: ["tool-function", "worker-tool"],
   },
@@ -68,6 +71,7 @@ export const FOUNDATION_SIX: Record<
     label: "More or less",
     ask: "Is one a stronger version of the other?",
     frame: "{a} is a stronger version of {b}.",
+    hint: "same idea, but one is turned up (or down)",
     color: "#A855F7",
     families: ["degree"],
   },
@@ -75,6 +79,7 @@ export const FOUNDATION_SIX: Record<
     label: "Same",
     ask: "Do they mean the same?",
     frame: "{a} means the same as {b}.",
+    hint: "two words for one idea (synonyms)",
     color: "#EF4444",
     families: ["synonym"],
   },
@@ -82,6 +87,7 @@ export const FOUNDATION_SIX: Record<
     label: "Opposite",
     ask: "Do they mean the opposite?",
     frame: "{a} is the opposite of {b}.",
+    hint: "they point opposite ways (antonyms)",
     color: "#F97316",
     families: ["antonym"],
   },

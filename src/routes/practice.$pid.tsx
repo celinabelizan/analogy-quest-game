@@ -141,7 +141,6 @@ function Practice() {
   const navigate = useNavigate();
 
   const [draft, setDraft] = useState("");
-  const [showBreak, setShowBreak] = useState(false);
   const [showStuck, setShowStuck] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
@@ -149,7 +148,6 @@ function Practice() {
 
   const [toast, setToast] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
-  const sessionStart = useRef(Date.now());
   const hydrated = useRef(false);
 
   const drill = p.current;
@@ -179,13 +177,6 @@ function Practice() {
   useEffect(() => {
     if (drill && !drill.locked) setDraft(drill.bridge);
   }, [drill?.qid, drill?.locked]);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      if (Date.now() - sessionStart.current > 20 * 60 * 1000) setShowBreak(true);
-    }, 30000);
-    return () => clearInterval(t);
-  }, []);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -538,7 +529,7 @@ function Practice() {
           </div>
         </div>
 
-        <GoalBar done={today.completed} goal={5} />
+        <GoalBar done={today.completed} goal={5} streak={p.streak} />
         <StepTrail active={stepIndex} />
 
         {/* STEM */}
@@ -606,7 +597,7 @@ function Practice() {
                 >
                   <span className="block text-xl font-extrabold">{FOUNDATION_SIX[g].label}</span>
                   <span className="block text-sm text-muted-foreground">
-                    {FOUNDATION_SIX[g].ask}
+                    {FOUNDATION_SIX[g].hint}
                   </span>
                   <span
                     className="mt-2 block rounded-lg bg-secondary/50 px-2 py-1 text-sm italic"
@@ -1221,28 +1212,6 @@ function Practice() {
           </div>
         )}
       </div>
-
-      <AnimatePresence>
-        {showBreak && (
-          <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-4 rounded-full bg-accent px-6 py-4 text-lg font-bold shadow-xl"
-          >
-            Nice work! Stretch break?
-            <BouncyTap
-              onClick={() => {
-                setShowBreak(false);
-                sessionStart.current = Date.now();
-              }}
-              className="bg-primary px-5 py-2 text-primary-foreground"
-            >
-              Dismiss
-            </BouncyTap>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }

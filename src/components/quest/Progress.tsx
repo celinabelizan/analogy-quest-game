@@ -13,12 +13,10 @@ export function StepTrail({ active }: { active: number }) {
         return (
           <li key={label} className="flex flex-1 items-center gap-2">
             <motion.div
-              animate={
-                now
-                  ? { scale: [1, 1.06, 1] }
-                  : { scale: 1 }
+              animate={now ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+              transition={
+                now ? { repeat: Infinity, duration: 2, ease: "easeInOut" } : { duration: 0.2 }
               }
-              transition={now ? { repeat: Infinity, duration: 2, ease: "easeInOut" } : { duration: 0.2 }}
               className={[
                 "flex w-full items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-extrabold",
                 done
@@ -61,28 +59,73 @@ export function ChoiceChecks({ total, done }: { total: number; done: number }) {
 }
 
 /** Slim daily goal bar — visible progress every single question. */
-export function GoalBar({ done, goal }: { done: number; goal: number }) {
+export function GoalBar({
+  done,
+  goal,
+  streak = 0,
+}: {
+  done: number;
+  goal: number;
+  streak?: number;
+}) {
   const pct = Math.min(100, Math.round((done / Math.max(1, goal)) * 100));
+  const hitGoal = done >= goal;
+  // Show up to `goal` gem slots that fill as she answers.
+  const slots = Array.from({ length: goal }, (_, i) => i < done);
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
-        <span>Today</span>
-        <span>
-          {done} / {goal}
+        <span>{hitGoal ? "Goal smashed! 🎉 keep going" : "Session goal"}</span>
+        <span className="flex items-center gap-3">
+          {streak > 0 && <span className="text-primary">🔥 {streak}</span>}
+          <span>
+            {done} / {goal}
+          </span>
         </span>
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
-        <motion.div
-          animate={{ width: `${pct}%` }}
-          transition={{ type: "spring", stiffness: 160, damping: 22 }}
-          className="h-full rounded-full bg-primary"
-        />
+      <div className="flex items-center gap-1.5">
+        {slots.map((filled, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              scale: filled ? 1 : 0.85,
+              opacity: filled ? 1 : 0.3,
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 16 }}
+            className="h-3 flex-1 rounded-full"
+            style={{ backgroundColor: filled ? "var(--primary)" : "var(--secondary)" }}
+          />
+        ))}
       </div>
+      {hitGoal && (
+        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <motion.div
+            animate={{ width: `${Math.min(100, ((done - goal) / goal) * 100)}%` }}
+            transition={{ type: "spring", stiffness: 160, damping: 22 }}
+            className="h-full rounded-full bg-primary/60"
+          />
+        </div>
+      )}
+      {!hitGoal && (
+        <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+          <motion.div
+            animate={{ width: `${pct}%` }}
+            transition={{ type: "spring", stiffness: 160, damping: 22 }}
+            className="h-full rounded-full bg-primary"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
-const CONFETTI_COLORS = ["var(--pink)", "var(--success)", "var(--warn)", "var(--lavender)", "var(--coral)"];
+const CONFETTI_COLORS = [
+  "var(--pink)",
+  "var(--success)",
+  "var(--warn)",
+  "var(--lavender)",
+  "var(--coral)",
+];
 
 /** Cheap, cheerful burst of petals for every win. */
 export function Confetti({ fire }: { fire: number }) {
