@@ -345,28 +345,48 @@ function LessonSections({
 }
 
 function ManualPoints({ id, name }: { id: ProfileId; name: string }) {
-  const [, update] = useProfile(id);
+  const [p, update] = useProfile(id);
   const [custom, setCustom] = useState("");
-  const give = (amount: number) => {
-    if (amount === 0) return;
-    update((prev) => addXp(prev, amount));
+  const [exact, setExact] = useState("");
+  const first = name.split(" ")[0];
+
+  /** Positive adds to both lifetime+available; negative subtracts (floors at 0). */
+  const adjust = (amount: number) => {
+    if (!amount) return;
+    update((prev) => ({
+      ...prev,
+      lifetimeXp: Math.max(0, prev.lifetimeXp + amount),
+      availableXp: Math.max(0, prev.availableXp + amount),
+    }));
   };
-  const giveCustom = () => {
+  const adjustCustom = (sign: 1 | -1) => {
     const n = Math.round(Number(custom));
-    if (!n) return;
-    give(n);
+    if (!n || n <= 0) return;
+    adjust(sign * n);
     setCustom("");
   };
+  /** Set spendable XP to an exact number (lifetime keeps history; only raises if needed). */
+  const setExactXp = () => {
+    const n = Math.round(Number(exact));
+    if (Number.isNaN(n) || n < 0) return;
+    update((prev) => ({
+      ...prev,
+      availableXp: n,
+      lifetimeXp: Math.max(prev.lifetimeXp, n),
+    }));
+    setExact("");
+  };
+
   return (
-    <div className="mt-4 space-y-2 rounded-2xl border border-border p-3">
+    <div className="mt-4 space-y-3 rounded-2xl border border-border p-3">
       <h3 className="text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
-        Add session points
+        Edit points — {first} has {p.availableXp} XP to spend
       </h3>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {[10, 25, 50].map((n) => (
           <BouncyTap
             key={n}
-            onClick={() => give(n)}
+            onClick={() => adjust(n)}
             className="bg-primary px-4 py-2 text-primary-foreground"
           >
             +{n}
@@ -379,8 +399,27 @@ function ManualPoints({ id, name }: { id: ProfileId; name: string }) {
           placeholder="#"
           className="min-h-[44px] w-20 rounded-xl bg-secondary/40 px-3 text-center outline-none focus:ring-1 focus:ring-primary"
         />
-        <BouncyTap onClick={giveCustom} className="border border-border px-4 py-2">
-          Give {name.split(" ")[0]}
+        <BouncyTap onClick={() => adjustCustom(1)} className="border border-border px-4 py-2">
+          Add
+        </BouncyTap>
+        <BouncyTap
+          onClick={() => adjustCustom(-1)}
+          className="border border-border px-4 py-2 text-muted-foreground"
+        >
+          Subtract
+        </BouncyTap>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+        <span className="text-sm text-muted-foreground">Set spendable XP to exactly</span>
+        <input
+          value={exact}
+          onChange={(e) => setExact(e.target.value)}
+          inputMode="numeric"
+          placeholder={String(p.availableXp)}
+          className="min-h-[44px] w-24 rounded-xl bg-secondary/40 px-3 text-center outline-none focus:ring-1 focus:ring-primary"
+        />
+        <BouncyTap onClick={setExactXp} className="border border-border px-4 py-2">
+          Set
         </BouncyTap>
       </div>
     </div>
