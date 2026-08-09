@@ -78,7 +78,7 @@ export const FOUNDATION_SIX: Record<
   same: {
     label: "Same",
     ask: "Do they mean the same?",
-    frame: "{a} means the same as {b}.",
+    frame: "{a} is another word for {b}.",
     hint: "two words for one idea (synonyms)",
     color: "#EF4444",
     families: ["synonym"],

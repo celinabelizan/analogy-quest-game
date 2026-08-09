@@ -9,11 +9,19 @@ export const EXTRA_QUESTIONS: Question[] = [
     bridge: "A petal is one part of a flower.",
     correct: "C",
     choices: [
-      { label: "A", pair: "GARDEN : SOIL", why: "Soil is what a garden grows in, not a piece of it." },
+      {
+        label: "A",
+        pair: "GARDEN : SOIL",
+        why: "Soil is what a garden grows in, not a piece of it.",
+      },
       { label: "B", pair: "FLOWER : PETAL", why: "The whole and the part are reversed." },
       { label: "C", pair: "BRANCH : TREE", why: "A branch is one part of a tree." },
       { label: "D", pair: "SEED : GROWTH", why: "This is cause and effect." },
-      { label: "E", pair: "ROSE : THORN", why: "A rose has thorns, but the order puts the whole first." },
+      {
+        label: "E",
+        pair: "ROSE : THORN",
+        why: "A rose has thorns, but the order puts the whole first.",
+      },
     ],
   },
   {
@@ -79,7 +87,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     bridge: "A telescope is an instrument used to magnify distant things.",
     correct: "A",
     choices: [
-      { label: "A", pair: "MICROPHONE : AMPLIFY", why: "A microphone is a device used to amplify sound." },
+      {
+        label: "A",
+        pair: "MICROPHONE : AMPLIFY",
+        why: "A microphone is a device used to amplify sound.",
+      },
       { label: "B", pair: "STAR : SKY", why: "This is a thing and where it is found." },
       { label: "C", pair: "ASTRONOMER : TELESCOPE", why: "This is worker and tool." },
       { label: "D", pair: "LENS : TELESCOPE", why: "This is part to whole." },
@@ -95,7 +107,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     choices: [
       { label: "A", pair: "KNIFE : CHEF", why: "The worker and tool are reversed." },
       { label: "B", pair: "KITCHEN : CHEF", why: "This is workplace and worker." },
-      { label: "C", pair: "CARPENTER : HAMMER", why: "A carpenter uses a hammer to do their work." },
+      {
+        label: "C",
+        pair: "CARPENTER : HAMMER",
+        why: "A carpenter uses a hammer to do their work.",
+      },
       { label: "D", pair: "PAINTER : PAINTING", why: "This is maker and finished product." },
       { label: "E", pair: "SURGEON : PATIENT", why: "This is worker and the one worked on." },
     ],
@@ -121,7 +137,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     bridge: "A teacher works to instruct a student.",
     correct: "B",
     choices: [
-      { label: "A", pair: "STUDENT : TEACHER", why: "The worker and the person served are reversed." },
+      {
+        label: "A",
+        pair: "STUDENT : TEACHER",
+        why: "The worker and the person served are reversed.",
+      },
       { label: "B", pair: "COACH : ATHLETE", why: "A coach works to train an athlete." },
       { label: "C", pair: "SCHOOL : CLASS", why: "This is place and group inside it." },
       { label: "D", pair: "LESSON : BOOK", why: "This is content and container." },
@@ -137,7 +157,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     choices: [
       { label: "A", pair: "MANUSCRIPT : EDITOR", why: "The worker and the material are reversed." },
       { label: "B", pair: "WRITER : PEN", why: "This is worker and tool." },
-      { label: "C", pair: "READER : STORY", why: "A reader enjoys a story rather than improving it." },
+      {
+        label: "C",
+        pair: "READER : STORY",
+        why: "A reader enjoys a story rather than improving it.",
+      },
       { label: "D", pair: "GARDENER : HEDGE", why: "A gardener works on a hedge to improve it." },
       { label: "E", pair: "PUBLISHER : PROFIT", why: "This is worker and goal." },
     ],
@@ -164,7 +188,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     correct: "C",
     choices: [
       { label: "A", pair: "SCHOLAR : SCHOOL", why: "This is person and place." },
-      { label: "B", pair: "SMART : CLEVER", why: "These are synonyms, not person and defining trait." },
+      {
+        label: "B",
+        pair: "SMART : CLEVER",
+        why: "These are synonyms, not person and defining trait.",
+      },
       { label: "C", pair: "HERO : BRAVE", why: "A hero is by definition extremely brave." },
       { label: "D", pair: "TEST : GRADE", why: "This is task and result." },
       { label: "E", pair: "IDEA : MIND", why: "This is a thing and where it forms." },
@@ -177,7 +205,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     bridge: "A downpour is very heavy rain.",
     correct: "B",
     choices: [
-      { label: "A", pair: "RAIN : DOWNPOUR", why: "The strong version and the mild version are reversed." },
+      {
+        label: "A",
+        pair: "RAIN : DOWNPOUR",
+        why: "The strong version and the mild version are reversed.",
+      },
       { label: "B", pair: "BLIZZARD : SNOW", why: "A blizzard is very heavy snow." },
       { label: "C", pair: "CLOUD : STORM", why: "This is closer to cause and effect." },
       { label: "D", pair: "WET : DRY", why: "These are opposites." },
@@ -307,17 +339,21 @@ export const EXTRA_QUESTIONS: Question[] = [
       { label: "B", pair: "FOOD : HUNGER", why: "This is closer to cause and effect." },
       { label: "C", pair: "MANY : NUMBER", why: "This is amount and category." },
       { label: "D", pair: "FRAGILE : STURDY", why: "Fragile means the opposite of sturdy." },
-      { label: "E", pair: "SUPPLY : DEMAND", why: "These are paired terms, not opposites in meaning." },
+      {
+        label: "E",
+        pair: "SUPPLY : DEMAND",
+        why: "These are paired terms, not opposites in meaning.",
+      },
     ],
   },
   {
     id: "X23",
     family: "synonym",
     stem: "COURAGEOUS : BRAVE",
-    bridge: "Courageous means the same as brave.",
+    bridge: "Courageous is another word for brave.",
     correct: "A",
     choices: [
-      { label: "A", pair: "ENORMOUS : HUGE", why: "Enormous means the same as huge." },
+      { label: "A", pair: "ENORMOUS : HUGE", why: "Enormous is another word for huge." },
       { label: "B", pair: "BRAVE : COWARDLY", why: "These are opposites." },
       { label: "C", pair: "HERO : MEDAL", why: "This is person and award." },
       { label: "D", pair: "FEAR : DANGER", why: "This is feeling and cause." },
@@ -328,12 +364,12 @@ export const EXTRA_QUESTIONS: Question[] = [
     id: "X24",
     family: "synonym",
     stem: "MEND : REPAIR",
-    bridge: "To mend means the same as to repair.",
+    bridge: "To mend is another word for to repair.",
     correct: "C",
     choices: [
       { label: "A", pair: "BREAK : FIX", why: "These are opposites." },
       { label: "B", pair: "TAILOR : CLOTH", why: "This is worker and material." },
-      { label: "C", pair: "SHOUT : YELL", why: "To shout means the same as to yell." },
+      { label: "C", pair: "SHOUT : YELL", why: "To shout is another word for to yell." },
       { label: "D", pair: "NEEDLE : THREAD", why: "These are paired tools, not synonyms." },
       { label: "E", pair: "TEAR : HOLE", why: "This is cause and result." },
     ],
@@ -401,7 +437,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     bridge: "To whisper is to speak very quietly.",
     correct: "C",
     choices: [
-      { label: "A", pair: "SPEAK : WHISPER", why: "The general action and the quiet manner are reversed." },
+      {
+        label: "A",
+        pair: "SPEAK : WHISPER",
+        why: "The general action and the quiet manner are reversed.",
+      },
       { label: "B", pair: "LOUD : QUIET", why: "These are opposites." },
       { label: "C", pair: "GLANCE : LOOK", why: "To glance is to look very briefly." },
       { label: "D", pair: "VOICE : SOUND", why: "This is a kind and a category." },
@@ -415,7 +455,11 @@ export const EXTRA_QUESTIONS: Question[] = [
     bridge: "A shepherd watches over and cares for sheep.",
     correct: "A",
     choices: [
-      { label: "A", pair: "LIFEGUARD : SWIMMER", why: "A lifeguard watches over and protects swimmers." },
+      {
+        label: "A",
+        pair: "LIFEGUARD : SWIMMER",
+        why: "A lifeguard watches over and protects swimmers.",
+      },
       { label: "B", pair: "SHEEP : WOOL", why: "This is animal and product." },
       { label: "C", pair: "FIELD : SHEEP", why: "This is place and animal." },
       { label: "D", pair: "SHEPHERD : STAFF", why: "This is worker and tool." },
@@ -482,13 +526,17 @@ export const EXTRA_QUESTIONS: Question[] = [
     id: "X35",
     family: "synonym",
     stem: "VACANT : EMPTY",
-    bridge: "Vacant means the same as empty.",
+    bridge: "Vacant is another word for empty.",
     correct: "A",
     choices: [
-      { label: "A", pair: "RAPID : SWIFT", why: "Rapid means the same as swift." },
+      { label: "A", pair: "RAPID : SWIFT", why: "Rapid is another word for swift." },
       { label: "B", pair: "EMPTY : FULL", why: "These are opposites." },
       { label: "C", pair: "ROOM : HOUSE", why: "This is part and whole." },
-      { label: "D", pair: "SPACE : GAP", why: "These are related but the pair below is a cleaner synonym match." },
+      {
+        label: "D",
+        pair: "SPACE : GAP",
+        why: "These are related but the pair below is a cleaner synonym match.",
+      },
       { label: "E", pair: "LEAVE : ENTER", why: "These are opposites." },
     ],
   },

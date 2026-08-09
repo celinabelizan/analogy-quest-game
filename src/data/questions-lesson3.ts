@@ -7,7 +7,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-01",
     family: "synonym",
     stem: "HAPPY : JOYFUL",
-    bridge: "HAPPY means the same as JOYFUL.",
+    bridge: "HAPPY is another word for JOYFUL.",
     correct: "B",
     choices: [
       {
@@ -18,7 +18,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "GLAD : PLEASED",
-        why: "Fit: GLAD means the same as PLEASED, matching the synonym bridge.",
+        why: "Fit: GLAD is another word for PLEASED, matching the synonym bridge.",
       },
       {
         label: "C",
@@ -41,7 +41,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-02",
     family: "synonym",
     stem: "BIG : LARGE",
-    bridge: "BIG means the same as LARGE.",
+    bridge: "BIG is another word for LARGE.",
     correct: "D",
     choices: [
       {
@@ -62,7 +62,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "D",
         pair: "HUGE : ENORMOUS",
-        why: "Fit: HUGE means the same as ENORMOUS, matching the synonym bridge.",
+        why: "Fit: HUGE is another word for ENORMOUS, matching the synonym bridge.",
       },
       {
         label: "E",
@@ -75,13 +75,13 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-03",
     family: "synonym",
     stem: "FAST : QUICK",
-    bridge: "FAST means the same as QUICK.",
+    bridge: "FAST is another word for QUICK.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "RAPID : SWIFT",
-        why: "Fit: RAPID means the same as SWIFT, matching the synonym bridge.",
+        why: "Fit: RAPID is another word for SWIFT, matching the synonym bridge.",
       },
       {
         label: "B",
@@ -109,7 +109,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-04",
     family: "synonym",
     stem: "SMART : CLEVER",
-    bridge: "SMART means the same as CLEVER.",
+    bridge: "SMART is another word for CLEVER.",
     correct: "C",
     choices: [
       {
@@ -125,7 +125,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "C",
         pair: "INTELLIGENT : BRIGHT",
-        why: "Fit: INTELLIGENT means the same as BRIGHT, matching the synonym bridge.",
+        why: "Fit: INTELLIGENT is another word for BRIGHT, matching the synonym bridge.",
       },
       {
         label: "D",
@@ -143,7 +143,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-05",
     family: "synonym",
     stem: "ANGRY : MAD",
-    bridge: "ANGRY means the same as MAD.",
+    bridge: "ANGRY is another word for MAD.",
     correct: "E",
     choices: [
       {
@@ -169,7 +169,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "E",
         pair: "FURIOUS : IRATE",
-        why: "Fit: FURIOUS means the same as IRATE, matching the synonym bridge.",
+        why: "Fit: FURIOUS is another word for IRATE, matching the synonym bridge.",
       },
     ],
   },
@@ -177,7 +177,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-06",
     family: "synonym",
     stem: "TIRED : WEARY",
-    bridge: "TIRED means the same as WEARY.",
+    bridge: "TIRED is another word for WEARY.",
     correct: "B",
     choices: [
       {
@@ -188,7 +188,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "EXHAUSTED : FATIGUED",
-        why: "Fit: EXHAUSTED means the same as FATIGUED, matching the synonym bridge.",
+        why: "Fit: EXHAUSTED is another word for FATIGUED, matching the synonym bridge.",
       },
       {
         label: "C",
@@ -211,7 +211,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-07",
     family: "synonym",
     stem: "STRANGE : ODD",
-    bridge: "STRANGE means the same as ODD.",
+    bridge: "STRANGE is another word for ODD.",
     correct: "D",
     choices: [
       {
@@ -232,7 +232,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "D",
         pair: "PECULIAR : UNUSUAL",
-        why: "Fit: PECULIAR means the same as UNUSUAL, matching the synonym bridge.",
+        why: "Fit: PECULIAR is another word for UNUSUAL, matching the synonym bridge.",
       },
       {
         label: "E",
@@ -245,13 +245,13 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-08",
     family: "synonym",
     stem: "RICH : WEALTHY",
-    bridge: "RICH means the same as WEALTHY.",
+    bridge: "RICH is another word for WEALTHY.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "AFFLUENT : PROSPEROUS",
-        why: "Fit: AFFLUENT means the same as PROSPEROUS, matching the synonym bridge.",
+        why: "Fit: AFFLUENT is another word for PROSPEROUS, matching the synonym bridge.",
       },
       {
         label: "B",
@@ -279,7 +279,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-09",
     family: "synonym",
     stem: "QUIET : SILENT",
-    bridge: "QUIET means the same as SILENT.",
+    bridge: "QUIET is another word for SILENT.",
     correct: "C",
     choices: [
       {
@@ -295,7 +295,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "C",
         pair: "HUSHED : NOISELESS",
-        why: "Fit: HUSHED means the same as NOISELESS, matching the synonym bridge.",
+        why: "Fit: HUSHED is another word for NOISELESS, matching the synonym bridge.",
       },
       {
         label: "D",
@@ -313,7 +313,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-10",
     family: "synonym",
     stem: "BEGIN : START",
-    bridge: "BEGIN means the same as START.",
+    bridge: "BEGIN is another word for START.",
     correct: "E",
     choices: [
       {
@@ -339,7 +339,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "E",
         pair: "COMMENCE : INITIATE",
-        why: "Fit: COMMENCE means the same as INITIATE, matching the synonym bridge.",
+        why: "Fit: COMMENCE is another word for INITIATE, matching the synonym bridge.",
       },
     ],
   },
@@ -347,7 +347,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-11",
     family: "synonym",
     stem: "HONEST : TRUTHFUL",
-    bridge: "HONEST means the same as TRUTHFUL.",
+    bridge: "HONEST is another word for TRUTHFUL.",
     correct: "B",
     choices: [
       {
@@ -358,7 +358,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "SINCERE : GENUINE",
-        why: "Fit: SINCERE means the same as GENUINE, matching the synonym bridge.",
+        why: "Fit: SINCERE is another word for GENUINE, matching the synonym bridge.",
       },
       {
         label: "C",
@@ -381,7 +381,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-12",
     family: "synonym",
     stem: "AFRAID : FEARFUL",
-    bridge: "AFRAID means the same as FEARFUL.",
+    bridge: "AFRAID is another word for FEARFUL.",
     correct: "D",
     choices: [
       {
@@ -402,7 +402,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "D",
         pair: "FRIGHTENED : TERRIFIED",
-        why: "Fit: FRIGHTENED means the same as TERRIFIED, matching the synonym bridge.",
+        why: "Fit: FRIGHTENED is another word for TERRIFIED, matching the synonym bridge.",
       },
       {
         label: "E",
@@ -415,13 +415,13 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-13",
     family: "synonym",
     stem: "STUBBORN : OBSTINATE",
-    bridge: "STUBBORN means the same as OBSTINATE.",
+    bridge: "STUBBORN is another word for OBSTINATE.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "INFLEXIBLE : UNYIELDING",
-        why: "Fit: INFLEXIBLE means the same as UNYIELDING, matching the synonym bridge.",
+        why: "Fit: INFLEXIBLE is another word for UNYIELDING, matching the synonym bridge.",
       },
       {
         label: "B",
@@ -449,7 +449,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-14",
     family: "synonym",
     stem: "ENORMOUS : IMMENSE",
-    bridge: "ENORMOUS means the same as IMMENSE.",
+    bridge: "ENORMOUS is another word for IMMENSE.",
     correct: "C",
     choices: [
       {
@@ -465,7 +465,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "C",
         pair: "GIGANTIC : COLOSSAL",
-        why: "Fit: GIGANTIC means the same as COLOSSAL, both at the same extreme scale as the stem.",
+        why: "Fit: GIGANTIC is another word for COLOSSAL, both at the same extreme scale as the stem.",
       },
       {
         label: "D",
@@ -483,7 +483,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-15",
     family: "synonym",
     stem: "TIMID : SHY",
-    bridge: "TIMID means the same as SHY.",
+    bridge: "TIMID is another word for SHY.",
     correct: "E",
     choices: [
       {
@@ -509,7 +509,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "E",
         pair: "MEEK : RESERVED",
-        why: "Fit: MEEK means the same as RESERVED, matching the mild degree of the synonym bridge.",
+        why: "Fit: MEEK is another word for RESERVED, matching the mild degree of the synonym bridge.",
       },
     ],
   },
@@ -517,7 +517,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-16",
     family: "synonym",
     stem: "GRATEFUL : THANKFUL",
-    bridge: "GRATEFUL means the same as THANKFUL.",
+    bridge: "GRATEFUL is another word for THANKFUL.",
     correct: "B",
     choices: [
       {
@@ -528,7 +528,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "DELIGHTED : PLEASED",
-        why: "Fit: DELIGHTED means the same as PLEASED, matching the synonym bridge.",
+        why: "Fit: DELIGHTED is another word for PLEASED, matching the synonym bridge.",
       },
       {
         label: "C",
@@ -551,7 +551,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-17",
     family: "synonym",
     stem: "CAUTIOUS : CAREFUL",
-    bridge: "CAUTIOUS means the same as CAREFUL.",
+    bridge: "CAUTIOUS is another word for CAREFUL.",
     correct: "D",
     choices: [
       {
@@ -572,7 +572,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "D",
         pair: "PRUDENT : WARY",
-        why: "Fit: PRUDENT means the same as WARY, matching the sensible degree of the synonym bridge.",
+        why: "Fit: PRUDENT is another word for WARY, matching the sensible degree of the synonym bridge.",
       },
       {
         label: "E",
@@ -585,13 +585,13 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-18",
     family: "synonym",
     stem: "PLENTIFUL : ABUNDANT",
-    bridge: "PLENTIFUL means the same as ABUNDANT.",
+    bridge: "PLENTIFUL is another word for ABUNDANT.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "AMPLE : COPIOUS",
-        why: "Fit: AMPLE means the same as COPIOUS, matching the synonym bridge.",
+        why: "Fit: AMPLE is another word for COPIOUS, matching the synonym bridge.",
       },
       {
         label: "B",
@@ -619,7 +619,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-19",
     family: "synonym",
     stem: "TRANQUIL : SERENE",
-    bridge: "TRANQUIL means the same as SERENE.",
+    bridge: "TRANQUIL is another word for SERENE.",
     correct: "C",
     choices: [
       {
@@ -635,7 +635,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "C",
         pair: "PLACID : CALM",
-        why: "Fit: PLACID means the same as CALM, matching the synonym bridge.",
+        why: "Fit: PLACID is another word for CALM, matching the synonym bridge.",
       },
       {
         label: "D",
@@ -653,7 +653,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-20",
     family: "synonym",
     stem: "CANDID : FRANK",
-    bridge: "CANDID means the same as FRANK.",
+    bridge: "CANDID is another word for FRANK.",
     correct: "E",
     choices: [
       {
@@ -679,7 +679,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "E",
         pair: "FORTHRIGHT : DIRECT",
-        why: "Fit: FORTHRIGHT means the same as DIRECT, matching the synonym bridge.",
+        why: "Fit: FORTHRIGHT is another word for DIRECT, matching the synonym bridge.",
       },
     ],
   },
@@ -687,7 +687,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-21",
     family: "synonym",
     stem: "BENEVOLENT : KIND",
-    bridge: "BENEVOLENT means the same as KIND.",
+    bridge: "BENEVOLENT is another word for KIND.",
     correct: "B",
     choices: [
       {
@@ -698,7 +698,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "COMPASSIONATE : CHARITABLE",
-        why: "Fit: COMPASSIONATE means the same as CHARITABLE, matching the synonym bridge.",
+        why: "Fit: COMPASSIONATE is another word for CHARITABLE, matching the synonym bridge.",
       },
       {
         label: "C",
@@ -721,7 +721,7 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-22",
     family: "synonym",
     stem: "METICULOUS : THOROUGH",
-    bridge: "METICULOUS means the same as THOROUGH.",
+    bridge: "METICULOUS is another word for THOROUGH.",
     correct: "D",
     choices: [
       {
@@ -742,7 +742,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "D",
         pair: "PAINSTAKING : SCRUPULOUS",
-        why: "Fit: PAINSTAKING means the same as SCRUPULOUS, matching the exacting degree of the synonym bridge.",
+        why: "Fit: PAINSTAKING is another word for SCRUPULOUS, matching the exacting degree of the synonym bridge.",
       },
       {
         label: "E",
@@ -755,13 +755,13 @@ export const LESSON3_QUESTIONS: Question[] = [
     id: "S3-23",
     family: "synonym",
     stem: "OBSCURE : VAGUE",
-    bridge: "OBSCURE means the same as VAGUE.",
+    bridge: "OBSCURE is another word for VAGUE.",
     correct: "A",
     choices: [
       {
         label: "A",
         pair: "AMBIGUOUS : UNCLEAR",
-        why: "Fit: AMBIGUOUS means the same as UNCLEAR, matching the synonym bridge.",
+        why: "Fit: AMBIGUOUS is another word for UNCLEAR, matching the synonym bridge.",
       },
       {
         label: "B",
@@ -970,7 +970,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "STRONG : POWERFUL",
-        why: "Trap: Two choices same bridge — POWERFUL means the same as strong, not its opposite.",
+        why: "Trap: Two choices same bridge — POWERFUL is another word for strong, not its opposite.",
       },
       {
         label: "C",
@@ -1004,7 +1004,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "HAPPY : JOYFUL",
-        why: "Trap: Two choices same bridge — JOYFUL means the same as happy, not its opposite.",
+        why: "Trap: Two choices same bridge — JOYFUL is another word for happy, not its opposite.",
       },
       {
         label: "C",
@@ -1038,7 +1038,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "BRAVE : BOLD",
-        why: "Trap: Two choices same bridge — BOLD means the same as brave, not its opposite.",
+        why: "Trap: Two choices same bridge — BOLD is another word for brave, not its opposite.",
       },
       {
         label: "C",
@@ -1067,7 +1067,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "A",
         pair: "EXPAND : GROW",
-        why: "Trap: Two choices same bridge — GROW means the same as expand, not its opposite.",
+        why: "Trap: Two choices same bridge — GROW is another word for expand, not its opposite.",
       },
       {
         label: "B",
@@ -1135,7 +1135,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "A",
         pair: "PERMANENT : LASTING",
-        why: "Trap: Two choices same bridge — LASTING means the same as permanent, not its opposite.",
+        why: "Trap: Two choices same bridge — LASTING is another word for permanent, not its opposite.",
       },
       {
         label: "B",
@@ -1203,7 +1203,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "A",
         pair: "ASCEND : CLIMB",
-        why: "Trap: Two choices same bridge — CLIMB means the same as ascend, not its opposite.",
+        why: "Trap: Two choices same bridge — CLIMB is another word for ascend, not its opposite.",
       },
       {
         label: "B",
@@ -1247,7 +1247,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "C",
         pair: "TRANSPARENT : CLEAR",
-        why: "Trap: Two choices same bridge — CLEAR means the same as transparent, not its opposite.",
+        why: "Trap: Two choices same bridge — CLEAR is another word for transparent, not its opposite.",
       },
       {
         label: "D",
@@ -1305,7 +1305,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "A",
         pair: "GENUINE : AUTHENTIC",
-        why: "Trap: Two choices same bridge — AUTHENTIC means the same as genuine, not its opposite.",
+        why: "Trap: Two choices same bridge — AUTHENTIC is another word for genuine, not its opposite.",
       },
       {
         label: "B",
@@ -1407,7 +1407,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "A",
         pair: "FRUGAL : THRIFTY",
-        why: "Trap: Two choices same bridge — THRIFTY means the same as frugal, not its opposite.",
+        why: "Trap: Two choices same bridge — THRIFTY is another word for frugal, not its opposite.",
       },
       {
         label: "B",
@@ -1441,7 +1441,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "A",
         pair: "CONCEAL : HIDE",
-        why: "Trap: Two choices same bridge — HIDE means the same as conceal, not its opposite.",
+        why: "Trap: Two choices same bridge — HIDE is another word for conceal, not its opposite.",
       },
       {
         label: "B",
@@ -1514,7 +1514,7 @@ export const LESSON3_QUESTIONS: Question[] = [
       {
         label: "B",
         pair: "SCATTER : SPREAD",
-        why: "Trap: Two choices same bridge — SPREAD means the same as scatter, not its opposite.",
+        why: "Trap: Two choices same bridge — SPREAD is another word for scatter, not its opposite.",
       },
       {
         label: "C",
