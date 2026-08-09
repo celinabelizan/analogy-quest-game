@@ -642,6 +642,18 @@ function Practice() {
             <p className="text-base text-muted-foreground">
               Use both stem words. Tap the mic on the keyboard to dictate.
             </p>
+            {drill.familyGuess && groupOfFamily(drill.familyGuess as Family) === "part" && (
+              <div className="rounded-3xl border-2 border-primary/40 bg-primary/10 p-4">
+                <p className="text-base font-extrabold text-primary">
+                  ⭐ Part of? Add the third word!
+                </p>
+                <p className="mt-1 text-base">
+                  &ldquo;A ___ is the part of a ___ <strong>that ___.</strong>&rdquo; The last part
+                  (what it does) is what keeps you from getting tricked. Every other bridge is
+                  one-shot, but Part of always needs the &ldquo;that&hellip;&rdquo; ending.
+                </p>
+              </div>
+            )}
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
