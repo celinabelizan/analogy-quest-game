@@ -616,6 +616,14 @@ function Practice() {
         {/* STATE 2 — write the sentence */}
         {drill.phase === "stem" && (
           <section className="quest-card space-y-4 p-7">
+            {(drill.rewrites ?? 0) > 0 && drill.bridge && (
+              <BouncyTap
+                onClick={() => setDrill((d) => ({ ...d, phase: "monkey", locked: true }))}
+                className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground"
+              >
+                ← Back to the choices
+              </BouncyTap>
+            )}
             <h2 className="text-2xl font-extrabold">
               {(drill.rewrites ?? 0) > 0
                 ? "Rewrite it — make it fit only this pair"
