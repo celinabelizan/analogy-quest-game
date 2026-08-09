@@ -133,11 +133,17 @@ function newDrill(
   };
 }
 
-/** XP is only granted through this helper so a refresh can never duplicate it. */
+/** XP is only granted through this helper so a refresh can never duplicate it.
+ *  Effort-first economy (Content Contract): pay for the ritual steps, small outcome
+ *  bonus, and a DIFFICULTY MULTIPLIER so hard words pay more (×1 / ×1.5 / ×2). */
+const DIFF_MULT: Record<1 | 2 | 3, number> = { 1: 1, 2: 1.5, 3: 2 };
+function xpFor(qid: string, base: number): number {
+  return Math.round(base * DIFF_MULT[difficultyOf(qid)]);
+}
 function grant(p: ProfileState, d: Drill, amount: number): ProfileState {
   if (d.xpMode === "none") return p;
   if (d.xpMode === "repeat") return p; // repeat questions get their single +1 at lock time
-  return addXp(p, amount);
+  return addXp(p, xpFor(d.qid, amount));
 }
 
 function Practice() {
@@ -233,11 +239,11 @@ function Practice() {
     const repFamily = FOUNDATION_SIX[g].families[0]!;
     setDrill(
       (d) => ({ ...d, familyGuess: repFamily, awardedType: true, phase: "stem" }),
-      (prev, d) => (first && right ? grant(prev, d, 2) : prev),
+      (prev, d) => (first && right ? grant(prev, d, 1) : prev),
     );
     flash(
       right
-        ? "+2 XP — right kind of bridge"
+        ? `+${xpFor(q.id, 1)} XP — right kind of bridge`
         : `It's "${FOUNDATION_SIX[correctGroup ?? "kind"].label}"`,
     );
   };
@@ -255,8 +261,9 @@ function Practice() {
           return addXp(prev, 1);
         }
         if (d.xpMode === "none") return prev;
-        flash("+5 XP — sentence locked");
-        return addXp(prev, 5);
+        const amt = xpFor(d.qid, 2);
+        flash(`+${amt} XP — sentence locked`);
+        return addXp(prev, amt);
       },
     );
   };
@@ -308,7 +315,7 @@ function Practice() {
       let streak = prev.streak;
       if (isCorrect) {
         streak = prev.streak + 1;
-        if (!d.awardedFinal && d.xpMode === "full") next = addXp(next, 3);
+        if (!d.awardedFinal && d.xpMode === "full") next = addXp(next, xpFor(d.qid, 2));
         if (streak % 5 === 0) next = addXp(next, 5);
       } else {
         streak = 0;
@@ -333,7 +340,7 @@ function Practice() {
         },
       };
     });
-    if (isCorrect) flash("Correct! +3 XP");
+    if (isCorrect) flash(`Correct! +${xpFor(q.id, 2)} XP`);
   };
 
   /* ---------------- STATE 6: acknowledge the correction ---------------- */
@@ -341,10 +348,10 @@ function Practice() {
     update((prev) => {
       const d = prev.current!;
       let next = prev;
-      if (!d.awardedFinal && d.xpMode === "full") next = addXp(next, 3);
+      if (!d.awardedFinal && d.xpMode === "full") next = addXp(next, xpFor(d.qid, 1));
       return { ...next, current: { ...d, ackCorrection: true, awardedFinal: true } };
     });
-    flash("+3 XP — correction complete");
+    flash(`+${xpFor(q.id, 1)} XP — you learned it, that counts`);
   };
 
   /* ---------------- STATE 7: next ---------------- */
