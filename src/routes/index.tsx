@@ -2,7 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { DoodleField, Flower } from "@/components/quest/Doodles";
 import { ProgressRing } from "@/components/quest/Bits";
-import { PROFILES, useProfile, useShared, rewardsFor, type ProfileId } from "@/lib/quest-store";
+import {
+  PROFILES,
+  useProfile,
+  useShared,
+  rewardsFor,
+  rewardsVisible,
+  type ProfileId,
+} from "@/lib/quest-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,7 +23,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "SSAT Quest — Analogy Practice" },
       {
         property: "og:description",
-        content: "Bridge sentences, the monkey test, and XP rewards for Middle Level SSAT analogies.",
+        content:
+          "Bridge sentences, the monkey test, and XP rewards for Middle Level SSAT analogies.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -28,6 +36,7 @@ export const Route = createFileRoute("/")({
 function ProfileCard({ id, name }: { id: ProfileId; name: string; accent: string }) {
   const [p] = useProfile(id);
   const [shared] = useShared();
+  const showRewards = rewardsVisible(shared);
   const active = rewardsFor(shared, id).find((r) => r.id === p.activeRewardId) ?? null;
   const pending = p.redemptions.some((r) => r.status === "pending");
 
@@ -39,40 +48,48 @@ function ProfileCard({ id, name }: { id: ProfileId; name: string; accent: string
         transition={{ type: "spring", stiffness: 380, damping: 20 }}
         className="quest-card relative overflow-visible p-8"
       >
-        <Flower className="-bottom-10 left-2 z-30" size={112} rotate={-6} opacity={0.22} variant={0} />
+        <Flower
+          className="-bottom-10 left-2 z-30"
+          size={112}
+          rotate={-6}
+          opacity={0.22}
+          variant={0}
+        />
 
         <h2 className="script-type text-6xl text-primary">{name}</h2>
 
         <div className="mt-6 flex items-center gap-7">
           <ProgressRing
-            value={active ? p.availableXp : 0}
-            max={active ? active.xp : 1}
+            value={showRewards && active ? p.availableXp : 0}
+            max={showRewards && active ? active.xp : 1}
             color="var(--pink)"
-            glow={!!active && p.availableXp >= active.xp}
+            glow={showRewards && !!active && p.availableXp >= active.xp}
           >
             <div>
               <div className="text-3xl font-extrabold text-primary">{p.availableXp}</div>
-              <div className="text-xs uppercase tracking-widest text-muted-foreground">XP ready</div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground">XP</div>
             </div>
           </ProgressRing>
 
           <div className="space-y-2 text-left">
             <Stat label="Lifetime XP" value={p.lifetimeXp} />
             <Stat label="Streak" value={`${p.streak} 🔥`} />
-            <div className="text-[15px] text-muted-foreground">
-              {active ? (
-                <>
-                  <span className="font-bold text-foreground">{active.name}</span>
-                  <br />
-                  <span className="font-bold text-primary">
-                    {p.availableXp} / {active.xp} XP
-                  </span>
-                </>
-              ) : (
-                "Pick a reward to chase"
-              )}
-            </div>
-            {pending && (
+            {showRewards && (
+              <div className="text-[15px] text-muted-foreground">
+                {active ? (
+                  <>
+                    <span className="font-bold text-foreground">{active.name}</span>
+                    <br />
+                    <span className="font-bold text-primary">
+                      {p.availableXp} / {active.xp} XP
+                    </span>
+                  </>
+                ) : (
+                  "Pick a reward to chase"
+                )}
+              </div>
+            )}
+            {showRewards && pending && (
               <div className="inline-block rounded-full bg-primary/15 px-3 py-1 text-sm font-bold text-primary">
                 Waiting for Mom
               </div>
@@ -99,8 +116,6 @@ function Landing() {
       <DoodleField seed={0} />
       <div className="relative z-10 mx-auto max-w-5xl">
         <header className="relative mb-12 text-center">
-          
-          
           <h1 className="script-type text-7xl text-primary sm:text-8xl">SSAT Quest</h1>
           <p className="mt-3 text-xl text-muted-foreground">Analogies. Bridges. Treasure.</p>
         </header>

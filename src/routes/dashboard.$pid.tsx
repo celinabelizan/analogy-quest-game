@@ -11,6 +11,7 @@ import {
   useProfile,
   useShared,
   rewardsFor,
+  rewardsVisible,
   milestoneProgress,
   streakStats,
   XP_MILESTONES,
@@ -40,6 +41,7 @@ function Dashboard() {
   const meta = [...PROFILES, TEST_PROFILE].find((p) => p.id === id)!;
   const [p, update] = useProfile(id);
   const [shared] = useShared();
+  const showRewards = rewardsVisible(shared);
 
   const active = rewardsFor(shared, id).find((r) => r.id === p.activeRewardId) ?? null;
   const reached = !!active && p.availableXp >= active.xp;
@@ -172,52 +174,58 @@ function Dashboard() {
           </motion.div>
         </Link>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* XP + reward ring */}
-          <section className="quest-card relative overflow-hidden p-7">
-            <h2 className="text-xl font-extrabold">Reward progress</h2>
-            <div className="mt-5 flex items-center gap-6">
-              <ProgressRing
-                value={active ? p.availableXp : 0}
-                max={active ? active.xp : 1}
-                size={150}
-                color={meta.accent}
-                glow={reached}
-              >
-                <div>
-                  <div className="text-4xl font-extrabold">{p.availableXp}</div>
-                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                    XP ready
+        <div className={showRewards ? "grid gap-6 md:grid-cols-2" : "grid gap-6"}>
+          {/* XP + reward ring — hidden until parent turns rewards on */}
+          {showRewards && (
+            <section className="quest-card relative overflow-hidden p-7">
+              <h2 className="text-xl font-extrabold">Reward progress</h2>
+              <div className="mt-5 flex items-center gap-6">
+                <ProgressRing
+                  value={active ? p.availableXp : 0}
+                  max={active ? active.xp : 1}
+                  size={150}
+                  color={meta.accent}
+                  glow={reached}
+                >
+                  <div>
+                    <div className="text-4xl font-extrabold">{p.availableXp}</div>
+                    <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                      XP ready
+                    </div>
                   </div>
-                </div>
-              </ProgressRing>
-              <div className="space-y-2">
-                <p className="text-lg font-bold">{active ? active.name : "No active reward yet"}</p>
-                {active && (
-                  <p className="text-muted-foreground">
-                    {p.availableXp} / {active.xp} XP
+                </ProgressRing>
+                <div className="space-y-2">
+                  <p className="text-lg font-bold">
+                    {active ? active.name : "No active reward yet"}
                   </p>
-                )}
-                <p className="text-sm text-muted-foreground">Lifetime XP: {p.lifetimeXp}</p>
-                <p className="text-sm text-muted-foreground">Streak: {p.streak} 🔥</p>
-                <p className="text-sm text-muted-foreground">Today: {today.completed} questions</p>
-                {pending ? (
-                  <div className="rounded-full bg-primary/20 px-4 py-2 text-base font-bold text-primary">
-                    Waiting for Mom — {pending.name}
-                  </div>
-                ) : (
-                  reached && (
-                    <BouncyTap
-                      onClick={redeem}
-                      className="glow-pink bg-primary px-6 py-3 text-lg text-primary-foreground"
-                    >
-                      Redeem
-                    </BouncyTap>
-                  )
-                )}
+                  {active && (
+                    <p className="text-muted-foreground">
+                      {p.availableXp} / {active.xp} XP
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground">Lifetime XP: {p.lifetimeXp}</p>
+                  <p className="text-sm text-muted-foreground">Streak: {p.streak} 🔥</p>
+                  <p className="text-sm text-muted-foreground">
+                    Today: {today.completed} questions
+                  </p>
+                  {pending ? (
+                    <div className="rounded-full bg-primary/20 px-4 py-2 text-base font-bold text-primary">
+                      Waiting for Mom — {pending.name}
+                    </div>
+                  ) : (
+                    reached && (
+                      <BouncyTap
+                        onClick={redeem}
+                        className="glow-pink bg-primary px-6 py-3 text-lg text-primary-foreground"
+                      >
+                        Redeem
+                      </BouncyTap>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Mascot */}
           <section className="quest-card relative overflow-visible p-7 text-center">
@@ -326,34 +334,36 @@ function Dashboard() {
           </ul>
         </section>
 
-        {/* Wishlist */}
-        <section className="quest-card p-7">
-          <h2 className="text-xl font-extrabold">Wishlist</h2>
-          <p className="text-sm text-muted-foreground">Tap one to make it your goal.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {rewardsFor(shared, id).map((r) => {
-              const isActive = r.id === p.activeRewardId;
-              return (
-                <motion.button
-                  key={r.id}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 18 }}
-                  onClick={() => update((prev) => ({ ...prev, activeRewardId: r.id }))}
-                  className="flex min-h-[64px] items-center justify-between gap-3 rounded-3xl border px-5 py-3 text-left"
-                  style={{
-                    borderColor: isActive ? meta.accent : "var(--border)",
-                    backgroundColor: isActive ? `${meta.accent}22` : "transparent",
-                  }}
-                >
-                  <span className="font-bold">{r.name}</span>
-                  <span className="shrink-0 text-lg font-extrabold text-primary">{r.xp} XP</span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </section>
+        {/* Wishlist — hidden until parent turns rewards on */}
+        {showRewards && (
+          <section className="quest-card p-7">
+            <h2 className="text-xl font-extrabold">Wishlist</h2>
+            <p className="text-sm text-muted-foreground">Tap one to make it your goal.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {rewardsFor(shared, id).map((r) => {
+                const isActive = r.id === p.activeRewardId;
+                return (
+                  <motion.button
+                    key={r.id}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                    onClick={() => update((prev) => ({ ...prev, activeRewardId: r.id }))}
+                    className="flex min-h-[64px] items-center justify-between gap-3 rounded-3xl border px-5 py-3 text-left"
+                    style={{
+                      borderColor: isActive ? meta.accent : "var(--border)",
+                      backgroundColor: isActive ? `${meta.accent}22` : "transparent",
+                    }}
+                  >
+                    <span className="font-bold">{r.name}</span>
+                    <span className="shrink-0 text-lg font-extrabold text-primary">{r.xp} XP</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-        {p.redemptions.length > 0 && (
+        {showRewards && p.redemptions.length > 0 && (
           <section className="quest-card p-7">
             <h2 className="text-xl font-extrabold">Redemption history</h2>
             <ul className="mt-3 space-y-2">

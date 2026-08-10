@@ -162,6 +162,11 @@ export type SharedState = {
   rewards: Partial<Record<ProfileId, Reward[]>>;
   enabledGroups?: string[];
   classDifficulty?: 1 | 2 | 3 | undefined;
+  /** When true, the girls see the reward ring / wishlist / redemption UI in their
+   *  dashboard + landing cards. Default OFF so rewards don't become a distraction
+   *  (kids fixating on shopping / trying to edit the list). Parent flips it on when
+   *  the reward list is ready to show. */
+  showRewards?: boolean;
 };
 
 const SHARED_KEY = "ssatquest.v8.shared";
@@ -287,6 +292,12 @@ export function useShared() {
 /** Wishlist for one girl only. */
 export function rewardsFor(shared: SharedState, id: ProfileId): Reward[] {
   return shared.rewards[id] ?? [];
+}
+
+/** Whether the kid-facing reward UI (ring, wishlist, redemption) is shown.
+ *  Default OFF: rewards stay hidden until the parent turns them on. */
+export function rewardsVisible(shared: SharedState): boolean {
+  return shared.showRewards === true;
 }
 
 export function useProfile(id: ProfileId) {

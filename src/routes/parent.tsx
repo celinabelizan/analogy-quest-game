@@ -114,6 +114,11 @@ function ParentPanel() {
           ))}
         </div>
 
+        <ShowRewardsToggle
+          visible={shared.showRewards === true}
+          onChange={(v) => updateShared((s) => ({ ...s, showRewards: v }))}
+        />
+
         <RewardManager />
 
         <section className="quest-card p-6">
@@ -259,6 +264,53 @@ function ClassMode({
           Turn off — back to normal mix
         </BouncyTap>
       )}
+    </section>
+  );
+}
+
+function ShowRewardsToggle({
+  visible,
+  onChange,
+}: {
+  visible: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <section className="quest-card space-y-3 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-extrabold">Show rewards to the girls</h2>
+        <span
+          className={`rounded-full px-3 py-1 text-sm font-bold ${
+            visible ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"
+          }`}
+        >
+          {visible ? "ON — girls see rewards" : "OFF — rewards hidden"}
+        </span>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        When OFF, the reward ring, wishlist, and &ldquo;redeem&rdquo; button are hidden from the
+        girls&rsquo; screens so they focus on drilling — they still earn XP, keep streaks, and
+        unlock the mascot. Turn it ON once the reward list is ready to show. (Their points are never
+        lost either way.)
+      </p>
+      <div className="flex gap-2">
+        <BouncyTap
+          onClick={() => onChange(true)}
+          className={`px-5 py-3 ${
+            visible ? "bg-primary text-primary-foreground" : "border border-border"
+          }`}
+        >
+          Show rewards
+        </BouncyTap>
+        <BouncyTap
+          onClick={() => onChange(false)}
+          className={`px-5 py-3 ${
+            !visible ? "bg-primary text-primary-foreground" : "border border-border"
+          }`}
+        >
+          Hide rewards
+        </BouncyTap>
+      </div>
     </section>
   );
 }
