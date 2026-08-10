@@ -15,7 +15,6 @@ import {
   groupOfFamily,
   bridgeFrameFor,
   difficultyOf,
-  isTooEasy,
   type FoundationGroup,
 } from "@/data/questions";
 import {
@@ -89,8 +88,11 @@ function pickQuestion(
       // at level 1 — easy scaffolding is exactly what class-mode-easy is for.)
       return difficultyOf(q.id) === classDifficulty;
     }
-    // Normal mode: all levels, but exclude tooEasy teaching examples from real drilling.
-    return !isTooEasy(q.id);
+    // Normal mode: confidence-friendly MIX — include every level (a few easy words
+    // sprinkled in so they feel like they're "getting it"), with a weighted draw
+    // below that keeps real SSAT vocab (L2+L3) as the majority.
+    // NOTE: temporary tonight-default; superseded by the Path/Level ladder scaffold.
+    return true;
   };
   const scoped = QUESTIONS.filter(inScope);
   const base =
@@ -98,7 +100,27 @@ function pickQuestion(
   let pool = base.filter((q) => !cycle.includes(q.id));
   if (pool.length === 0) pool = base.filter((q) => q.id !== cycle[cycle.length - 1]);
   if (pool.length === 0) pool = base;
-  const q = pool[Math.floor(Math.random() * pool.length)]!;
+  // In normal mode, bias the random draw toward easier questions so beginners get
+  // frequent wins; hard 95th-percentile words still show up ~1 in 7. Class Mode
+  // picks stay uniform within the chosen level.
+  const NORMAL_WEIGHT: Record<1 | 2 | 3, number> = { 1: 2, 2: 4, 3: 1 };
+  let q: Question;
+  if (classDifficulty === undefined) {
+    const weights = pool.map((x) => NORMAL_WEIGHT[difficultyOf(x.id)] ?? 1);
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    let idx = pool.length - 1;
+    for (let i = 0; i < pool.length; i++) {
+      r -= weights[i]!;
+      if (r <= 0) {
+        idx = i;
+        break;
+      }
+    }
+    q = pool[idx]!;
+  } else {
+    q = pool[Math.floor(Math.random() * pool.length)]!;
+  }
   const seenAt = p.seenAt[q.id];
   let xpMode: Drill["xpMode"] = "full";
   if (seenAt !== undefined) xpMode = p.completedCount - seenAt >= 5 ? "repeat" : "none";
