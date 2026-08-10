@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { famInfo, FOUNDATION_SIX, FOUNDATION_ORDER, type FoundationGroup } from "@/data/questions";
+import { VOCAB_UNITS, TAUGHT_UNITS, taughtVocabItems } from "@/data/vocab-items";
 import { useState } from "react";
 import { DoodleField, BouncyTap } from "@/components/quest/Doodles";
 import {
@@ -97,6 +98,8 @@ function ParentPanel() {
           onChange={(level) => updateShared((s) => ({ ...s, classDifficulty: level }))}
         />
 
+        <CoveredContent />
+
         <TestAndReset />
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -161,6 +164,43 @@ function ChangePin({ pin, onSave }: { pin: string; onSave: (pin: string) => void
         </div>
       )}
       <p className="mt-2 text-xs text-muted-foreground">Current PIN is {pin.replace(/./g, "•")}</p>
+    </section>
+  );
+}
+
+function CoveredContent() {
+  const taught = new Set(TAUGHT_UNITS);
+  const served = taughtVocabItems().length;
+  return (
+    <section className="quest-card space-y-3 p-6">
+      <h2 className="text-xl font-extrabold">Covered content — Word Lab</h2>
+      <p className="text-sm text-muted-foreground">
+        The girls only drill words from lessons you&rsquo;ve taught. After a class, tell me what you
+        covered and I&rsquo;ll switch it on here. Right now they can drill <b>{served} words</b>.
+      </p>
+      <div className="grid gap-2">
+        {VOCAB_UNITS.map((u) => {
+          const on = taught.has(u.id);
+          return (
+            <div
+              key={u.id}
+              className={`flex items-center gap-3 rounded-xl border px-4 py-2 text-sm ${
+                on ? "border-primary bg-primary/10" : "border-border opacity-55"
+              }`}
+            >
+              <span className="text-lg">{on ? "✅" : "🔒"}</span>
+              <span className={on ? "font-bold" : ""}>{u.label}</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                {on ? "drilling now" : "not taught yet"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        This mirrors what&rsquo;s actually been taught. To change it, just tell me &ldquo;we covered
+        the VOC ladder today&rdquo; and I&rsquo;ll flip it and publish.
+      </p>
     </section>
   );
 }

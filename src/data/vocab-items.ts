@@ -6,6 +6,8 @@ export type VocabItem = {
   word: string;
   root: string;
   rootMeaning: string;
+  /** Teachable chunk this word belongs to (gates Word Lab by what's been covered). */
+  unit: string;
   ask: string;
   correct: string;
   choices: VocabChoice[];
@@ -15,6 +17,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-01",
     word: "spectator",
+    unit: "roots-mini-1",
     root: "spect",
     rootMeaning: "look",
     ask: "What does SPECTATOR probably mean? (root: spect (look))",
@@ -45,6 +48,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-02",
     word: "inspect",
+    unit: "roots-mini-1",
     root: "spect",
     rootMeaning: "look",
     ask: "What does INSPECT probably mean? (root: spect (look))",
@@ -75,6 +79,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-03",
     word: "retrospect",
+    unit: "roots-mini-1",
     root: "spect",
     rootMeaning: "look",
     ask: "What does RETROSPECT probably mean? (root: spect (look))",
@@ -105,6 +110,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-04",
     word: "circumspect",
+    unit: "roots-mini-1",
     root: "spect",
     rootMeaning: "look",
     ask: "What does CIRCUMSPECT probably mean? (root: spect (look))",
@@ -135,6 +141,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-05",
     word: "factory",
+    unit: "roots-mini-1",
     root: "fac/fic",
     rootMeaning: "make, do",
     ask: "What does FACTORY probably mean? (root: fac/fic (make, do))",
@@ -165,6 +172,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-06",
     word: "artifact",
+    unit: "roots-mini-1",
     root: "fac/fic",
     rootMeaning: "make, do",
     ask: "What does ARTIFACT probably mean? (root: fac/fic (make, do))",
@@ -195,6 +203,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-07",
     word: "proficient",
+    unit: "roots-mini-1",
     root: "fac/fic",
     rootMeaning: "make, do",
     ask: "What does PROFICIENT probably mean? (root: fac/fic (make, do))",
@@ -225,6 +234,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-08",
     word: "fabricate",
+    unit: "roots-mini-1",
     root: "fac/fic",
     rootMeaning: "make, do",
     ask: "What does FABRICATE probably mean? (root: fac/fic (make, do))",
@@ -255,6 +265,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-09",
     word: "vocal",
+    unit: "roots-mini-1",
     root: "voc/vok",
     rootMeaning: "voice, call",
     ask: "What does VOCAL probably mean? (root: voc/vok (voice, call))",
@@ -285,6 +296,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-10",
     word: "advocate",
+    unit: "roots-mini-1",
     root: "voc/vok",
     rootMeaning: "voice, call",
     ask: "What does ADVOCATE probably mean? (root: voc/vok (voice, call))",
@@ -315,6 +327,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-11",
     word: "revoke",
+    unit: "roots-mini-1",
     root: "voc/vok",
     rootMeaning: "voice, call",
     ask: "What does REVOKE probably mean? (root: voc/vok (voice, call))",
@@ -345,6 +358,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-12",
     word: "vociferous",
+    unit: "roots-mini-1",
     root: "voc/vok",
     rootMeaning: "voice, call",
     ask: "What does VOCIFEROUS probably mean? (root: voc/vok (voice, call))",
@@ -375,6 +389,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-13",
     word: "conduct",
+    unit: "roots-mini-1",
     root: "duc/duct",
     rootMeaning: "lead",
     ask: "What does CONDUCT probably mean? (root: duc/duct (lead))",
@@ -405,6 +420,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-14",
     word: "aqueduct",
+    unit: "roots-mini-1",
     root: "duc/duct",
     rootMeaning: "lead",
     ask: "What does AQUEDUCT probably mean? (root: duc/duct (lead))",
@@ -435,6 +451,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-15",
     word: "conducive",
+    unit: "roots-mini-1",
     root: "duc/duct",
     rootMeaning: "lead",
     ask: "What does CONDUCIVE probably mean? (root: duc/duct (lead))",
@@ -465,6 +482,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-16",
     word: "portable",
+    unit: "roots-mini-1",
     root: "port",
     rootMeaning: "carry",
     ask: "What does PORTABLE probably mean? (root: port (carry))",
@@ -495,6 +513,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-17",
     word: "export",
+    unit: "roots-mini-1",
     root: "port",
     rootMeaning: "carry",
     ask: "What does EXPORT probably mean? (root: port (carry))",
@@ -525,6 +544,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "RT-18",
     word: "deport",
+    unit: "roots-mini-1",
     root: "port",
     rootMeaning: "carry",
     ask: "What does DEPORT probably mean? (root: port (carry))",
@@ -555,6 +575,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-01",
     word: "outspoken",
+    unit: "l3-bank",
     root: "",
     rootMeaning: "",
     ask: "What does OUTSPOKEN probably mean?",
@@ -585,6 +606,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-02",
     word: "provoke",
+    unit: "l3-bank",
     root: "pro",
     rootMeaning: "forth",
     ask: "What does PROVOKE probably mean? (spot the root: pro = forth)",
@@ -611,6 +633,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-03",
     word: "evoke",
+    unit: "l3-bank",
     root: "e",
     rootMeaning: "out",
     ask: "What does EVOKE probably mean? (spot the root: e = out)",
@@ -641,6 +664,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-04",
     word: "predict",
+    unit: "l3-bank",
     root: "pre",
     rootMeaning: "before",
     ask: "What does PREDICT probably mean? (spot the root: pre = before)",
@@ -671,6 +695,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-05",
     word: "foretell",
+    unit: "l3-bank",
     root: "fore",
     rootMeaning: "before",
     ask: "What does FORETELL probably mean? (spot the root: fore = before)",
@@ -701,6 +726,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-06",
     word: "contradict",
+    unit: "l3-bank",
     root: "contra",
     rootMeaning: "against",
     ask: "What does CONTRADICT probably mean? (spot the root: contra = against)",
@@ -731,6 +757,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-07",
     word: "verdict",
+    unit: "l3-bank",
     root: "ver",
     rootMeaning: "truth",
     ask: "What does VERDICT probably mean? (spot the root: ver = truth)",
@@ -761,6 +788,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-08",
     word: "dictate",
+    unit: "l3-bank",
     root: "dict",
     rootMeaning: "say",
     ask: "What does DICTATE probably mean? (spot the root: dict = say)",
@@ -791,6 +819,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-09",
     word: "diction",
+    unit: "l3-bank",
     root: "dict",
     rootMeaning: "say",
     ask: "What does DICTION probably mean? (spot the root: dict = say)",
@@ -821,6 +850,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-10",
     word: "edict",
+    unit: "l3-bank",
     root: "e",
     rootMeaning: "out",
     ask: "What does EDICT probably mean? (spot the root: e = out)",
@@ -851,6 +881,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-11",
     word: "eloquent",
+    unit: "l3-bank",
     root: "e",
     rootMeaning: "out",
     ask: "What does ELOQUENT probably mean? (spot the root: e = out)",
@@ -881,6 +912,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-12",
     word: "articulate",
+    unit: "l3-bank",
     root: "",
     rootMeaning: "",
     ask: "What does ARTICULATE probably mean?",
@@ -911,6 +943,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-13",
     word: "loquacious",
+    unit: "l3-bank",
     root: "loqu",
     rootMeaning: "talk",
     ask: "What does LOQUACIOUS probably mean? (spot the root: loqu = talk)",
@@ -941,6 +974,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-14",
     word: "soliloquy",
+    unit: "l3-bank",
     root: "soli",
     rootMeaning: "alone",
     ask: "What does SOLILOQUY probably mean? (spot the root: soli = alone)",
@@ -971,6 +1005,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-15",
     word: "circumlocution",
+    unit: "l3-bank",
     root: "circum",
     rootMeaning: "around",
     ask: "What does CIRCUMLOCUTION probably mean? (spot the root: circum = around)",
@@ -1001,6 +1036,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-16",
     word: "taciturn",
+    unit: "l3-bank",
     root: "tacit",
     rootMeaning: "silent",
     ask: "What does TACITURN probably mean? (spot the root: tacit = silent)",
@@ -1031,6 +1067,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-17",
     word: "concise",
+    unit: "l3-bank",
     root: "cis",
     rootMeaning: "cut",
     ask: "What does CONCISE probably mean? (spot the root: cis = cut)",
@@ -1057,6 +1094,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-18",
     word: "brevity",
+    unit: "l3-bank",
     root: "brev",
     rootMeaning: "short",
     ask: "What does BREVITY probably mean? (spot the root: brev = short)",
@@ -1087,6 +1125,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-19",
     word: "boisterous",
+    unit: "l3-bank",
     root: "",
     rootMeaning: "",
     ask: "What does BOISTEROUS probably mean?",
@@ -1117,6 +1156,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-20",
     word: "sedate",
+    unit: "l3-bank",
     root: "",
     rootMeaning: "",
     ask: "What does SEDATE probably mean?",
@@ -1147,6 +1187,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-21",
     word: "clarify",
+    unit: "l3-bank",
     root: "clar",
     rootMeaning: "clear",
     ask: "What does CLARIFY probably mean? (spot the root: clar = clear)",
@@ -1177,6 +1218,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-22",
     word: "obscure",
+    unit: "l3-bank",
     root: "",
     rootMeaning: "",
     ask: "What does OBSCURE probably mean?",
@@ -1207,6 +1249,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-23",
     word: "benevolent",
+    unit: "l3-bank",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENEVOLENT probably mean? (spot the root: bene = good)",
@@ -1237,6 +1280,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-24",
     word: "malevolent",
+    unit: "l3-bank",
     root: "male",
     rootMeaning: "bad",
     ask: "What does MALEVOLENT probably mean? (spot the root: male = bad)",
@@ -1267,6 +1311,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-25",
     word: "benefactor",
+    unit: "l3-bank",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENEFACTOR probably mean? (spot the root: bene = good)",
@@ -1297,6 +1342,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-26",
     word: "beneficiary",
+    unit: "l3-bank",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENEFICIARY probably mean? (spot the root: bene = good)",
@@ -1327,6 +1373,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-27",
     word: "malefactor",
+    unit: "l3-bank",
     root: "male",
     rootMeaning: "bad",
     ask: "What does MALEFACTOR probably mean? (spot the root: male = bad)",
@@ -1357,6 +1404,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-28",
     word: "benign",
+    unit: "l3-bank",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENIGN probably mean? (spot the root: bene = good)",
@@ -1387,6 +1435,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-29",
     word: "beneficial",
+    unit: "l3-bank",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENEFICIAL probably mean? (spot the root: bene = good)",
@@ -1417,6 +1466,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-30",
     word: "malign",
+    unit: "l3-bank",
     root: "mal",
     rootMeaning: "bad",
     ask: "What does MALIGN probably mean? (spot the root: mal = bad)",
@@ -1443,6 +1493,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-31",
     word: "malicious",
+    unit: "l3-bank",
     root: "mal",
     rootMeaning: "bad",
     ask: "What does MALICIOUS probably mean? (spot the root: mal = bad)",
@@ -1469,6 +1520,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-32",
     word: "malice",
+    unit: "l3-bank",
     root: "mal",
     rootMeaning: "bad",
     ask: "What does MALICE probably mean? (spot the root: mal = bad)",
@@ -1499,6 +1551,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-33",
     word: "malady",
+    unit: "l3-bank",
     root: "mal",
     rootMeaning: "bad",
     ask: "What does MALADY probably mean? (spot the root: mal = bad)",
@@ -1529,6 +1582,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-34",
     word: "malediction",
+    unit: "l3-bank",
     root: "male",
     rootMeaning: "bad",
     ask: "What does MALEDICTION probably mean? (spot the root: male = bad)",
@@ -1555,6 +1609,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-35",
     word: "benediction",
+    unit: "l3-bank",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENEDICTION probably mean? (spot the root: bene = good)",
@@ -1585,6 +1640,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-36",
     word: "patron",
+    unit: "l3-bank",
     root: "",
     rootMeaning: "",
     ask: "What does PATRON probably mean?",
@@ -1615,6 +1671,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-37",
     word: "elicit",
+    unit: "l3-bank",
     root: "e",
     rootMeaning: "out",
     ask: "What does ELICIT probably mean? (spot the root: e = out)",
@@ -1645,6 +1702,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "VB-38",
     word: "prospect",
+    unit: "l3-bank",
     root: "pro",
     rootMeaning: "forward",
     ask: "What does PROSPECT probably mean? (spot the root: pro = forward)",
@@ -1675,6 +1733,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-01",
     word: "Evoke",
+    unit: "l3-voc",
     root: "vok",
     rootMeaning: "call",
     ask: "What does EVOKE mean? (root: vok = call)",
@@ -1705,6 +1764,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-02",
     word: "Irrevocable",
+    unit: "l3-voc",
     root: "voc",
     rootMeaning: "call",
     ask: "What does IRREVOCABLE mean? (root: voc = call)",
@@ -1735,6 +1795,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-03",
     word: "Vociferous",
+    unit: "l3-voc",
     root: "voc",
     rootMeaning: "voice",
     ask: "What does VOCIFEROUS mean? (root: voc = voice)",
@@ -1765,6 +1826,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-04",
     word: "Equivocate",
+    unit: "l3-voc",
     root: "voc",
     rootMeaning: "voice",
     ask: "What does EQUIVOCATE mean? (root: voc = voice)",
@@ -1795,6 +1857,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-05",
     word: "Verdict",
+    unit: "l3-dict",
     root: "dict",
     rootMeaning: "say",
     ask: "What does VERDICT mean? (root: dict = say)",
@@ -1825,6 +1888,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-06",
     word: "Edict",
+    unit: "l3-dict",
     root: "dict",
     rootMeaning: "say",
     ask: "What does EDICT mean? (root: dict = say)",
@@ -1855,6 +1919,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-07",
     word: "Indict",
+    unit: "l3-dict",
     root: "dict",
     rootMeaning: "say",
     ask: "What does INDICT mean? (root: dict = say)",
@@ -1885,6 +1950,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-08",
     word: "Interdict",
+    unit: "l3-dict",
     root: "dict",
     rootMeaning: "say",
     ask: "What does INTERDICT mean? (root: dict = say)",
@@ -1915,6 +1981,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-09",
     word: "Jurisdiction",
+    unit: "l3-dict",
     root: "dict",
     rootMeaning: "say",
     ask: "What does JURISDICTION mean? (root: dict = say)",
@@ -1945,6 +2012,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-10",
     word: "Eloquent",
+    unit: "l3-loqu",
     root: "loqu",
     rootMeaning: "talk",
     ask: "What does ELOQUENT mean? (root: loqu = talk)",
@@ -1975,6 +2043,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-11",
     word: "Loquacious",
+    unit: "l3-loqu",
     root: "loqu",
     rootMeaning: "talk",
     ask: "What does LOQUACIOUS mean? (root: loqu = talk)",
@@ -2005,6 +2074,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-12",
     word: "Soliloquy",
+    unit: "l3-loqu",
     root: "loqu",
     rootMeaning: "talk",
     ask: "What does SOLILOQUY mean? (root: loqu = talk)",
@@ -2035,6 +2105,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-13",
     word: "Circumlocution",
+    unit: "l3-loqu",
     root: "locut",
     rootMeaning: "talk",
     ask: "What does CIRCUMLOCUTION mean? (root: locut = talk)",
@@ -2065,6 +2136,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-14",
     word: "Grandiloquent",
+    unit: "l3-loqu",
     root: "loqu",
     rootMeaning: "talk",
     ask: "What does GRANDILOQUENT mean? (root: loqu = talk)",
@@ -2095,6 +2167,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-15",
     word: "Malinger",
+    unit: "l3-ladders-misc",
     root: "",
     rootMeaning: "",
     ask: "What does MALINGER mean?",
@@ -2125,6 +2198,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-16",
     word: "Malfeasance",
+    unit: "l3-ladders-misc",
     root: "",
     rootMeaning: "",
     ask: "What does MALFEASANCE mean?",
@@ -2155,6 +2229,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-17",
     word: "Benign",
+    unit: "l3-charge",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENIGN mean? (root: bene = good)",
@@ -2185,6 +2260,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-18",
     word: "Benefactor",
+    unit: "l3-charge",
     root: "bene",
     rootMeaning: "good",
     ask: "What does BENEFACTOR mean? (root: bene = good)",
@@ -2215,6 +2291,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-19",
     word: "Malediction",
+    unit: "l3-charge",
     root: "male",
     rootMeaning: "bad",
     ask: "What does MALEDICTION mean? (root: male = bad)",
@@ -2245,6 +2322,7 @@ export const VOCAB_ITEMS: VocabItem[] = [
   {
     id: "LD-20",
     word: "Verbose",
+    unit: "l3-ladders-misc",
     root: "verb",
     rootMeaning: "word",
     ask: "What does VERBOSE mean? (root: verb = word)",
@@ -2273,3 +2351,32 @@ export const VOCAB_ITEMS: VocabItem[] = [
     ],
   },
 ];
+
+/** All teachable units in the vocab bank, with human labels for the parent panel. */
+export const VOCAB_UNITS: { id: string; label: string }[] = [
+  {
+    id: "roots-mini-1",
+    label: "Roots Mini-Lesson 1 (spect · fac · voc · duc · port decode drills)",
+  },
+  { id: "l3-voc", label: "Lesson 3 — VOC ladder (advocate → equivocate)" },
+  { id: "l3-dict", label: "Lesson 3 — DICT ladder (verdict → jurisdiction)" },
+  { id: "l3-loqu", label: "Lesson 3 — LOQU ladder (eloquent → grandiloquent)" },
+  { id: "l3-charge", label: "Lesson 3 — BENE/MALE charge (benign → malfeasance)" },
+  { id: "l3-ladders-misc", label: "Lesson 3 — extra ladder words" },
+  { id: "l3-bank", label: "Lesson 3 — full word bank (synonyms/antonyms)" },
+];
+
+/**
+ * TAUGHT gate — the single source of truth for what Word Lab serves.
+ * Only words whose `unit` is in this list appear in the daily drill.
+ * PROCESS: after a class, the parent says what was covered and this list is updated.
+ * Starts with ONLY what the girls have genuinely seen (Roots Mini-Lesson 1 was staged;
+ * Lesson 3 has NOT been taught in class yet — its units stay off until it is).
+ */
+export const TAUGHT_UNITS: string[] = ["roots-mini-1"];
+
+/** The vocab items the girls are allowed to drill today (taught units only). */
+export function taughtVocabItems(): VocabItem[] {
+  const on = new Set(TAUGHT_UNITS);
+  return VOCAB_ITEMS.filter((v) => on.has(v.unit));
+}

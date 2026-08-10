@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { VOCAB_ITEMS, type VocabItem } from "@/data/vocab-items";
+import { taughtVocabItems, type VocabItem } from "@/data/vocab-items";
 import {
   PROFILES,
   TEST_PROFILE,
@@ -27,7 +27,8 @@ function pickNext(
   seen: Record<string, { at: number; corrects: number }>,
   lastId: string | null,
 ): VocabItem {
-  const pool = VOCAB_ITEMS.filter((v) => v.id !== lastId);
+  const ITEMS = taughtVocabItems();
+  const pool = ITEMS.filter((v) => v.id !== lastId);
   const trickyIds = Object.keys(tricky);
   if (trickyIds.length > 0) {
     // 60% chance serve a tricky word (don't make it feel like pure punishment)
@@ -44,7 +45,7 @@ function pickNext(
   if (unseen.length > 0) return unseen[Math.floor(Math.random() * unseen.length)]!;
   // everything seen: serve least-recently-seen
   const sorted = [...pool].sort((a, b) => (seen[a.id]?.at ?? 0) - (seen[b.id]?.at ?? 0));
-  return sorted[0] ?? VOCAB_ITEMS[0]!;
+  return sorted[0] ?? ITEMS[0]!;
 }
 
 function VocabDrill() {
