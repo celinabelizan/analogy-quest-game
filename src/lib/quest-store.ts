@@ -93,6 +93,26 @@ export type ProfileState = {
   tricky?: Record<string, { misses: number; streak: number; addedAt: number }>;
   /** Per-vocab-item stats: last seen + total corrects (drives rotation). */
   vocabSeen?: Record<string, { at: number; corrects: number }>;
+  /** Versioned migration from the original tricky/vocabSeen Word Lab data. */
+  vocabMigrationVersion?: number;
+  /** Per-word learning state. Content remains separate in vocab-system.ts. */
+  wordMastery?: Record<string, WordMastery>;
+};
+
+export type WordMastery = {
+  vocabId: string;
+  masteryStage: 0 | 1 | 2 | 3 | 4 | 5;
+  correctStreak: number;
+  incorrectCount: number;
+  lastSeen: string;
+  nextReview: string;
+  definitionScore: number;
+  synonymScore: number;
+  antonymScore: number;
+  contextScore: number;
+  distinctionScore: number;
+  recallScore: number;
+  masteredBonusAwarded?: boolean;
 };
 
 /** What tripped her up on a question. */
@@ -174,6 +194,7 @@ export type SharedState = {
 const SHARED_KEY = "ssatquest.v8.shared";
 const profileKey = (id: ProfileId) => `ssatquest.v8.profile.${id}`;
 const PROFILE_DATA_VERSION = 1;
+const VOCAB_MIGRATION_VERSION = 1;
 const WELCOME_XP = 200;
 
 const emptyProfile = (): ProfileState => ({
@@ -195,15 +216,40 @@ const emptyProfile = (): ProfileState => ({
  * The version flag makes this safe on every iPad without re-running later.
  */
 function normalizeProfile(id: ProfileId, profile: ProfileState): ProfileState {
-  if (id === "test" || profile.dataVersion === PROFILE_DATA_VERSION) return profile;
-  return {
-    ...emptyProfile(),
-    dataVersion: PROFILE_DATA_VERSION,
-    lifetimeXp: WELCOME_XP,
-    availableXp: WELCOME_XP,
-    activeRewardId: profile.activeRewardId ?? null,
-    redemptions: profile.redemptions ?? [],
-  };
+  let next = profile;
+  if (id !== "test" && profile.dataVersion !== PROFILE_DATA_VERSION) {
+    next = {
+      ...emptyProfile(),
+      dataVersion: PROFILE_DATA_VERSION,
+      lifetimeXp: WELCOME_XP,
+      availableXp: WELCOME_XP,
+      activeRewardId: profile.activeRewardId ?? null,
+      redemptions: profile.redemptions ?? [],
+    };
+  }
+  if (next.vocabMigrationVersion === VOCAB_MIGRATION_VERSION) return next;
+  const mastery = { ...(next.wordMastery ?? {}) };
+  const ids = new Set([...Object.keys(next.vocabSeen ?? {}), ...Object.keys(next.tricky ?? {})]);
+  for (const vocabId of ids) {
+    if (mastery[vocabId]) continue;
+    const seen = next.vocabSeen?.[vocabId];
+    const tricky = next.tricky?.[vocabId];
+    mastery[vocabId] = {
+      vocabId,
+      masteryStage: tricky ? 0 : seen?.corrects ? 1 : 0,
+      correctStreak: tricky?.streak ?? 0,
+      incorrectCount: tricky?.misses ?? 0,
+      lastSeen: seen?.at ? new Date(seen.at).toISOString() : "",
+      nextReview: new Date(tricky ? Date.now() : (seen?.at ?? Date.now())).toISOString(),
+      definitionScore: seen?.corrects ?? 0,
+      synonymScore: 0,
+      antonymScore: 0,
+      contextScore: 0,
+      distinctionScore: 0,
+      recallScore: 0,
+    };
+  }
+  return { ...next, vocabMigrationVersion: VOCAB_MIGRATION_VERSION, wordMastery: mastery };
 }
 
 const seedRewards = (prefix: ProfileId): Reward[] => {
