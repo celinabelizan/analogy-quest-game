@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { VOCAB_QUESTIONS, VOCAB_WORDS, type VocabQuestion, type VocabQuestionType } from "@/data/vocab-system";
 import { PROFILES, TEST_PROFILE, type ProfileId, type WordMastery, useProfile, addXp, dayOf, setDay } from "@/lib/quest-store";
@@ -32,7 +32,7 @@ function VocabDrill() {
   const today = dayOf(profile);
   const done = today.vocabDone ?? 0;
   const [question, setQuestion] = useState(() => pickNext(mastery, null));
-  const [choices, setChoices] = useState(() => shuffled(question.choices));
+  const [choices, setChoices] = useState(() => question.choices);
   const [picked, setPicked] = useState<string | null>(null);
   const [nextMastery, setNextMastery] = useState<Record<string, WordMastery> | null>(null);
   const [burst, setBurst] = useState(0);
@@ -46,6 +46,9 @@ function VocabDrill() {
     ? "Mastered"
     : (["New", "Recognize", "Connect", "Apply"][state.masteryStage] ?? "Apply");
   const flash = (message: string) => { setToast(message); window.setTimeout(() => setToast(null), 2200); };
+
+  // Keep SSR/client output identical, then randomize once the interactive page mounts.
+  useEffect(() => setChoices(shuffled(question.choices)), [question.id]);
 
   const choose = (choiceId: string) => {
     if (answered) return;
