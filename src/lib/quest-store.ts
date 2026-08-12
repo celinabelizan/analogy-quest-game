@@ -66,6 +66,8 @@ export type Drill = {
 };
 
 export type ProfileState = {
+  /** One-time local data migrations already applied on this device. */
+  dataVersion?: number;
   lifetimeXp: number;
   availableXp: number;
   streak: number;
@@ -171,6 +173,8 @@ export type SharedState = {
 
 const SHARED_KEY = "ssatquest.v8.shared";
 const profileKey = (id: ProfileId) => `ssatquest.v8.profile.${id}`;
+const PROFILE_DATA_VERSION = 1;
+const WELCOME_XP = 200;
 
 const emptyProfile = (): ProfileState => ({
   lifetimeXp: 0,
@@ -184,6 +188,23 @@ const emptyProfile = (): ProfileState => ({
   days: {},
   current: null,
 });
+
+/**
+ * One-time fresh start for the girls: keep reward choices and their redemption
+ * ledger, but clear practice state and give each girl a visible starting bank.
+ * The version flag makes this safe on every iPad without re-running later.
+ */
+function normalizeProfile(id: ProfileId, profile: ProfileState): ProfileState {
+  if (id === "test" || profile.dataVersion === PROFILE_DATA_VERSION) return profile;
+  return {
+    ...emptyProfile(),
+    dataVersion: PROFILE_DATA_VERSION,
+    lifetimeXp: WELCOME_XP,
+    availableXp: WELCOME_XP,
+    activeRewardId: profile.activeRewardId ?? null,
+    redemptions: profile.redemptions ?? [],
+  };
+}
 
 const seedRewards = (prefix: ProfileId): Reward[] => {
   const src = REWARDS_BY_GIRL[prefix as "bianca" | "calista"];
@@ -270,12 +291,22 @@ function write(key: string, value: unknown) {
 
 export const todayKey = () => new Date().toISOString().slice(0, 10);
 
-function useStored<T>(key: string, fallback: () => T) {
+function useStored<T>(
+  key: string,
+  fallback: () => T,
+  normalize: (value: T) => T = (value) => value,
+) {
   const [value, setValue] = useState<T>(fallback);
 
   useEffect(() => {
-    setValue(read(key, fallback()));
-    const onChange = () => setValue(read(key, fallback()));
+    const readNormalized = () => {
+      const stored = read(key, fallback());
+      const next = normalize(stored);
+      if (next !== stored) write(key, next);
+      return next;
+    };
+    setValue(readNormalized());
+    const onChange = () => setValue(readNormalized());
     window.addEventListener("ssatquest:change", onChange);
     window.addEventListener("storage", onChange);
     return () => {
@@ -288,8 +319,9 @@ function useStored<T>(key: string, fallback: () => T) {
   const update = useCallback(
     (fn: (prev: T) => T) => {
       const next = fn(read(key, fallback()));
-      write(key, next);
-      setValue(next);
+      const normalized = normalize(next);
+      write(key, normalized);
+      setValue(normalized);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key],
@@ -320,11 +352,16 @@ export function rewardsVisible(shared: SharedState): boolean {
 }
 
 export function useProfile(id: ProfileId) {
-  return useStored<ProfileState>(profileKey(id), emptyProfile);
+  return useStored<ProfileState>(profileKey(id), emptyProfile, (profile) =>
+    normalizeProfile(id, profile),
+  );
 }
 
 export function readProfile(id: ProfileId) {
-  return read<ProfileState>(profileKey(id), emptyProfile());
+  const stored = read<ProfileState>(profileKey(id), emptyProfile());
+  const normalized = normalizeProfile(id, stored);
+  if (normalized !== stored) write(profileKey(id), normalized);
+  return normalized;
 }
 export function writeProfile(id: ProfileId, p: ProfileState) {
   write(profileKey(id), p);
@@ -332,7 +369,10 @@ export function writeProfile(id: ProfileId, p: ProfileState) {
 
 /** Wipe one profile's progress back to zero (XP, streak, history, current drill). */
 export function resetProfile(id: ProfileId) {
-  write(profileKey(id), emptyProfile());
+  write(profileKey(id), {
+    ...emptyProfile(),
+    dataVersion: id === "test" ? undefined : PROFILE_DATA_VERSION,
+  });
 }
 
 /** Award XP (lifetime + available together). */
