@@ -232,21 +232,40 @@ function normalizeShared(s: SharedState): SharedState {
   };
 }
 
+/**
+ * Small persistence boundary shared by the current local-only app and the
+ * future sync layer. Feature code should use the store helpers below rather
+ * than reaching into window.localStorage directly.
+ */
+export type QuestStorage = {
+  read<T>(key: string, fallback: T): T;
+  write(key: string, value: unknown): void;
+};
+
+export const localQuestStorage: QuestStorage = {
+  read<T>(key: string, fallback: T): T {
+    if (typeof window === "undefined") return fallback;
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return fallback;
+      return { ...fallback, ...(JSON.parse(raw) as object) } as T;
+    } catch {
+      return fallback;
+    }
+  },
+  write(key: string, value: unknown) {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(key, JSON.stringify(value));
+    window.dispatchEvent(new CustomEvent("ssatquest:change", { detail: key }));
+  },
+};
+
 function read<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return fallback;
-    return { ...fallback, ...(JSON.parse(raw) as object) } as T;
-  } catch {
-    return fallback;
-  }
+  return localQuestStorage.read(key, fallback);
 }
 
 function write(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
-  window.dispatchEvent(new CustomEvent("ssatquest:change", { detail: key }));
+  localQuestStorage.write(key, value);
 }
 
 export const todayKey = () => new Date().toISOString().slice(0, 10);
