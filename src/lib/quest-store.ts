@@ -32,6 +32,8 @@ export type Judgment = "works" | "kind" | "no";
 
 export type Drill = {
   qid: string;
+  /** Stable replay identity for all Phase-1 XP evidence from this local attempt. */
+  syncAttemptId?: string;
   phase: "type" | "stem" | "monkey" | "verdict" | "final" | "feedback";
   familyGuess: string | null;
   awardedType: boolean;
@@ -97,6 +99,16 @@ export type ProfileState = {
   vocabMigrationVersion?: number;
   /** Per-word learning state. Content remains separate in vocab-system.ts. */
   wordMastery?: Record<string, WordMastery>;
+  /** Separate LA-calendar cutover. The existing XP/Vocabulary migrations remain unchanged. */
+  familyCalendarMigration?: {
+    version: 1;
+    cutoverAt: string;
+    legacyUtcDate: string;
+    familyDate: string;
+    overlappingLegacyDay?: ProfileState["days"][string];
+    legacyDayRebased?: boolean;
+    overlapMaterialized?: boolean;
+  };
 };
 
 export type WordMastery = {
@@ -327,6 +339,74 @@ export const localQuestStorage: QuestStorage = {
   },
 };
 
+export const FAMILY_TIME_ZONE = "America/Los_Angeles";
+const CALENDAR_CUTOVER_KEY = "ssatquest.phase1.calendar-cutover";
+
+export type CalendarCutover = {
+  cutoverAt: string;
+  legacyUtcDate: string;
+  familyDate: string;
+};
+
+function normalizeFamilyCalendar(profile: ProfileState, now = new Date()): ProfileState {
+  if (typeof window === "undefined" || profile.familyCalendarMigration?.version === 1)
+    return profile;
+  getOrCreateCalendarCutover(now);
+  const legacyUtcDate = now.toISOString().slice(0, 10);
+  const familyDate = familyDayKey(now);
+  const overlappingLegacyDay =
+    legacyUtcDate === familyDate ? undefined : profile.days[legacyUtcDate];
+  const migration: NonNullable<ProfileState["familyCalendarMigration"]> = {
+    version: 1,
+    cutoverAt: now.toISOString(),
+    legacyUtcDate,
+    familyDate,
+  };
+  if (overlappingLegacyDay) migration.overlappingLegacyDay = { ...overlappingLegacyDay };
+  return { ...profile, familyCalendarMigration: migration };
+}
+
+function dateKeyAt(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((entry) => entry.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+export function familyDayKey(date = new Date()): string {
+  return dateKeyAt(date, FAMILY_TIME_ZONE);
+}
+
+/**
+ * Records the one-time UTC -> family-calendar transition without modifying any
+ * historical day keys. On the cutover day only, dayOf() folds the overlapping
+ * UTC record into the new family day so +20/+25/+15 bonuses cannot be awarded
+ * twice. Migration exports this marker and creates matching zero-delta claims.
+ */
+export function getOrCreateCalendarCutover(now = new Date()): CalendarCutover | null {
+  if (typeof window === "undefined") return null;
+  const existing = window.localStorage.getItem(CALENDAR_CUTOVER_KEY);
+  if (existing) {
+    try {
+      return JSON.parse(existing) as CalendarCutover;
+    } catch {
+      // Replace a corrupt marker; raw migration backup still preserves it.
+    }
+  }
+  const marker: CalendarCutover = {
+    cutoverAt: now.toISOString(),
+    legacyUtcDate: now.toISOString().slice(0, 10),
+    familyDate: familyDayKey(now),
+  };
+  window.localStorage.setItem(CALENDAR_CUTOVER_KEY, JSON.stringify(marker));
+  return marker;
+}
+
 function read<T>(key: string, fallback: T): T {
   return localQuestStorage.read(key, fallback);
 }
@@ -335,7 +415,7 @@ function write(key: string, value: unknown) {
   localQuestStorage.write(key, value);
 }
 
-export const todayKey = () => new Date().toISOString().slice(0, 10);
+export const todayKey = () => familyDayKey();
 
 function useStored<T>(
   key: string,
@@ -399,18 +479,48 @@ export function rewardsVisible(shared: SharedState): boolean {
 
 export function useProfile(id: ProfileId) {
   return useStored<ProfileState>(profileKey(id), emptyProfile, (profile) =>
-    normalizeProfile(id, profile),
+    normalizeFamilyCalendar(normalizeProfile(id, profile)),
   );
 }
 
 export function readProfile(id: ProfileId) {
   const stored = read<ProfileState>(profileKey(id), emptyProfile());
-  const normalized = normalizeProfile(id, stored);
+  const normalized = normalizeFamilyCalendar(normalizeProfile(id, stored));
   if (normalized !== stored) write(profileKey(id), normalized);
   return normalized;
 }
 export function writeProfile(id: ProfileId, p: ProfileState) {
   write(profileKey(id), p);
+}
+
+/**
+ * Rebases only the spendable/lifetime balance cache after a newer confirmed
+ * cloud projection. Analogy history, daily activity, drill state, and
+ * Vocabulary V1 mastery are deliberately copied through untouched.
+ */
+export function applyCloudBalanceCache(
+  id: ProfileId,
+  balance: { lifetimeXp: number; availableXp: number; version: number },
+) {
+  if (typeof window === "undefined") return false;
+  const versionKey = `ssatquest.phase1.balance-version.${id}`;
+  const currentVersion = Number(window.localStorage.getItem(versionKey) ?? "-1");
+  if (!Number.isSafeInteger(balance.version) || balance.version <= currentVersion) return false;
+  if (
+    !Number.isSafeInteger(balance.lifetimeXp) ||
+    !Number.isSafeInteger(balance.availableXp) ||
+    balance.lifetimeXp < 0 ||
+    balance.availableXp < 0
+  )
+    return false;
+  const current = readProfile(id);
+  writeProfile(id, {
+    ...current,
+    lifetimeXp: balance.lifetimeXp,
+    availableXp: balance.availableXp,
+  });
+  window.localStorage.setItem(versionKey, String(balance.version));
+  return true;
 }
 
 /** Wipe one profile's progress back to zero (XP, streak, history, current drill). */
@@ -427,7 +537,31 @@ export function addXp(p: ProfileState, amount: number): ProfileState {
 }
 
 export function dayOf(p: ProfileState, day = todayKey()) {
-  return p.days[day] ?? { completed: 0, exitTicket: false, dayBonus: false };
+  const current = p.days[day];
+  const cutover = p.familyCalendarMigration;
+  const overlappingLegacy =
+    cutover && day === cutover.familyDate && !cutover.overlapMaterialized
+      ? cutover.overlappingLegacyDay
+      : undefined;
+  // The old UTC key can name the following LA day. Its exact original value is
+  // preserved above, while this date starts clean until its first LA-v1 write.
+  if (
+    cutover &&
+    day === cutover.legacyUtcDate &&
+    cutover.legacyUtcDate !== cutover.familyDate &&
+    !cutover.legacyDayRebased
+  ) {
+    return { completed: 0, exitTicket: false, dayBonus: false, vocabDone: 0, vocabBonus: false };
+  }
+  if (!current && !overlappingLegacy)
+    return { completed: 0, exitTicket: false, dayBonus: false };
+  return {
+    completed: (current?.completed ?? 0) + (overlappingLegacy?.completed ?? 0),
+    exitTicket: (current?.exitTicket ?? false) || (overlappingLegacy?.exitTicket ?? false),
+    dayBonus: (current?.dayBonus ?? false) || (overlappingLegacy?.dayBonus ?? false),
+    vocabDone: (current?.vocabDone ?? 0) + (overlappingLegacy?.vocabDone ?? 0),
+    vocabBonus: (current?.vocabBonus ?? false) || (overlappingLegacy?.vocabBonus ?? false),
+  };
 }
 
 export function setDay(
@@ -441,7 +575,31 @@ export function setDay(
   }>,
   day = todayKey(),
 ): ProfileState {
-  return { ...p, days: { ...p.days, [day]: { ...dayOf(p, day), ...patch } } };
+  const next = { ...p, days: { ...p.days, [day]: { ...dayOf(p, day), ...patch } } };
+  const cutover = p.familyCalendarMigration;
+  if (
+    cutover &&
+    day === cutover.familyDate &&
+    cutover.legacyUtcDate !== cutover.familyDate &&
+    !cutover.legacyDayRebased
+  ) {
+    return {
+      ...next,
+      familyCalendarMigration: { ...cutover, overlapMaterialized: true },
+    };
+  }
+  if (
+    cutover &&
+    day === cutover.legacyUtcDate &&
+    cutover.legacyUtcDate !== cutover.familyDate &&
+    !cutover.legacyDayRebased
+  ) {
+    return {
+      ...next,
+      familyCalendarMigration: { ...cutover, legacyDayRebased: true },
+    };
+  }
+  return next;
 }
 
 /** +25 once when 8 questions done AND exit ticket awarded that day. */

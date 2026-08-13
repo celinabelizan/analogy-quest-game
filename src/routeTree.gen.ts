@@ -10,6 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DeviceRouteImport } from './routes/device'
+import { Route as EnrollRouteImport } from './routes/enroll'
+import { Route as MigrationRouteImport } from './routes/migration'
 import { Route as ParentRouteImport } from './routes/parent'
 import { Route as DashboardPidRouteImport } from './routes/dashboard.$pid'
 import { Route as PracticePidRouteImport } from './routes/practice.$pid'
@@ -18,6 +22,26 @@ import { Route as VocabPidRouteImport } from './routes/vocab.$pid'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeviceRoute = DeviceRouteImport.update({
+  id: '/device',
+  path: '/device',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnrollRoute = EnrollRouteImport.update({
+  id: '/enroll',
+  path: '/enroll',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MigrationRoute = MigrationRouteImport.update({
+  id: '/migration',
+  path: '/migration',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParentRoute = ParentRouteImport.update({
@@ -43,6 +67,10 @@ const VocabPidRoute = VocabPidRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/device': typeof DeviceRoute
+  '/enroll': typeof EnrollRoute
+  '/migration': typeof MigrationRoute
   '/parent': typeof ParentRoute
   '/dashboard/$pid': typeof DashboardPidRoute
   '/practice/$pid': typeof PracticePidRoute
@@ -50,6 +78,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/device': typeof DeviceRoute
+  '/enroll': typeof EnrollRoute
+  '/migration': typeof MigrationRoute
   '/parent': typeof ParentRoute
   '/dashboard/$pid': typeof DashboardPidRoute
   '/practice/$pid': typeof PracticePidRoute
@@ -58,6 +90,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/device': typeof DeviceRoute
+  '/enroll': typeof EnrollRoute
+  '/migration': typeof MigrationRoute
   '/parent': typeof ParentRoute
   '/dashboard/$pid': typeof DashboardPidRoute
   '/practice/$pid': typeof PracticePidRoute
@@ -66,12 +102,33 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid' | '/vocab/$pid'
+    | '/'
+    | '/auth'
+    | '/device'
+    | '/enroll'
+    | '/migration'
+    | '/parent'
+    | '/dashboard/$pid'
+    | '/practice/$pid'
+    | '/vocab/$pid'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/parent' | '/dashboard/$pid' | '/practice/$pid' | '/vocab/$pid'
+  to:
+    | '/'
+    | '/auth'
+    | '/device'
+    | '/enroll'
+    | '/migration'
+    | '/parent'
+    | '/dashboard/$pid'
+    | '/practice/$pid'
+    | '/vocab/$pid'
   id:
     | '__root__'
     | '/'
+    | '/auth'
+    | '/device'
+    | '/enroll'
+    | '/migration'
     | '/parent'
     | '/dashboard/$pid'
     | '/practice/$pid'
@@ -80,6 +137,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  DeviceRoute: typeof DeviceRoute
+  EnrollRoute: typeof EnrollRoute
+  MigrationRoute: typeof MigrationRoute
   ParentRoute: typeof ParentRoute
   DashboardPidRoute: typeof DashboardPidRoute
   PracticePidRoute: typeof PracticePidRoute
@@ -93,6 +154,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/device': {
+      id: '/device'
+      path: '/device'
+      fullPath: '/device'
+      preLoaderRoute: typeof DeviceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/enroll': {
+      id: '/enroll'
+      path: '/enroll'
+      fullPath: '/enroll'
+      preLoaderRoute: typeof EnrollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/migration': {
+      id: '/migration'
+      path: '/migration'
+      fullPath: '/migration'
+      preLoaderRoute: typeof MigrationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parent': {
@@ -128,6 +217,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  DeviceRoute: DeviceRoute,
+  EnrollRoute: EnrollRoute,
+  MigrationRoute: MigrationRoute,
   ParentRoute: ParentRoute,
   DashboardPidRoute: DashboardPidRoute,
   PracticePidRoute: PracticePidRoute,

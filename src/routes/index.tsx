@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { DoodleField, Flower } from "@/components/quest/Doodles";
 import { ProgressRing } from "@/components/quest/Bits";
+import { visibleChildProfiles } from "@/components/sync/profile-access";
+import { usePhase1Snapshot } from "@/components/sync/bridge";
 import {
   PROFILES,
   useProfile,
@@ -111,6 +113,13 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 function Landing() {
+  const sync = usePhase1Snapshot();
+  const visible = new Set(
+    visibleChildProfiles(
+      sync,
+      PROFILES.map((profile) => profile.id),
+    ),
+  );
   return (
     <main className="relative min-h-screen px-6 py-12">
       <DoodleField seed={0} />
@@ -121,10 +130,25 @@ function Landing() {
         </header>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {PROFILES.map((p) => (
+          {PROFILES.filter((profile) => visible.has(profile.id)).map((p) => (
             <ProfileCard key={p.id} id={p.id} name={p.name} accent={p.accent} />
           ))}
         </div>
+
+        {sync.adapterAvailable && visible.size === 0 && (
+          <section className="quest-card mx-auto max-w-lg p-6 text-center">
+            <h2 className="text-xl font-extrabold">Secure pairing required</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              No child profile is opened until this installation's assignment is verified.
+            </p>
+            <Link
+              to="/enroll"
+              className="mt-4 inline-flex rounded-full bg-primary px-5 py-3 font-bold text-primary-foreground"
+            >
+              Open pairing or recovery
+            </Link>
+          </section>
+        )}
 
         <div className="mt-14 text-center">
           <Link

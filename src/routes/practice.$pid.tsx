@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { FamilyBadge } from "@/components/quest/Bits";
 import { ChoiceChecks, Confetti, GoalBar, StepTrail } from "@/components/quest/Progress";
+import { ChildProfileBoundary } from "@/components/sync/ChildProfileBoundary";
+import { recordXpEvidenceIfActive } from "@/lib/sync/evidence";
 import {
   FAMILIES,
   QUESTIONS,
@@ -65,8 +67,18 @@ export const Route = createFileRoute("/practice/$pid")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Practice,
+  component: PracticeRoute,
 });
+
+function PracticeRoute() {
+  const { pid } = useParams({ from: "/practice/$pid" });
+  const id = (pid === "calista" ? "calista" : pid === "test" ? "test" : "bianca") as ProfileId;
+  return (
+    <ChildProfileBoundary requestedProfileId={id}>
+      <Practice />
+    </ChildProfileBoundary>
+  );
+}
 
 /** Minimum words to lock a bridge. Low on purpose — a concise correct sentence
  *  like "carpenter uses hammer" should pass; this only blocks blanks/one-word junk. */
@@ -135,6 +147,7 @@ function newDrill(
   const { qid, xpMode } = pickQuestion(p, allowed, classDifficulty);
   return {
     qid,
+    syncAttemptId: crypto.randomUUID(),
     phase: "type",
     familyGuess: null,
     awardedType: false,
@@ -166,6 +179,11 @@ function grant(p: ProfileState, d: Drill, amount: number): ProfileState {
   if (d.xpMode === "none") return p;
   if (d.xpMode === "repeat") return p; // repeat questions get their single +1 at lock time
   return addXp(p, xpFor(d.qid, amount));
+}
+
+/** Correct answers may be visually crossed out, but only wrong-choice discards earn XP. */
+export function discardEarnsXp(choiceLabel: string, correctChoiceLabel: string): boolean {
+  return choiceLabel !== correctChoiceLabel;
 }
 
 function Practice() {
@@ -218,6 +236,16 @@ function Practice() {
       }));
   }, [drill, q, update]);
 
+  // Backward-compatible upgrade for a drill saved before secure evidence IDs existed.
+  useEffect(() => {
+    if (!drill || drill.syncAttemptId) return;
+    update((prev) =>
+      prev.current
+        ? { ...prev, current: { ...prev.current, syncAttemptId: crypto.randomUUID() } }
+        : prev,
+    );
+  }, [drill, update]);
+
   // Fresh question, fresh coach.
   useEffect(() => {
     setShowCoach(false);
@@ -252,6 +280,25 @@ function Practice() {
     });
   };
 
+  const recordEvidence = (
+    evidenceKind:
+      | "analogy_type_correct"
+      | "analogy_bridge_lock"
+      | "analogy_discard"
+      | "analogy_final"
+      | "analogy_complete",
+    payload: Record<string, unknown>,
+  ) => {
+    if (!drill.syncAttemptId) return Promise.resolve();
+    return recordXpEvidenceIfActive({
+      localProfileId: id,
+      attemptId: drill.syncAttemptId,
+      evidenceKind,
+      contentId: q.id,
+      payload,
+    }).then(() => undefined);
+  };
+
   /* ---------------- STATE 1: name the bridge type (Foundation Six) ---------------- */
   const chooseGroup = (g: FoundationGroup) => {
     const first = !drill.awardedType;
@@ -263,6 +310,7 @@ function Practice() {
       (d) => ({ ...d, familyGuess: repFamily, awardedType: true, phase: "stem" }),
       (prev, d) => (first && right ? grant(prev, d, 1) : prev),
     );
+    if (first && right) void recordEvidence("analogy_type_correct", { group: g });
     flash(
       right
         ? `+${xpFor(q.id, 1)} XP — right kind of bridge`
@@ -288,12 +336,14 @@ function Practice() {
         return addXp(prev, amt);
       },
     );
+    if (first) void recordEvidence("analogy_bridge_lock", {});
   };
 
   /* ---------------- STATE 3: discard the losers ---------------- */
   const setDiscard = (label: string, out: boolean) => {
     const already = drill.awardedJudged.includes(label);
     const isDiscarded = drill.judgments[label] === "no";
+    const earnsXp = discardEarnsXp(label, q.correct);
     if (out === isDiscarded) return;
     setDrill(
       (d) => {
@@ -304,11 +354,13 @@ function Practice() {
           ...d,
           judgments,
           monkeyIndex: Object.keys(judgments).length,
-          awardedJudged: already || !out ? d.awardedJudged : [...d.awardedJudged, label],
+          awardedJudged:
+            already || !out || !earnsXp ? d.awardedJudged : [...d.awardedJudged, label],
         };
       },
-      (prev, d) => (already || !out ? prev : grant(prev, d, 1)),
+      (prev, d) => (already || !out || !earnsXp ? prev : grant(prev, d, 1)),
     );
+    if (!already && out && earnsXp) void recordEvidence("analogy_discard", { choice: label });
   };
 
   /* ---------------- STATE 4: repair the sentence ---------------- */
@@ -362,6 +414,12 @@ function Practice() {
         },
       };
     });
+    if (isCorrect) {
+      void (async () => {
+        await recordEvidence("analogy_final", { choice: label, acknowledged: true });
+        await recordEvidence("analogy_complete", {});
+      })();
+    }
     if (isCorrect) flash(`Correct! +${xpFor(q.id, 2)} XP`);
   };
 
@@ -373,6 +431,14 @@ function Practice() {
       if (!d.awardedFinal && d.xpMode === "full") next = addXp(next, xpFor(d.qid, 1));
       return { ...next, current: { ...d, ackCorrection: true, awardedFinal: true } };
     });
+    void (async () => {
+      await recordEvidence("analogy_final", {
+        choice: drill.finalChoice,
+        blank: drill.finalChoice === null,
+        acknowledged: true,
+      });
+      await recordEvidence("analogy_complete", {});
+    })();
     flash(`+${xpFor(q.id, 1)} XP — you learned it, that counts`);
   };
 

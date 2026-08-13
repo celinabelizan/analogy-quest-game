@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { DoodleField, Flower, BouncyTap } from "@/components/quest/Doodles";
 import { ProgressRing } from "@/components/quest/Bits";
 import { Mascot, nextUnlock } from "@/components/quest/Mascot";
+import { ChildRewardCenter } from "@/components/rewards/ChildRewardCenter";
+import { SyncStatus } from "@/components/sync/SyncStatus";
+import { usePhase1Snapshot } from "@/components/sync/bridge";
+import { ChildProfileBoundary } from "@/components/sync/ChildProfileBoundary";
 import {
   PROFILES,
   TEST_PROFILE,
@@ -32,8 +36,18 @@ export const Route = createFileRoute("/dashboard/$pid")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Dashboard,
+  component: DashboardRoute,
 });
+
+function DashboardRoute() {
+  const { pid } = useParams({ from: "/dashboard/$pid" });
+  const id = (pid === "calista" ? "calista" : pid === "test" ? "test" : "bianca") as ProfileId;
+  return (
+    <ChildProfileBoundary requestedProfileId={id}>
+      <Dashboard />
+    </ChildProfileBoundary>
+  );
+}
 
 function Dashboard() {
   const { pid } = useParams({ from: "/dashboard/$pid" });
@@ -41,18 +55,33 @@ function Dashboard() {
   const meta = [...PROFILES, TEST_PROFILE].find((p) => p.id === id)!;
   const [p, update] = useProfile(id);
   const [shared] = useShared();
-  const showRewards = rewardsVisible(shared);
+  const sync = usePhase1Snapshot();
+  const cloudChild =
+    sync.children.find((child) => child.localProfileId === id) ??
+    (sync.activeChild?.localProfileId === id ? sync.activeChild : undefined);
+  const showRewards = cloudChild ? cloudChild.rewardsVisible : rewardsVisible(shared);
+  const hasUnconfirmedLocalXp =
+    sync.connection === "offline" ||
+    sync.connection === "pending" ||
+    sync.connection === "syncing" ||
+    sync.connection === "needs_review" ||
+    sync.counts.rejected > 0;
+  const availableXp =
+    cloudChild && !hasUnconfirmedLocalXp ? cloudChild.availableXp : p.availableXp;
+  const lifetimeXp =
+    cloudChild && !hasUnconfirmedLocalXp ? cloudChild.lifetimeXp : p.lifetimeXp;
 
   const active = rewardsFor(shared, id).find((r) => r.id === p.activeRewardId) ?? null;
-  const reached = !!active && p.availableXp >= active.xp;
+  const reached = !!active && availableXp >= active.xp;
   const pending = p.redemptions.find((r) => r.status === "pending");
-  const unlock = nextUnlock(p.lifetimeXp);
+  const unlock = nextUnlock(lifetimeXp);
   const today = dayOf(p);
   const stats = streakStats(p.history ?? []);
-  const ms = milestoneProgress(p.lifetimeXp);
+  const ms = milestoneProgress(lifetimeXp);
 
   const [party, setParty] = useState<string | null>(null);
   useEffect(() => {
+    if (cloudChild) return;
     const fresh = p.redemptions.find((r) => r.status === "approved" && !r.celebrated);
     if (!fresh) return;
     setParty(fresh.name);
@@ -64,7 +93,7 @@ function Dashboard() {
     }));
     const t = setTimeout(() => setParty(null), 4000);
     return () => clearTimeout(t);
-  }, [p.redemptions, update]);
+  }, [cloudChild, p.redemptions, update]);
 
   const redeem = () => {
     if (!active) return;
@@ -146,11 +175,13 @@ function Dashboard() {
                 : "Today's goal: 5 questions"}
           </div>
           <div className="mt-4 flex items-center justify-center gap-6 text-base font-bold opacity-95">
-            <span>⚡ {p.availableXp} XP</span>
+            <span>⚡ {availableXp} XP</span>
             <span>🔥 {p.streak} streak</span>
             <span>✓ {today.completed} today</span>
           </div>
         </motion.button>
+
+        {sync.adapterAvailable && <SyncStatus />}
 
         {/* WORD LAB — the daily 20 vocab drill */}
         <Link to="/vocab/$pid" params={{ pid: id }} className="block">
@@ -176,19 +207,19 @@ function Dashboard() {
 
         <div className={showRewards ? "grid gap-6 md:grid-cols-2" : "grid gap-6"}>
           {/* XP + reward ring — hidden until parent turns rewards on */}
-          {showRewards && (
+          {showRewards && !cloudChild && (
             <section className="quest-card relative overflow-hidden p-7">
               <h2 className="text-xl font-extrabold">Reward progress</h2>
               <div className="mt-5 flex items-center gap-6">
                 <ProgressRing
-                  value={active ? p.availableXp : 0}
+                  value={active ? availableXp : 0}
                   max={active ? active.xp : 1}
                   size={150}
                   color={meta.accent}
                   glow={reached}
                 >
                   <div>
-                    <div className="text-4xl font-extrabold">{p.availableXp}</div>
+                    <div className="text-4xl font-extrabold">{availableXp}</div>
                     <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
                       XP ready
                     </div>
@@ -200,10 +231,10 @@ function Dashboard() {
                   </p>
                   {active && (
                     <p className="text-muted-foreground">
-                      {p.availableXp} / {active.xp} XP
+                      {availableXp} / {active.xp} XP
                     </p>
                   )}
-                  <p className="text-sm text-muted-foreground">Lifetime XP: {p.lifetimeXp}</p>
+                  <p className="text-sm text-muted-foreground">Lifetime XP: {lifetimeXp}</p>
                   <p className="text-sm text-muted-foreground">Streak: {p.streak} 🔥</p>
                   <p className="text-sm text-muted-foreground">
                     Today: {today.completed} questions
@@ -238,7 +269,7 @@ function Dashboard() {
             />
             <h2 className="text-xl font-extrabold">Study buddy</h2>
             <div className="mt-2 flex justify-center">
-              <Mascot lifetimeXp={p.lifetimeXp} size={170} />
+              <Mascot lifetimeXp={lifetimeXp} size={170} />
             </div>
             <p className="mt-2 text-base text-muted-foreground">
               {unlock
@@ -312,7 +343,7 @@ function Dashboard() {
           </div>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {XP_MILESTONES.map((m) => {
-              const done = p.lifetimeXp >= m.xp;
+              const done = lifetimeXp >= m.xp;
               return (
                 <li
                   key={m.xp}
@@ -335,7 +366,7 @@ function Dashboard() {
         </section>
 
         {/* Wishlist — hidden until parent turns rewards on */}
-        {showRewards && (
+        {showRewards && !cloudChild && (
           <section className="quest-card p-7">
             <h2 className="text-xl font-extrabold">Wishlist</h2>
             <p className="text-sm text-muted-foreground">Tap one to make it your goal.</p>
@@ -363,7 +394,7 @@ function Dashboard() {
           </section>
         )}
 
-        {showRewards && p.redemptions.length > 0 && (
+        {showRewards && !cloudChild && p.redemptions.length > 0 && (
           <section className="quest-card p-7">
             <h2 className="text-xl font-extrabold">Redemption history</h2>
             <ul className="mt-3 space-y-2">
@@ -382,6 +413,8 @@ function Dashboard() {
             </ul>
           </section>
         )}
+
+        {showRewards && cloudChild && <ChildRewardCenter localProfileId={id} />}
 
         <p className="pb-6 text-center text-xs tracking-widest text-muted-foreground/70">
           SSAT Quest v8

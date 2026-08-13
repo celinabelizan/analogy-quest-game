@@ -6,6 +6,23 @@ function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
 }
 
+function assertBrowserSafeKey(value: string): void {
+  if (value.startsWith('sb_secret_')) throw new Error('Refusing to expose a Supabase secret key to browser code');
+  const jwtPayload = value.split('.')[1];
+  if (!jwtPayload) return;
+  try {
+    const normalized = jwtPayload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const payload = JSON.parse(atob(padded)) as { role?: string };
+    if (payload.role === 'service_role' || payload.role === 'supabase_admin') {
+      throw new Error('Refusing to expose a privileged Supabase JWT to browser code');
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('Refusing')) throw error;
+    throw new Error('Refusing an undecodable JWT-shaped Supabase browser key');
+  }
+}
+
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(
@@ -43,6 +60,8 @@ function createSupabaseClient() {
     throw new Error(message);
   }
 
+  assertBrowserSafeKey(SUPABASE_PUBLISHABLE_KEY);
+
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
@@ -51,6 +70,9 @@ function createSupabaseClient() {
       storage: typeof window !== 'undefined' ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl:
+        typeof window === 'undefined' ||
+        window.localStorage.getItem('ssatquest.phase1.child-installation') !== 'true',
     }
   });
 }
@@ -65,4 +87,3 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return Reflect.get(_supabase, prop, receiver);
   },
 });
-

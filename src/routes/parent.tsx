@@ -3,6 +3,9 @@ import { famInfo, FOUNDATION_SIX, FOUNDATION_ORDER, type FoundationGroup } from 
 import { VOCAB_UNITS, TAUGHT_UNITS, taughtVocabItems } from "@/data/vocab-items";
 import { useState } from "react";
 import { DoodleField, BouncyTap } from "@/components/quest/Doodles";
+import { ParentAuthCard } from "@/components/sync/ParentAuthCard";
+import { ParentSyncPanel } from "@/components/sync/ParentSyncPanel";
+import { usePhase1Snapshot } from "@/components/sync/bridge";
 import {
   PROFILES,
   TEST_PROFILE,
@@ -43,8 +46,36 @@ function ParentPanel() {
   const [unlocked, setUnlocked] = useState(false);
   const [entry, setEntry] = useState("");
   const [error, setError] = useState(false);
+  const sync = usePhase1Snapshot();
+  const cloudParent =
+    sync.parent.state === "authenticated" || sync.parent.state === "reauth_required";
+  const childInstallation =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem("ssatquest.phase1.child-installation") === "true";
 
-  if (!unlocked) {
+  if (sync.adapterAvailable && !cloudParent) {
+    return (
+      <main className="relative grid min-h-screen place-items-center px-6 py-10">
+        <DoodleField seed={2} />
+        <div className="relative z-10 w-full max-w-md space-y-4">
+          {sync.activeChild || childInstallation ? (
+            <section className="quest-card space-y-3 p-7 text-center">
+              <h1 className="text-2xl font-extrabold">Use the parent portal on your phone or computer</h1>
+              <p className="text-sm text-muted-foreground">
+                Parent sign-in is disabled on an enrolled child installation so it cannot replace
+                this iPad&apos;s permanent child identity.
+              </p>
+            </section>
+          ) : <ParentAuthCard />}
+          <Link to="/" className="block text-center text-muted-foreground">
+            ← Back
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (!sync.adapterAvailable && !unlocked) {
     return (
       <main className="relative grid min-h-screen place-items-center px-6">
         <DoodleField seed={2} />
@@ -86,7 +117,11 @@ function ParentPanel() {
           </Link>
         </div>
 
-        <ChangePin pin={shared.pin} onSave={(pin) => updateShared((s) => ({ ...s, pin }))} />
+        {!sync.adapterAvailable && (
+          <ChangePin pin={shared.pin} onSave={(pin) => updateShared((s) => ({ ...s, pin }))} />
+        )}
+
+        <ParentSyncPanel />
 
         <LessonSections
           enabled={shared.enabledGroups}
@@ -100,36 +135,44 @@ function ParentPanel() {
 
         <CoveredContent />
 
-        <TestAndReset />
+        {!sync.adapterAvailable && <TestAndReset />}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {PROFILES.map((p) => (
-            <GirlCard key={p.id} id={p.id} name={p.name} accent={p.accent} />
-          ))}
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {PROFILES.map((p) => (
-            <ProgressReport key={p.id} id={p.id} name={p.name} />
-          ))}
-        </div>
-
-        <ShowRewardsToggle
-          visible={shared.showRewards === true}
-          onChange={(v) => updateShared((s) => ({ ...s, showRewards: v }))}
-        />
-
-        <RewardManager />
-
-        <section className="quest-card p-6">
-          <h2 className="text-xl font-extrabold">Exit-ticket stars</h2>
-          <p className="text-sm text-muted-foreground">Once per girl, per day.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {!sync.adapterAvailable && (
+          <div className="grid gap-4 sm:grid-cols-2">
             {PROFILES.map((p) => (
-              <ExitTicket key={p.id} id={p.id} name={p.name} />
+              <GirlCard key={p.id} id={p.id} name={p.name} accent={p.accent} />
             ))}
           </div>
-        </section>
+        )}
+
+        {!sync.adapterAvailable && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {PROFILES.map((p) => (
+              <ProgressReport key={p.id} id={p.id} name={p.name} />
+            ))}
+          </div>
+        )}
+
+        {!sync.adapterAvailable && (
+          <ShowRewardsToggle
+            visible={shared.showRewards === true}
+            onChange={(v) => updateShared((s) => ({ ...s, showRewards: v }))}
+          />
+        )}
+
+        {!sync.adapterAvailable && <RewardManager />}
+
+        {!sync.adapterAvailable && (
+          <section className="quest-card p-6">
+            <h2 className="text-xl font-extrabold">Exit-ticket stars</h2>
+            <p className="text-sm text-muted-foreground">Once per girl, per day.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {PROFILES.map((p) => (
+                <ExitTicket key={p.id} id={p.id} name={p.name} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );
