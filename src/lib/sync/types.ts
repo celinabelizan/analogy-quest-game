@@ -109,6 +109,7 @@ export type MigrationCandidate = {
     cloudRevisionId: UUID;
     name: string;
     xp: number;
+    archivedImported?: boolean;
     legacyPhotoQuarantined?: string;
   }>;
   activeRewardId: string | null;

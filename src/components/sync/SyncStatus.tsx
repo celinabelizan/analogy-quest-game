@@ -59,6 +59,9 @@ export function SyncStatus({ compact = false }: { compact?: boolean }) {
       {!compact && snapshot.counts.needsReview > 0 && (
         <span>{snapshot.counts.needsReview} awaiting review</span>
       )}
+      {!compact && (snapshot.counts.rejectedRewards ?? 0) > 0 && (
+        <span>{snapshot.counts.rejectedRewards} reward change(s) need attention</span>
+      )}
       {!compact && snapshot.lastSyncedAt && (
         <span className="text-muted-foreground">
           Last synced {new Date(snapshot.lastSyncedAt).toLocaleString()}

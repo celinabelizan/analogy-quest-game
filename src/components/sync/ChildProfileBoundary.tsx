@@ -33,6 +33,10 @@ export function ChildProfileBoundary({
       title: "Parent recovery required",
       body: "The secure installation identity is missing. The app will not create a new identity or switch children automatically.",
     },
+    migration_cutover: {
+      title: "Migration snapshot is locked",
+      body: "Practice and reward changes are paused after this iPad's exact backup was captured. A parent must confirm the reviewed migration or request rollback before new work resumes.",
+    },
     loading: {
       title: "Checking this installation",
       body: "Practice stays locked until the secure child assignment is known.",
@@ -59,6 +63,13 @@ export function ChildProfileBoundary({
             className="inline-flex rounded-full bg-primary px-5 py-3 font-bold text-primary-foreground"
           >
             Open secure pairing
+          </Link>
+        ) : access.reason === "migration_cutover" ? (
+          <Link
+            to="/enroll"
+            className="inline-flex rounded-full border border-border px-5 py-3 font-bold"
+          >
+            View migration status
           </Link>
         ) : (
           <Link

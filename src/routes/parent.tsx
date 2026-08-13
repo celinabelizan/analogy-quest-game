@@ -60,13 +60,17 @@ function ParentPanel() {
         <div className="relative z-10 w-full max-w-md space-y-4">
           {sync.activeChild || childInstallation ? (
             <section className="quest-card space-y-3 p-7 text-center">
-              <h1 className="text-2xl font-extrabold">Use the parent portal on your phone or computer</h1>
+              <h1 className="text-2xl font-extrabold">
+                Use the parent portal on your phone or computer
+              </h1>
               <p className="text-sm text-muted-foreground">
                 Parent sign-in is disabled on an enrolled child installation so it cannot replace
                 this iPad&apos;s permanent child identity.
               </p>
             </section>
-          ) : <ParentAuthCard />}
+          ) : (
+            <ParentAuthCard />
+          )}
           <Link to="/" className="block text-center text-muted-foreground">
             ← Back
           </Link>

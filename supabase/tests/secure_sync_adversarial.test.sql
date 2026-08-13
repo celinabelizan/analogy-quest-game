@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(64);
+select plan(65);
 
 -- Test-only fixture helpers live inside this rolled-back transaction. Production
 -- migrations must not create them.
@@ -47,6 +47,13 @@ begin
     ('90000000-0000-4000-8000-000000000003','authenticated','authenticated',null),
     ('90000000-0000-4000-8000-000000000004','authenticated','authenticated',null),
     ('90000000-0000-4000-8000-000000000005','authenticated','authenticated',null);
+  update auth.users set is_anonymous=true
+    where id in (
+      '90000000-0000-4000-8000-000000000002'::uuid,
+      '90000000-0000-4000-8000-000000000003'::uuid,
+      '90000000-0000-4000-8000-000000000004'::uuid,
+      '90000000-0000-4000-8000-000000000005'::uuid
+    );
   insert into public.families(id,name) values
     ('80000000-0000-4000-8000-000000000001','Secure sync test family');
   insert into public.child_profiles(
@@ -261,6 +268,12 @@ select lives_ok(
        25, 25, 'manual adjustment',
        'e0000000-0000-4000-8000-000000000001'::uuid) $$,
   'parent XP adjustment replay is idempotent');
+select throws_ok(
+  $$ select public.adjust_xp(
+       'a0000000-0000-4000-8000-000000000001'::uuid,
+       25, 25, 'changed replay reason',
+       'e0000000-0000-4000-8000-000000000001'::uuid) $$,
+  '23505', null, 'parent adjustment replay rejects any changed immutable payload field');
 select is(
   (select count(*) from public.xp_ledger where idempotency_key = 'e0000000-0000-4000-8000-000000000001'::uuid),
   1::bigint, 'parent adjustment creates one immutable ledger event');
@@ -368,18 +381,22 @@ select lives_ok(
   'parent can create a short-lived invitation for Test');
 select test_support.seed_known_invitation();
 
-select test_support.as_user('90000000-0000-4000-8000-000000000005'::uuid);
+reset role;
+set local role service_role;
 select lives_ok(
-  $$ select public.consume_enrollment_invitation(
+  $$ select public.consume_enrollment_invitation_gateway(
+       '90000000-0000-4000-8000-000000000005'::uuid,
        repeat('a', 64),
        'test-fixture-verifier') $$,
   'target device consumes invitation once');
-select throws_ok(
-  $$ select public.consume_enrollment_invitation(
-       repeat('a', 64),
-       'test-fixture-verifier') $$,
-  null, null, 'invitation replay is rejected');
+select is(
+  public.consume_enrollment_invitation_gateway(
+    '90000000-0000-4000-8000-000000000005'::uuid,
+    repeat('a', 64), 'test-fixture-verifier'),
+  null::public.device_assignments,
+  'invitation replay returns the same generic rejection shape');
 
+reset role;
 select test_support.as_user('90000000-0000-4000-8000-000000000001'::uuid);
 select is((select count(*) from public.device_assignments
   where auth_user_id = '90000000-0000-4000-8000-000000000005'::uuid

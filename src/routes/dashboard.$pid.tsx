@@ -57,8 +57,12 @@ function Dashboard() {
   const [shared] = useShared();
   const sync = usePhase1Snapshot();
   const cloudChild =
-    sync.children.find((child) => child.localProfileId === id) ??
-    (sync.activeChild?.localProfileId === id ? sync.activeChild : undefined);
+    sync.children.find(
+      (child) => child.localProfileId === id && child.cloudAuthoritative === true,
+    ) ??
+    (sync.activeChild?.localProfileId === id && sync.activeChild.cloudAuthoritative === true
+      ? sync.activeChild
+      : undefined);
   const showRewards = cloudChild ? cloudChild.rewardsVisible : rewardsVisible(shared);
   const hasUnconfirmedLocalXp =
     sync.connection === "offline" ||
@@ -66,10 +70,8 @@ function Dashboard() {
     sync.connection === "syncing" ||
     sync.connection === "needs_review" ||
     sync.counts.rejected > 0;
-  const availableXp =
-    cloudChild && !hasUnconfirmedLocalXp ? cloudChild.availableXp : p.availableXp;
-  const lifetimeXp =
-    cloudChild && !hasUnconfirmedLocalXp ? cloudChild.lifetimeXp : p.lifetimeXp;
+  const availableXp = cloudChild && !hasUnconfirmedLocalXp ? cloudChild.availableXp : p.availableXp;
+  const lifetimeXp = cloudChild && !hasUnconfirmedLocalXp ? cloudChild.lifetimeXp : p.lifetimeXp;
 
   const active = rewardsFor(shared, id).find((r) => r.id === p.activeRewardId) ?? null;
   const reached = !!active && availableXp >= active.xp;

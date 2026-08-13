@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { acknowledge, allOutbox, retryAt, updateOutbox } from "./outbox";
+import { acknowledge, allOutbox, archiveRejectedReward, retryAt, updateOutbox } from "./outbox";
 import { getConfirmedProjection, putConfirmedProjection } from "./indexed-db";
 import { mergeCloudProjection } from "./reducers";
 import type { CloudSyncProjection, OutboxRecord, SyncCache, SyncCommand } from "./types";
@@ -56,6 +56,44 @@ async function hashPayload(payload: Record<string, unknown>) {
   const bytes = new TextEncoder().encode(JSON.stringify(payload, Object.keys(payload).sort()));
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
   return [...digest].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+export function terminalXpRejectionCode(message: string): string | undefined {
+  if (/^late evidence requires offline authorization$/i.test(message))
+    return "late_missing_authorization";
+  if (/^offline authorization expired$/i.test(message)) return "expired_authorization";
+  if (/attempt already completed/i.test(message)) return "attempt_already_completed";
+  if (/step already|already submitted|final already submitted/i.test(message))
+    return "step_already_submitted";
+  if (/already discarded/i.test(message)) return "choice_already_discarded";
+  if (/unknown or inactive content/i.test(message)) return "unknown_content";
+  if (/invalid .*evidence kind/i.test(message)) return "invalid_evidence";
+  if (/incorrect analogy group/i.test(message)) return "incorrect_analogy_group";
+  if (/known incorrect choice|unknown (final|vocab) choice/i.test(message)) return "invalid_choice";
+  if (/final evidence required|incorrect final requires acknowledgement/i.test(message))
+    return "invalid_attempt_transition";
+  return undefined;
+}
+
+async function recordTerminalXpRejection(
+  command: Extract<SyncCommand, { kind: "xp_evidence" }>,
+  rejectionCode: string,
+) {
+  const { data, error } = await supabase.rpc("record_terminal_xp_rejection", {
+    p_event_id: command.eventId,
+    p_attempt_id: command.attemptId,
+    p_device_sequence: command.deviceSequence,
+    p_evidence_kind: command.evidenceKind,
+    p_content_id: command.contentId,
+    p_content_version: command.contentVersion,
+    p_rule_version: command.ruleVersion,
+    p_payload: command.payload,
+    p_occurred_at: command.occurredAt,
+    p_rejection_code: rejectionCode,
+    p_offline_authorization: command.offlineAuthorization ?? null,
+  });
+  if (error) throw error;
+  return data;
 }
 
 function errorText(error: unknown) {
@@ -125,13 +163,35 @@ export async function flushOutbox(
       }
     } catch (error) {
       const message = errorText(error);
+      const rejectionCode =
+        record.command.kind === "xp_evidence" ? terminalXpRejectionCode(message) : undefined;
+      if (record.command.kind === "xp_evidence" && rejectionCode) {
+        try {
+          const receipt = await recordTerminalXpRejection(record.command, rejectionCode);
+          await onReceipt?.(sending, receipt);
+          await acknowledge(record.eventId);
+          // The server durably consumed this sequence as a zero-XP rejection;
+          // later contiguous evidence may now be replayed in the same flush.
+          continue;
+        } catch (rejectionError) {
+          await updateOutbox({
+            ...sending,
+            status: "pending",
+            nextAttemptAt: retryAt(sending.attempts),
+            lastError: `Could not record terminal rejection: ${errorText(rejectionError)}`,
+          });
+          break;
+        }
+      }
       if (
-        /revoked|not allowed|profile mismatch|already completed|already submitted|already discarded|step already|unknown or inactive|invalid .*evidence|incorrect analogy group|unsafe product url|stale reward version|pending revision already exists/i.test(
+        record.command.kind !== "xp_evidence" &&
+        /revoked|not allowed|profile mismatch|unsafe product url|stale reward version|pending revision already exists/i.test(
           message,
         )
-      )
-        await updateOutbox({ ...sending, status: "rejected", lastError: message });
-      else
+      ) {
+        archiveRejectedReward(sending, message);
+        await acknowledge(record.eventId);
+      } else
         await updateOutbox({
           ...sending,
           status: "pending",

@@ -35,4 +35,45 @@ describe("review-gated database migrations", () => {
       phase1Analogies.length + VOCAB_QUESTIONS.length,
     );
   });
+
+  it("keeps captured migration handoff locked, bounded, and exactly replayable", () => {
+    const schema = readFileSync(
+      resolve(migrationDirectory, "202608120001_phase1_schema.sql"),
+      "utf8",
+    );
+    const security = readFileSync(
+      resolve(migrationDirectory, "202608120002_phase1_security.sql"),
+      "utf8",
+    );
+    const migration = readFileSync(
+      resolve(migrationDirectory, "202608120005_phase1_migration.sql"),
+      "utf8",
+    );
+    expect(schema).toContain("where status in ('requested','captured')");
+    expect(security).not.toContain("assignment_id = (private.require_active_assignment()).id");
+    expect(migration).toContain("captured migration may only replay its existing exact envelope");
+    expect(migration).toContain("invalid_datetime_format");
+    expect(migration).toContain("'migration_staging_cancelled'");
+    expect(migration).toContain("cancel_migration_capture_request");
+    expect(migration).toContain("'migration_capture_cancelled'");
+  });
+
+  it("requires AAL2 for sensitive parent mutations and reports actual reward versions", () => {
+    const xp = readFileSync(
+      resolve(migrationDirectory, "202608120003_phase1_enrollment_and_xp.sql"),
+      "utf8",
+    );
+    const rewards = readFileSync(
+      resolve(migrationDirectory, "202608120004_phase1_rewards.sql"),
+      "utf8",
+    );
+    expect(
+      rewards.match(/create or replace function public\.parent_edit_reward\(/g) ?? [],
+    ).toHaveLength(1);
+    expect(rewards).toContain("'version',v_item.version+1");
+    expect(rewards).toContain("perform private.require_parent(v_item.family_id,true)");
+    expect(rewards).toContain("perform private.require_parent(v_req.family_id,true)");
+    expect(xp).toContain("perform private.require_parent(v_family, true)");
+    expect(xp).toContain("rejection reason does not match server state");
+  });
 });

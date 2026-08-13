@@ -4,7 +4,13 @@ export type ChildProfileAccess =
   | { allowed: true; mode: "local_fallback" | "parent" | "assigned_child" }
   | {
       allowed: false;
-      reason: "wrong_profile" | "unpaired" | "revoked" | "recovery_required" | "loading";
+      reason:
+        | "wrong_profile"
+        | "unpaired"
+        | "revoked"
+        | "recovery_required"
+        | "migration_cutover"
+        | "loading";
       assignedProfileId?: LocalProfileId;
     };
 
@@ -21,6 +27,15 @@ export function childProfileAccess(
   const parentSignedIn =
     snapshot.parent.state === "authenticated" || snapshot.parent.state === "reauth_required";
   if (parentSignedIn) return { allowed: true, mode: "parent" };
+
+  if (snapshot.migrationCutoverLocked)
+    return {
+      allowed: false,
+      reason: "migration_cutover",
+      ...(snapshot.activeChild?.localProfileId
+        ? { assignedProfileId: snapshot.activeChild.localProfileId }
+        : {}),
+    };
 
   if (snapshot.activeChild?.localProfileId) {
     if (snapshot.activeChild.localProfileId === requestedProfileId) {

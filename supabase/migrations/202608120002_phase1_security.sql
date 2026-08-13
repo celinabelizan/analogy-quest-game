@@ -102,6 +102,15 @@ begin
 end;
 $$;
 
+create or replace function private.require_profile_cloud_authoritative(p_profile_id uuid)
+returns void language plpgsql stable security definer
+set search_path=pg_catalog,public
+as $$ begin
+ if not exists(select 1 from public.child_profiles where id=p_profile_id and sync_authoritative_at is not null) then
+  raise exception 'profile migration is not confirmed' using errcode='42501';
+ end if;
+end $$;
+
 create or replace function private.rate_limit(
   p_actor_key text,
   p_operation text,
@@ -235,6 +244,7 @@ alter table public.reward_goals enable row level security;
 alter table public.redemption_requests enable row level security;
 alter table public.reward_image_assets enable row level security;
 alter table public.migration_sessions enable row level security;
+alter table public.migration_capture_requests enable row level security;
 alter table public.audit_events enable row level security;
 
 create policy family_parent_or_assigned_child_select on public.families for select to authenticated
@@ -285,8 +295,18 @@ using (private.is_parent_of_family(family_id) or private.is_active_child_profile
 create policy images_parent_or_own_child_select on public.reward_image_assets for select to authenticated
 using (private.is_parent_of_family(family_id) or private.is_active_child_profile(profile_id));
 
-create policy migration_parent_select on public.migration_sessions for select to authenticated
-using (private.is_parent_of_family(family_id));
+create policy migration_parent_or_source_child_select on public.migration_sessions for select to authenticated
+using (private.is_parent_of_family(family_id) or private.is_active_child_profile(profile_id));
+
+create policy migration_capture_parent_or_source_child_select on public.migration_capture_requests
+for select to authenticated using (
+  private.is_parent_of_family(family_id) or
+  exists (
+    select 1 from public.device_assignments d
+    where d.id=assignment_id and d.profile_id=migration_capture_requests.profile_id
+      and d.auth_user_id=auth.uid() and d.status='active'
+  )
+);
 
 create policy audit_parent_select on public.audit_events for select to authenticated
 using (private.is_parent_of_family(family_id));
@@ -298,5 +318,5 @@ grant execute on function private.is_parent_of_family(uuid), private.is_active_c
   private.is_parent_of_profile(uuid) to authenticated;
 
 revoke all on function private.require_authenticated_uid(), private.require_parent(uuid, boolean),
-  private.require_active_assignment(), private.rate_limit(text, text, integer, interval),
+  private.require_active_assignment(), private.require_profile_cloud_authoritative(uuid), private.rate_limit(text, text, integer, interval),
   private.safe_product_url(text) from public, anon, authenticated;

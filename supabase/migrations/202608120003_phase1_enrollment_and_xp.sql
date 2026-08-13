@@ -180,6 +180,93 @@ begin
 end;
 $$;
 
+-- Called as its own Edge-to-database request before invitation verification.
+-- It never raises for an exhausted bucket, so failed verification attempts are
+-- committed independently of the later invitation transaction. The IP value
+-- is a keyed digest produced from a trusted platform-supplied address; raw IPs
+-- are never stored.
+create or replace function public.internal_register_enrollment_gateway_attempt(
+  p_auth_user_id uuid,
+  p_ip_digest text
+) returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = pg_catalog, private
+as $$
+declare
+  v_window timestamptz := date_bin(interval '15 minutes',clock_timestamp(),'2000-01-01 00:00:00+00'::timestamptz);
+  v_uid_attempts integer;
+  v_ip_attempts integer;
+begin
+  if p_auth_user_id is null or p_ip_digest !~ '^[0-9a-f]{64}$' then return false; end if;
+  insert into private.rate_limit_buckets(actor_key,operation,window_started_at,attempts)
+    values('uid:'||p_auth_user_id::text,'enrollment_gateway',v_window,1)
+    on conflict(actor_key,operation,window_started_at)
+    do update set attempts=private.rate_limit_buckets.attempts+1
+    returning attempts into v_uid_attempts;
+  insert into private.rate_limit_buckets(actor_key,operation,window_started_at,attempts)
+    values('ip:'||p_ip_digest,'enrollment_gateway',v_window,1)
+    on conflict(actor_key,operation,window_started_at)
+    do update set attempts=private.rate_limit_buckets.attempts+1
+    returning attempts into v_ip_attempts;
+  return v_uid_attempts <= 5 and v_ip_attempts <= 20;
+end;
+$$;
+
+-- Service-only enrollment boundary. The Edge Function first verifies the
+-- bearer token, commits register_enrollment_gateway_attempt in a separate RPC,
+-- then calls this function. Browser roles cannot bypass the gateway.
+create or replace function public.consume_enrollment_invitation_gateway(
+  p_auth_user_id uuid,
+  p_invitation_secret text,
+  p_installation_label text default null
+) returns public.device_assignments
+language plpgsql
+volatile
+security definer
+set search_path = pg_catalog, private, public, auth, extensions
+as $$
+declare
+  v_is_anonymous boolean;
+  v_hash text;
+  v_inv private.enrollment_invitations;
+  v_assignment public.device_assignments;
+begin
+  select is_anonymous into v_is_anonymous from auth.users where id=p_auth_user_id;
+  if not found or not coalesce(v_is_anonymous,false) then return null; end if;
+  if p_installation_label is not null and char_length(btrim(p_installation_label)) > 100 then return null; end if;
+  if p_invitation_secret !~ '^[0-9a-f]{64}$' then return null; end if;
+  v_hash := encode(extensions.digest(convert_to(p_invitation_secret,'UTF8'),'sha256'),'hex');
+  select * into v_inv from private.enrollment_invitations where secret_hash=v_hash for update;
+  if not found or v_inv.consumed_at is not null or v_inv.expires_at <= now() then return null; end if;
+  if exists(select 1 from public.parent_memberships where auth_user_id=p_auth_user_id and revoked_at is null)
+    or exists(select 1 from public.device_assignments where auth_user_id=p_auth_user_id)
+    or exists(select 1 from public.device_assignments where profile_id=v_inv.profile_id and status='active') then
+    return null;
+  end if;
+  insert into public.device_assignments(family_id,profile_id,auth_user_id,installation_label)
+    values(v_inv.family_id,v_inv.profile_id,p_auth_user_id,
+      coalesce(nullif(btrim(p_installation_label),''),v_inv.installation_label))
+    returning * into v_assignment;
+  if v_inv.replacement_for_assignment_id is not null then
+    update public.device_assignments set replaced_by=v_assignment.id
+      where id=v_inv.replacement_for_assignment_id and status='replaced';
+  end if;
+  update private.enrollment_invitations set consumed_at=now(),consumed_by=p_auth_user_id where id=v_inv.id;
+  insert into public.profile_balances(profile_id) values(v_inv.profile_id) on conflict do nothing;
+  insert into private.profile_xp_facts(profile_id) values(v_inv.profile_id) on conflict do nothing;
+  insert into public.reward_goals(profile_id,updated_by) values(v_inv.profile_id,p_auth_user_id) on conflict do nothing;
+  insert into public.audit_events(
+    family_id,profile_id,actor_user_id,actor_kind,action,target_table,target_id,before_state,after_state
+  ) values(
+    v_inv.family_id,v_inv.profile_id,p_auth_user_id,'child_device','device_enrolled',
+    'device_assignments',v_assignment.id::text,null,to_jsonb(v_assignment)
+  );
+  return v_assignment;
+end;
+$$;
+
 create or replace function public.create_replacement_invitation(
  p_assignment_id uuid,p_reason text
 ) returns table(invitation_id uuid,invitation_secret text,expires_at timestamptz)
@@ -422,15 +509,15 @@ begin
   if p_occurred_at < now() - interval '24 hours' and p_offline_authorization is null then
     raise exception 'late evidence requires offline authorization';
   end if;
+  if p_offline_authorization is not null and exists(
+    select 1 from public.offline_attempt_authorizations a
+    where a.assignment_id=v_assignment.id and a.profile_id=v_assignment.profile_id
+      and a.token_hash=encode(extensions.digest(convert_to(p_offline_authorization,'UTF8'),'sha256'),'hex')
+      and a.expires_at<=now() and a.consumed_at is null
+      and p_occurred_at between a.issued_at-interval '5 minutes' and a.expires_at
+  ) then raise exception 'offline authorization expired'; end if;
   perform private.rate_limit(v_assignment.id::text,'submit_xp_evidence',2000,interval '1 day');
   v_local_date := private.local_date(p_occurred_at);
-
-  -- Preserve sequence and eligibility ordering while a parent decision is pending.
-  -- The reviewed event itself remains idempotently replayable above.
-  if exists(select 1 from public.xp_evidence_events
-    where assignment_id=v_assignment.id and status='needs_review') then
-    raise exception 'earlier evidence awaits parent review' using errcode='40001';
-  end if;
 
   select * into v_assignment from public.device_assignments where id = v_assignment.id for update;
   if v_assignment.status <> 'active' then raise exception 'device revoked' using errcode = '42501'; end if;
@@ -445,6 +532,14 @@ begin
       p_content_id, p_occurred_at);
   end if;
 
+  -- Keep an attempt strictly serialized while a predecessor awaits parent review.
+  -- A pending event consumed its sequence but has not advanced attempt or facts.
+  if exists (select 1 from public.xp_evidence_events e
+    where e.assignment_id=v_assignment.id and e.attempt_id=p_attempt_id
+      and e.status='needs_review') then
+    raise exception 'earlier evidence awaits parent review' using errcode='40001';
+  end if;
+
   if v_catalog.content_kind = 'analogy' then
     if p_evidence_kind not in ('analogy_type_correct','analogy_bridge_lock','analogy_discard','analogy_final','analogy_complete') then
       raise exception 'invalid analogy evidence kind';
@@ -457,12 +552,10 @@ begin
         raise exception 'incorrect analogy group';
       end if;
       v_award := case when v_state.mode = 'full' then private.analogy_xp(1, v_catalog.difficulty) else 0 end;
-      update private.xp_attempt_state set type_awarded = true where assignment_id = v_assignment.id and attempt_id = p_attempt_id;
     elsif p_evidence_kind = 'analogy_bridge_lock' then
       if v_state.bridge_awarded then raise exception 'bridge step already submitted'; end if;
       v_award := case when v_state.mode = 'full' then private.analogy_xp(2, v_catalog.difficulty)
         when v_state.mode = 'repeat' then 1 else 0 end;
-      update private.xp_attempt_state set bridge_awarded = true where assignment_id = v_assignment.id and attempt_id = p_attempt_id;
     elsif p_evidence_kind = 'analogy_discard' then
       v_choice := p_payload ->> 'choice';
       if v_choice is null or v_choice = v_catalog.correct_choice
@@ -471,8 +564,6 @@ begin
       end if;
       if v_choice = any(v_state.discarded_choices) then raise exception 'choice already discarded'; end if;
       v_award := case when v_state.mode = 'full' then private.analogy_xp(1, v_catalog.difficulty) else 0 end;
-      update private.xp_attempt_state set discarded_choices = array_append(discarded_choices, v_choice)
-        where assignment_id = v_assignment.id and attempt_id = p_attempt_id;
     elsif p_evidence_kind = 'analogy_final' then
       if v_state.final_awarded then raise exception 'final already submitted'; end if;
       v_choice := p_payload ->> 'choice';
@@ -485,8 +576,6 @@ begin
         raise exception 'incorrect final requires acknowledgement';
       end if;
       v_award := case when v_state.mode = 'full' then private.analogy_xp(case when v_correct then 2 else 1 end, v_catalog.difficulty) else 0 end;
-      update private.xp_attempt_state set final_awarded = true, correct = v_correct
-        where assignment_id = v_assignment.id and attempt_id = p_attempt_id;
     else
       if not v_state.final_awarded then raise exception 'final evidence required before completion'; end if;
       insert into private.profile_xp_facts(profile_id) values (v_assignment.profile_id) on conflict do nothing;
@@ -517,18 +606,36 @@ begin
     insert into private.profile_xp_facts(profile_id) values (v_assignment.profile_id) on conflict do nothing;
   end if;
 
-  -- Review controls apply only to terminal events. No profile/completion/mastery
-  -- facts are advanced until a reviewed event is accepted by the parent.
+  -- Every awarded event is covered by the daily abuse threshold, including
+  -- nonterminal analogy steps. Terminal volume has an additional hourly gate.
   select coalesce(sum(awarded_xp), 0) into v_daily_xp from public.xp_evidence_events
     where profile_id = v_assignment.profile_id and family_local_date = v_local_date and status = 'accepted';
+  if v_award>0 and v_daily_xp + v_award > 3000 then
+    v_status := 'needs_review'; v_review := 'daily earned XP review threshold';
+  end if;
   if p_evidence_kind in ('analogy_complete', 'vocab_answer') then
     select count(*) into v_daily_count from public.xp_evidence_events
       where profile_id = v_assignment.profile_id and received_at >= now() - interval '1 hour'
         and evidence_kind in ('analogy_complete', 'vocab_answer');
     if v_force_review then v_status := 'needs_review';
-    elsif v_daily_xp + v_award > 3000 then v_status := 'needs_review'; v_review := 'daily earned XP review threshold';
     elsif v_daily_count + 1 > 200 then v_status := 'needs_review'; v_review := 'hourly completed-attempt review threshold';
     end if;
+  end if;
+
+  -- Apply attempt transitions only after abuse gates accept the event. Reviewed
+  -- events remain proposals until the AAL2 resolver applies the same transition.
+  if v_status='accepted' and p_evidence_kind='analogy_type_correct' then
+    update private.xp_attempt_state set type_awarded=true
+      where assignment_id=v_assignment.id and attempt_id=p_attempt_id;
+  elsif v_status='accepted' and p_evidence_kind='analogy_bridge_lock' then
+    update private.xp_attempt_state set bridge_awarded=true
+      where assignment_id=v_assignment.id and attempt_id=p_attempt_id;
+  elsif v_status='accepted' and p_evidence_kind='analogy_discard' then
+    update private.xp_attempt_state set discarded_choices=array_append(discarded_choices,v_choice)
+      where assignment_id=v_assignment.id and attempt_id=p_attempt_id;
+  elsif v_status='accepted' and p_evidence_kind='analogy_final' then
+    update private.xp_attempt_state set final_awarded=true,correct=v_correct
+      where assignment_id=v_assignment.id and attempt_id=p_attempt_id;
   end if;
 
   if v_status='accepted' and p_evidence_kind='analogy_complete' then
@@ -615,6 +722,145 @@ begin
 end;
 $$;
 
+-- A semantic rejection must not permanently strand every later offline event.
+-- The client calls this only for a bounded list of deterministic validation
+-- failures returned by submit_xp_evidence. This RPC awards no XP and cannot be
+-- used to skip or overwrite an already-recorded event. Transient, sequence,
+-- authorization, and internal failures are deliberately not accepted here.
+create or replace function public.record_terminal_xp_rejection(
+  p_event_id uuid,
+  p_attempt_id uuid,
+  p_device_sequence bigint,
+  p_evidence_kind text,
+  p_content_id text,
+  p_content_version integer,
+  p_rule_version integer,
+  p_payload jsonb,
+  p_occurred_at timestamptz,
+  p_rejection_code text,
+  p_offline_authorization text default null
+) returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = pg_catalog, private, public, extensions
+as $$
+declare
+  v_assignment public.device_assignments := private.require_active_assignment();
+  v_existing public.xp_evidence_events;
+  v_catalog private.content_catalog;
+  v_state private.xp_attempt_state;
+  v_hash text;
+  v_local_date date;
+  v_rejection_valid boolean := false;
+begin
+  if p_event_id is null or p_attempt_id is null or p_device_sequence < 1
+    or p_evidence_kind is null or char_length(p_evidence_kind) not between 1 and 64
+    or p_content_id is null or char_length(p_content_id) > 100
+    or p_content_version < 1 or p_rule_version < 1
+    or p_payload is null or jsonb_typeof(p_payload) <> 'object'
+    or pg_column_size(p_payload) > 8192
+    or p_occurred_at is null then
+    raise exception 'invalid rejection envelope' using errcode='22023';
+  end if;
+  if p_rejection_code not in (
+    'attempt_already_completed', 'step_already_submitted', 'choice_already_discarded',
+    'unknown_content', 'invalid_evidence', 'incorrect_analogy_group',
+    'invalid_choice', 'invalid_attempt_transition', 'late_missing_authorization',
+    'expired_authorization'
+  ) then
+    raise exception 'unsupported terminal rejection code' using errcode='22023';
+  end if;
+  if not exists(select 1 from public.child_profiles
+    where id=v_assignment.profile_id and sync_authoritative_at is not null) then
+    raise exception 'profile migration is not confirmed' using errcode='42501';
+  end if;
+  if p_rejection_code='late_missing_authorization' then
+    v_rejection_valid := p_occurred_at < now()-interval '24 hours' and p_offline_authorization is null;
+  elsif p_rejection_code='expired_authorization' then
+    v_rejection_valid := p_offline_authorization is not null and exists(
+      select 1 from public.offline_attempt_authorizations a
+      where a.assignment_id=v_assignment.id and a.profile_id=v_assignment.profile_id
+        and a.token_hash=encode(extensions.digest(convert_to(p_offline_authorization,'UTF8'),'sha256'),'hex')
+        and a.expires_at<=now() and a.consumed_at is null
+        and p_occurred_at between a.issued_at-interval '5 minutes' and a.expires_at
+    );
+  else
+  select * into v_catalog from private.content_catalog
+    where content_id=p_content_id and content_version=p_content_version and active;
+  if p_rejection_code='unknown_content' then
+    v_rejection_valid := not found;
+  else
+    if not found then raise exception 'rejection reason does not match server state' using errcode='22023'; end if;
+    select * into v_state from private.xp_attempt_state
+      where assignment_id=v_assignment.id and attempt_id=p_attempt_id;
+    v_rejection_valid := case p_rejection_code
+      when 'attempt_already_completed' then coalesce(v_state.completed,false)
+      when 'step_already_submitted' then
+        (p_evidence_kind='analogy_type_correct' and coalesce(v_state.type_awarded,false))
+        or (p_evidence_kind='analogy_bridge_lock' and coalesce(v_state.bridge_awarded,false))
+        or (p_evidence_kind='analogy_final' and coalesce(v_state.final_awarded,false))
+        or (p_evidence_kind='vocab_answer' and exists(select 1 from public.xp_evidence_events
+          where profile_id=v_assignment.profile_id and attempt_id=p_attempt_id and evidence_kind='vocab_answer'))
+      when 'choice_already_discarded' then p_payload->>'choice'=any(coalesce(v_state.discarded_choices,'{}'::text[]))
+      when 'incorrect_analogy_group' then p_evidence_kind='analogy_type_correct'
+        and p_payload->>'group' is distinct from v_catalog.metadata->>'foundationGroup'
+      when 'invalid_evidence' then
+        (v_catalog.content_kind='analogy' and p_evidence_kind not in ('analogy_type_correct','analogy_bridge_lock','analogy_discard','analogy_final','analogy_complete'))
+        or (v_catalog.content_kind='vocab' and p_evidence_kind<>'vocab_answer')
+      when 'invalid_choice' then not (coalesce(v_catalog.metadata->'choiceIds','[]'::jsonb) ? (p_payload->>'choice'))
+        or (p_evidence_kind='analogy_discard' and p_payload->>'choice'=v_catalog.correct_choice)
+      when 'invalid_attempt_transition' then
+        (p_evidence_kind='analogy_complete' and not coalesce(v_state.final_awarded,false))
+        or (p_evidence_kind='analogy_final' and coalesce(p_payload->>'choice'=v_catalog.correct_choice,false)=false
+          and coalesce((p_payload->>'acknowledged')::boolean,false)=false)
+      else false end;
+  end if;
+  end if;
+  if not v_rejection_valid then
+    raise exception 'rejection reason does not match server state' using errcode='22023';
+  end if;
+  v_hash := encode(extensions.digest(convert_to(p_payload::text, 'UTF8'), 'sha256'), 'hex');
+  select * into v_existing from public.xp_evidence_events where event_id=p_event_id;
+  if found then
+    if v_existing.payload_hash <> v_hash or v_existing.profile_id <> v_assignment.profile_id
+      or v_existing.assignment_id <> v_assignment.id or v_existing.attempt_id <> p_attempt_id
+      or v_existing.device_sequence <> p_device_sequence
+      or v_existing.evidence_kind <> p_evidence_kind or v_existing.content_id <> p_content_id
+      or v_existing.content_version <> p_content_version or v_existing.rule_version <> p_rule_version
+      or v_existing.payload <> p_payload or v_existing.occurred_at <> p_occurred_at then
+      raise exception 'event id reused with different payload or identity' using errcode='23505';
+    end if;
+    return jsonb_build_object('eventId',v_existing.event_id,'status',v_existing.status,
+      'awardedXp',v_existing.awarded_xp,'duplicate',true,
+      'balance',(select to_jsonb(b) from public.profile_balances b where b.profile_id=v_assignment.profile_id));
+  end if;
+
+  perform private.rate_limit(v_assignment.id::text,'record_terminal_xp_rejection',2000,interval '1 day');
+  select * into v_assignment from public.device_assignments where id=v_assignment.id for update;
+  if v_assignment.status <> 'active' then raise exception 'device revoked' using errcode='42501'; end if;
+  if p_device_sequence <> v_assignment.last_device_sequence + 1 then
+    raise exception 'device sequence gap or stale sequence' using errcode='40001',
+      detail=format('expected %s',v_assignment.last_device_sequence+1);
+  end if;
+  v_local_date := private.local_date(p_occurred_at);
+  insert into public.xp_evidence_events(
+    event_id,profile_id,assignment_id,attempt_id,device_sequence,evidence_kind,
+    content_id,content_version,rule_version,payload,payload_hash,occurred_at,
+    family_local_date,status,awarded_xp,review_reason
+  ) values (
+    p_event_id,v_assignment.profile_id,v_assignment.id,p_attempt_id,p_device_sequence,
+    p_evidence_kind,p_content_id,p_content_version,p_rule_version,p_payload,v_hash,
+    p_occurred_at,v_local_date,'rejected',0,'terminal:'||p_rejection_code
+  );
+  update public.device_assignments set last_device_sequence=p_device_sequence,last_seen_at=now()
+    where id=v_assignment.id;
+  return jsonb_build_object('eventId',p_event_id,'status','rejected','awardedXp',0,
+    'rejectionCode',p_rejection_code,'duplicate',false,
+    'balance',(select to_jsonb(b) from public.profile_balances b where b.profile_id=v_assignment.profile_id));
+end;
+$$;
+
 create or replace function public.adjust_xp(
   p_profile_id uuid, p_lifetime_delta bigint, p_available_delta bigint,
   p_reason text, p_idempotency_key uuid
@@ -625,13 +871,27 @@ as $$
 declare v_family uuid; v_ledger public.xp_ledger;
 begin
   select family_id into v_family from public.child_profiles where id = p_profile_id;
-  perform private.require_parent(v_family, false);
+  perform private.require_profile_cloud_authoritative(p_profile_id);
+  perform private.require_parent(v_family, true);
   if p_lifetime_delta < 0 then raise exception 'lifetime XP cannot be reduced by routine adjustment; use reversal'; end if;
   if p_lifetime_delta <> p_available_delta and p_lifetime_delta <> 0 then raise exception 'earned adjustment must affect both balances equally'; end if;
   if char_length(btrim(coalesce(p_reason,''))) < 3 then raise exception 'audit reason required'; end if;
   select * into v_ledger from public.xp_ledger
     where profile_id=p_profile_id and idempotency_key=p_idempotency_key;
-  if found then return v_ledger; end if;
+  if found then
+    if v_ledger.kind <> 'parent_adjustment'
+      or v_ledger.lifetime_delta <> p_lifetime_delta
+      or v_ledger.available_delta <> p_available_delta
+      or v_ledger.reason is distinct from p_reason
+      or v_ledger.actor_user_id is distinct from auth.uid()
+      or v_ledger.source_event_id is not null
+      or v_ledger.source_redemption_id is not null
+      or v_ledger.reverses_ledger_id is not null
+      or v_ledger.metadata <> '{}'::jsonb then
+      raise exception 'idempotency key reused with different adjustment payload' using errcode='23505';
+    end if;
+    return v_ledger;
+  end if;
   v_ledger := private.apply_ledger(p_profile_id, 'parent_adjustment', p_lifetime_delta,
     p_available_delta, p_idempotency_key, p_reason);
   perform private.write_audit(v_family, p_profile_id, 'parent', 'xp_adjusted', 'xp_ledger',
@@ -650,14 +910,19 @@ as $$
 declare v_family uuid; v_balance public.profile_balances; v_delta bigint; v_ledger public.xp_ledger;
 begin
   select family_id into v_family from public.child_profiles where id = p_profile_id;
-  perform private.require_parent(v_family, false);
+  perform private.require_profile_cloud_authoritative(p_profile_id);
+  perform private.require_parent(v_family, true);
   if p_target_available_xp < 0 then raise exception 'target cannot be negative'; end if;
   if char_length(btrim(coalesce(p_reason,''))) < 3 then raise exception 'audit reason required'; end if;
   select * into v_ledger from public.xp_ledger
     where profile_id=p_profile_id and idempotency_key=p_idempotency_key;
   if found then
     if v_ledger.metadata->>'operation' is distinct from 'set_exact'
-      or (v_ledger.metadata->>'target')::bigint is distinct from p_target_available_xp then
+      or (v_ledger.metadata->>'target')::bigint is distinct from p_target_available_xp
+      or (v_ledger.metadata->>'expectedBalanceVersion')::bigint is distinct from p_expected_balance_version
+      or v_ledger.reason is distinct from p_reason or v_ledger.actor_user_id is distinct from auth.uid()
+      or v_ledger.kind<>'parent_adjustment' or v_ledger.source_event_id is not null
+      or v_ledger.source_redemption_id is not null or v_ledger.reverses_ledger_id is not null then
       raise exception 'idempotency key reused with different set-exact target' using errcode='23505';
     end if;
     return v_ledger;
@@ -670,7 +935,8 @@ begin
   v_delta := p_target_available_xp - v_balance.available_xp;
   v_ledger := private.apply_ledger(p_profile_id, 'parent_adjustment', greatest(v_delta,0),
     v_delta, p_idempotency_key, p_reason, null, null, null,
-    jsonb_build_object('operation','set_exact','target',p_target_available_xp));
+    jsonb_build_object('operation','set_exact','target',p_target_available_xp,
+      'expectedBalanceVersion',p_expected_balance_version));
   perform private.write_audit(v_family, p_profile_id, 'parent', 'xp_set_exact', 'xp_ledger',
     v_ledger.id::text, p_reason, to_jsonb(v_balance),
     (select to_jsonb(b) from public.profile_balances b where b.profile_id = p_profile_id));
@@ -691,11 +957,21 @@ begin
     raise exception 'only earned or parent-adjustment events can use generic reversal';
   end if;
   select family_id into v_family from public.child_profiles where id = v_original.profile_id;
-  perform private.require_parent(v_family, false);
+  perform private.require_profile_cloud_authoritative(v_original.profile_id);
+  perform private.require_parent(v_family, true);
   if char_length(btrim(coalesce(p_reason,''))) < 3 then raise exception 'audit reason required'; end if;
   select * into v_result from public.xp_ledger
     where profile_id=v_original.profile_id and idempotency_key=p_idempotency_key;
-  if found then return v_result; end if;
+  if found then
+    if v_result.kind<>'reversal' or v_result.reverses_ledger_id is distinct from v_original.id
+      or v_result.lifetime_delta<>-v_original.lifetime_delta
+      or v_result.available_delta<>-v_original.available_delta
+      or v_result.reason is distinct from p_reason or v_result.actor_user_id is distinct from auth.uid()
+      or v_result.source_event_id is not null or v_result.source_redemption_id is not null then
+      raise exception 'idempotency key reused with different reversal payload' using errcode='23505';
+    end if;
+    return v_result;
+  end if;
   v_result := private.apply_ledger(v_original.profile_id, 'reversal', -v_original.lifetime_delta,
     -v_original.available_delta, p_idempotency_key, p_reason, null, null, v_original.id);
   perform private.write_audit(v_family, v_original.profile_id, 'parent', 'xp_reversed',
@@ -715,7 +991,8 @@ declare
   v_ledger public.xp_ledger; v_completed integer;
 begin
   select family_id into v_family from public.child_profiles where id = p_profile_id;
-  perform private.require_parent(v_family, false);
+  perform private.require_profile_cloud_authoritative(p_profile_id);
+  perform private.require_parent(v_family, true);
   if p_award_kind <> 'exit_ticket' then raise exception 'parents may directly award only exit_ticket'; end if;
   if exists (select 1 from public.daily_award_claims where profile_id = p_profile_id
     and family_local_date = v_date and award_kind = p_award_kind) then
@@ -750,23 +1027,32 @@ $$;
 revoke all on function public.create_enrollment_invitation(uuid,text),
   public.create_replacement_invitation(uuid,text),
   public.consume_enrollment_invitation(text,text), public.revoke_device(uuid,text,uuid),
+  public.consume_enrollment_invitation_gateway(uuid,text,text),
   public.issue_offline_attempt_authorizations(integer),
   public.submit_xp_evidence(uuid,uuid,bigint,text,text,integer,integer,jsonb,text,timestamptz,text),
+  public.record_terminal_xp_rejection(uuid,uuid,bigint,text,text,integer,integer,jsonb,timestamptz,text,text),
   public.adjust_xp(uuid,bigint,bigint,text,uuid), public.set_exact_available_xp(uuid,bigint,bigint,text,uuid),
   public.reverse_xp_event(uuid,text,uuid), public.award_daily_xp(uuid,text,uuid,text)
-  from public, anon;
+  from public, anon, authenticated;
 grant execute on function public.create_enrollment_invitation(uuid,text),
   public.create_replacement_invitation(uuid,text),
-  public.consume_enrollment_invitation(text,text), public.revoke_device(uuid,text,uuid),
+  public.revoke_device(uuid,text,uuid),
   public.issue_offline_attempt_authorizations(integer),
   public.submit_xp_evidence(uuid,uuid,bigint,text,text,integer,integer,jsonb,text,timestamptz,text),
+  public.record_terminal_xp_rejection(uuid,uuid,bigint,text,text,integer,integer,jsonb,timestamptz,text,text),
   public.adjust_xp(uuid,bigint,bigint,text,uuid), public.set_exact_available_xp(uuid,bigint,bigint,text,uuid),
   public.reverse_xp_event(uuid,text,uuid), public.award_daily_xp(uuid,text,uuid,text)
   to authenticated;
+
+grant execute on function public.internal_register_enrollment_gateway_attempt(uuid,text),
+  public.consume_enrollment_invitation_gateway(uuid,text,text) to service_role;
 
 revoke all on function private.write_audit(uuid,uuid,text,text,text,text,text,jsonb,jsonb),
   private.apply_ledger(uuid,public.xp_ledger_kind,bigint,bigint,uuid,text,uuid,uuid,uuid,jsonb),
   private.consume_offline_authorization(uuid,uuid,text,uuid,text,timestamptz), private.local_date(timestamptz),
   private.analogy_xp(integer,integer),
   private.create_attempt_if_needed(public.device_assignments,uuid,text)
+  from public, anon, authenticated;
+
+revoke all on function public.internal_register_enrollment_gateway_attempt(uuid,text)
   from public, anon, authenticated;

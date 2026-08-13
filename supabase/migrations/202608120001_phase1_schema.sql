@@ -15,7 +15,8 @@ create type public.evidence_status as enum ('accepted', 'needs_review', 'rejecte
 create type public.reward_revision_status as enum ('pending', 'approved', 'declined', 'withdrawn');
 create type public.reward_item_status as enum ('pending', 'approved', 'declined', 'redeemed', 'archived');
 create type public.redemption_status as enum ('pending', 'approved', 'declined', 'reversed');
-create type public.migration_status as enum ('staged', 'confirmed', 'rolled_back');
+create type public.migration_status as enum ('staged', 'confirmed', 'rollback_pending', 'rolled_back');
+create type public.migration_capture_status as enum ('requested', 'captured', 'expired', 'cancelled');
 
 create table public.families (
   id uuid primary key default gen_random_uuid(),
@@ -276,6 +277,25 @@ create table public.migration_sessions (
   unique (profile_id, idempotency_key)
 );
 
+create table public.migration_capture_requests (
+  id uuid primary key,
+  family_id uuid not null,
+  profile_id uuid not null,
+  assignment_id uuid not null references public.device_assignments(id) on delete restrict,
+  status public.migration_capture_status not null default 'requested',
+  requested_by uuid not null references auth.users(id) on delete restrict,
+  requested_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  captured_at timestamptz,
+  backup_exported_at timestamptz,
+  foreign key (family_id, profile_id) references public.child_profiles(family_id, id) on delete restrict,
+  check (expires_at > requested_at),
+  check (captured_at is null or captured_at >= requested_at),
+  check (backup_exported_at is null or captured_at is not null)
+);
+create unique index one_open_migration_capture_per_profile
+  on public.migration_capture_requests(profile_id) where status in ('requested','captured');
+
 create table public.audit_events (
   id bigint generated always as identity primary key,
   family_id uuid not null references public.families(id) on delete restrict,
@@ -414,6 +434,7 @@ grant select on public.families, public.child_profiles, public.parent_membership
   public.xp_ledger, public.daily_award_claims, public.family_reward_settings,
   public.reward_items, public.reward_revisions, public.reward_goals,
   public.redemption_requests, public.reward_image_assets, public.migration_sessions,
+  public.migration_capture_requests,
   public.audit_events to authenticated;
 
 comment on schema private is 'Not exposed by PostgREST. Enrollment secrets, rate limits, and XP validation facts.';

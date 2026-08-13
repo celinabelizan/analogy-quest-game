@@ -1,13 +1,16 @@
-import type { CloudSyncProjection, OutboxRecord } from "./types";
+import type { CloudSyncProjection, MigrationCandidate, OutboxRecord } from "./types";
 
 const DB_NAME = "ssatquest-phase1-sync";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const OUTBOX = "outbox";
 const META = "meta";
 const IMAGES = "pending-images";
 const TOKENS = "attempt-tokens";
+const MIGRATION_CAPTURES = "migration-captures";
 const SEQUENCE_KEY = "device-sequence";
 const SEQUENCE_SHADOW_KEY = "ssatquest.phase1.device-sequence-shadow";
+const FALLBACK_OUTBOX_KEY = "ssatquest.phase1.sync-outbox";
+const LEGACY_FALLBACK_SEQUENCE_KEY = `${FALLBACK_OUTBOX_KEY}.sequence`;
 
 export type PendingImage = {
   id: string;
@@ -20,7 +23,42 @@ export type PendingImage = {
   status?: "waiting" | "failed";
 };
 
+export type MigrationCaptureDraft = {
+  migrationId: string;
+  profileId: string;
+  sourceInstallationId: string;
+  idempotencyKey: string;
+  sharedSha256: string;
+  profileSha256: string;
+  candidate: MigrationCandidate;
+  encryptedBlob: Blob;
+  recoveryKey: string;
+  uploadedPath?: string;
+  uploadedSha256?: string;
+  createdAt: string;
+};
+
 let dbPromise: Promise<IDBDatabase> | undefined;
+
+export function reconciledSequenceHighWater(
+  indexedDbValue: unknown,
+  shadowValue: unknown,
+  records: OutboxRecord[],
+  legacyFallbackValue: unknown = 0,
+): number {
+  const finiteNonNegative = (value: unknown) => {
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 0;
+  };
+  return Math.max(
+    finiteNonNegative(indexedDbValue),
+    finiteNonNegative(shadowValue),
+    finiteNonNegative(legacyFallbackValue),
+    ...records.map((record) =>
+      record.command.kind === "xp_evidence" ? finiteNonNegative(record.command.deviceSequence) : 0,
+    ),
+  );
+}
 
 function request<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -52,6 +90,8 @@ export function openSyncDb(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(IMAGES)) db.createObjectStore(IMAGES, { keyPath: "id" });
       if (!db.objectStoreNames.contains(TOKENS))
         db.createObjectStore(TOKENS, { keyPath: "tokenId" });
+      if (!db.objectStoreNames.contains(MIGRATION_CAPTURES))
+        db.createObjectStore(MIGRATION_CAPTURES, { keyPath: "migrationId" });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error ?? new Error("Could not open sync database"));
@@ -74,8 +114,19 @@ export async function putSequencedEvidence(
     tx = db.transaction([OUTBOX, META], "readwrite");
   const meta = tx.objectStore(META),
     outbox = tx.objectStore(OUTBOX);
-  const current = Number((await request(meta.get(SEQUENCE_KEY))) ?? 0),
-    deviceSequence = current + 1;
+  const current = Number((await request(meta.get(SEQUENCE_KEY))) ?? 0);
+  let fallback: OutboxRecord[] = [];
+  try {
+    fallback = JSON.parse(localStorage.getItem(FALLBACK_OUTBOX_KEY) ?? "[]") as OutboxRecord[];
+  } catch {
+    // A corrupt fallback cannot be trusted for sequence recovery. Abort instead
+    // of allocating a number that could collide with an unimported event.
+    tx.abort();
+    throw new Error("Offline sync journal is corrupt");
+  }
+  const shadow = localStorage.getItem(SEQUENCE_SHADOW_KEY) ?? "0";
+  const legacyFallback = localStorage.getItem(LEGACY_FALLBACK_SEQUENCE_KEY) ?? "0";
+  const deviceSequence = reconciledSequenceHighWater(current, shadow, fallback, legacyFallback) + 1;
   const sequenced = { ...command, deviceSequence };
   const record: OutboxRecord = {
     eventId: command.eventId,
@@ -85,10 +136,27 @@ export async function putSequencedEvidence(
     attempts: 0,
     nextAttemptAt: new Date().toISOString(),
   };
+
+  // localStorage is the write-ahead journal for the cross-store operation. It
+  // is written before IndexedDB, with the exact same event ID and sequence. A
+  // crash at any later point therefore leaves a recoverable record, while a
+  // duplicate copy is harmless because import is keyed by eventId.
+  if (!fallback.some((item) => item.eventId === record.eventId)) {
+    localStorage.setItem(FALLBACK_OUTBOX_KEY, JSON.stringify([...fallback, record]));
+  }
+  localStorage.setItem(SEQUENCE_SHADOW_KEY, String(deviceSequence));
   meta.put(deviceSequence, SEQUENCE_KEY);
   outbox.add(record);
   await transactionDone(tx);
-  localStorage.setItem(SEQUENCE_SHADOW_KEY, String(deviceSequence));
+  try {
+    const journal = JSON.parse(localStorage.getItem(FALLBACK_OUTBOX_KEY) ?? "[]") as OutboxRecord[];
+    localStorage.setItem(
+      FALLBACK_OUTBOX_KEY,
+      JSON.stringify(journal.filter((item) => item.eventId !== record.eventId)),
+    );
+  } catch {
+    // Keep the duplicate journal copy. Import de-duplicates it by eventId.
+  }
   return record;
 }
 
@@ -182,6 +250,31 @@ export async function deletePendingImage(id: string) {
   const db = await openSyncDb(),
     tx = db.transaction(IMAGES, "readwrite");
   tx.objectStore(IMAGES).delete(id);
+  await transactionDone(tx);
+}
+
+export async function putMigrationCaptureDraft(draft: MigrationCaptureDraft) {
+  const db = await openSyncDb(),
+    tx = db.transaction(MIGRATION_CAPTURES, "readwrite");
+  tx.objectStore(MIGRATION_CAPTURES).put(draft);
+  await transactionDone(tx);
+}
+
+export async function getMigrationCaptureDraft(
+  migrationId: string,
+): Promise<MigrationCaptureDraft | undefined> {
+  const db = await openSyncDb(),
+    tx = db.transaction(MIGRATION_CAPTURES, "readonly");
+  const value = (await request(tx.objectStore(MIGRATION_CAPTURES).get(migrationId))) as
+    MigrationCaptureDraft | undefined;
+  await transactionDone(tx);
+  return value;
+}
+
+export async function deleteMigrationCaptureDraft(migrationId: string) {
+  const db = await openSyncDb(),
+    tx = db.transaction(MIGRATION_CAPTURES, "readwrite");
+  tx.objectStore(MIGRATION_CAPTURES).delete(migrationId);
   await transactionDone(tx);
 }
 

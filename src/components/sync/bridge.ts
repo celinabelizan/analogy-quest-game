@@ -50,9 +50,13 @@ const fallbackAdapter: Phase1SyncAdapter = {
   requestRedemption: unavailable,
   resolveRedemption: unavailable,
   prepareMigration: unavailable,
+  captureRequestedMigration: unavailable,
   getMigrationComparisons: async () => [],
   exportMigrationBackup: unavailable,
   confirmMigration: unavailable,
+  requestRollback: unavailable,
+  cancelMigrationCapture: unavailable,
+  completeRequestedRollback: unavailable,
 };
 
 const secureSyncBuild = import.meta.env["VITE_SECURE_SYNC_PHASE1"] === "true";

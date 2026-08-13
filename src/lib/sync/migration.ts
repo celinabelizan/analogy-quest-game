@@ -80,8 +80,9 @@ function overlapClaims(profile: JsonRecord, raw: Record<string, string>) {
   const cutoverSources =
     marker["legacyDayRebased"] === true
       ? ([
+          [laKey, overlapping],
           [laKey, days[laKey]],
-          [utcKey, overlapping],
+          [utcKey, days[utcKey]],
         ] as const)
       : ([
           [utcKey, days[utcKey]],
@@ -91,12 +92,11 @@ function overlapClaims(profile: JsonRecord, raw: Record<string, string>) {
   for (const [key, source] of cutoverSources) {
     const day = record(source);
     if (!Object.keys(day).length) continue;
-    if (day["exitTicket"] === true)
-      claims.push({ familyLocalDate: laKey, awardKind: "exit_ticket" });
+    if (day["exitTicket"] === true) claims.push({ familyLocalDate: key, awardKind: "exit_ticket" });
     if (day["dayBonus"] === true)
-      claims.push({ familyLocalDate: laKey, awardKind: "analogy_day_bonus" });
+      claims.push({ familyLocalDate: key, awardKind: "analogy_day_bonus" });
     if (day["vocabBonus"] === true)
-      claims.push({ familyLocalDate: laKey, awardKind: "vocab_day_bonus" });
+      claims.push({ familyLocalDate: key, awardKind: "vocab_day_bonus" });
   }
   return claims.filter(
     (claim, index, all) =>
@@ -153,7 +153,7 @@ function buildMigrationCandidateCore(
     profile = record(safeParse(raw[profileKey(legacyProfileId)] ?? "{}"));
   const rewardsRoot = record(shared["rewards"]),
     legacyRewards = array(rewardsRoot[legacyProfileId]).map(record);
-  const rewards = legacyRewards.map((reward) => ({
+  const rewards: MigrationCandidate["rewards"] = legacyRewards.map((reward) => ({
     legacyId: String(reward["id"] ?? uuid()),
     cloudRewardId: uuid(),
     cloudRevisionId: uuid(),
@@ -190,12 +190,29 @@ function buildMigrationCandidateCore(
         typeof item["requestedAt"] === "string" ? item["requestedAt"] : new Date().toISOString(),
       ...(typeof item["resolvedAt"] === "string" ? { resolvedAt: item["resolvedAt"] } : {}),
     }));
+  const knownLegacyIds = new Set(rewards.map((reward) => reward.legacyId));
+  const activeRewardId =
+    typeof profile["activeRewardId"] === "string" ? profile["activeRewardId"] : null;
+  const orphanIds = new Set(redemptions.map((item) => item.rewardId).filter(Boolean));
+  if (activeRewardId) orphanIds.add(activeRewardId);
+  for (const legacyId of orphanIds) {
+    if (knownLegacyIds.has(legacyId)) continue;
+    const history = redemptions.find((item) => item.rewardId === legacyId);
+    rewards.push({
+      legacyId,
+      cloudRewardId: uuid(),
+      cloudRevisionId: uuid(),
+      name: history?.name ?? "Imported reward",
+      xp: history?.cost ?? 1,
+      ...(legacyId !== activeRewardId ? { archivedImported: true } : {}),
+    });
+    knownLegacyIds.add(legacyId);
+  }
   return {
     lifetimeXp: integer(profile["lifetimeXp"]),
     availableXp: integer(profile["availableXp"]),
     rewards,
-    activeRewardId:
-      typeof profile["activeRewardId"] === "string" ? profile["activeRewardId"] : null,
+    activeRewardId,
     redemptions,
     showRewards: shared["showRewards"] === true,
     xpFacts: {

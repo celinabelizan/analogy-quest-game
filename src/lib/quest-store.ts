@@ -204,6 +204,8 @@ export type SharedState = {
 };
 
 const SHARED_KEY = "ssatquest.v8.shared";
+const MIGRATION_CUTOVER_LOCK_KEY = "ssatquest.phase1.migration-cutover-lock";
+let migrationMaterializationBypass = false;
 const profileKey = (id: ProfileId) => `ssatquest.v8.profile.${id}`;
 const PROFILE_DATA_VERSION = 1;
 const VOCAB_MIGRATION_VERSION = 1;
@@ -334,6 +336,12 @@ export const localQuestStorage: QuestStorage = {
   },
   write(key: string, value: unknown) {
     if (typeof window === "undefined") return;
+    if (
+      !migrationMaterializationBypass &&
+      window.localStorage.getItem(MIGRATION_CUTOVER_LOCK_KEY) &&
+      (key === SHARED_KEY || key.startsWith("ssatquest.v8.profile."))
+    )
+      return;
     window.localStorage.setItem(key, JSON.stringify(value));
     window.dispatchEvent(new CustomEvent("ssatquest:change", { detail: key }));
   },
@@ -523,6 +531,43 @@ export function applyCloudBalanceCache(
   return true;
 }
 
+/**
+ * Finalizes an explicitly requested cloud-to-local rollback. Only synchronized
+ * balance/reward/redemption fields are replaced; all local learning fields are
+ * copied through unchanged. The caller must first prove the sync outbox empty.
+ */
+export function materializeCloudRollback(
+  id: ProfileId,
+  cloud: {
+    lifetimeXp: number;
+    availableXp: number;
+    approvedRewards: Reward[];
+    activeRewardId: string | null;
+    redemptions: Redemption[];
+    showRewards: boolean;
+  },
+) {
+  migrationMaterializationBypass = true;
+  try {
+    const profile = readProfile(id);
+    writeProfile(id, {
+      ...profile,
+      lifetimeXp: cloud.lifetimeXp,
+      availableXp: cloud.availableXp,
+      activeRewardId: cloud.activeRewardId,
+      redemptions: cloud.redemptions,
+    });
+    const shared = normalizeShared(read<SharedState>(SHARED_KEY, defaultShared()));
+    write(SHARED_KEY, {
+      ...shared,
+      showRewards: cloud.showRewards,
+      rewards: { ...shared.rewards, [id]: cloud.approvedRewards },
+    });
+  } finally {
+    migrationMaterializationBypass = false;
+  }
+}
+
 /** Wipe one profile's progress back to zero (XP, streak, history, current drill). */
 export function resetProfile(id: ProfileId) {
   write(profileKey(id), {
@@ -553,8 +598,7 @@ export function dayOf(p: ProfileState, day = todayKey()) {
   ) {
     return { completed: 0, exitTicket: false, dayBonus: false, vocabDone: 0, vocabBonus: false };
   }
-  if (!current && !overlappingLegacy)
-    return { completed: 0, exitTicket: false, dayBonus: false };
+  if (!current && !overlappingLegacy) return { completed: 0, exitTicket: false, dayBonus: false };
   return {
     completed: (current?.completed ?? 0) + (overlappingLegacy?.completed ?? 0),
     exitTicket: (current?.exitTicket ?? false) || (overlappingLegacy?.exitTicket ?? false),

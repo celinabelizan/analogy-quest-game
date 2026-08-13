@@ -21,6 +21,7 @@ begin
   end;
   select family_id into v_family from public.child_profiles where id = p_requested_profile_id;
   perform private.require_parent(v_family, false);
+  perform private.require_profile_cloud_authoritative(p_requested_profile_id);
   return p_requested_profile_id;
 end;
 $$;
@@ -111,15 +112,15 @@ set search_path = pg_catalog, private, public
 as $$
 declare
  v_item public.reward_items; v_profile uuid; v_number integer; v_uid uuid:=auth.uid(); v_response jsonb; v_prior jsonb;
+ v_image_asset_id uuid;
+ v_pending public.reward_revisions;
  v_payload jsonb:=jsonb_build_object('reward',p_reward_id,'revision',p_revision_id,'version',p_expected_reward_version,
   'name',p_name,'url',p_product_url,'price',p_estimated_price_cents,'image',p_image_asset_id);
 begin
  v_prior:=private.prior_receipt('submit_reward_revision',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_item from public.reward_items where id=p_reward_id for update; if not found then raise exception 'reward not found'; end if;
  v_profile:=private.reward_actor_profile(v_item.profile_id);
- if v_item.version<>p_expected_reward_version then raise exception 'stale reward version' using errcode='40001'; end if;
  if v_item.status in ('redeemed','archived') then raise exception 'reward cannot be edited'; end if;
- if exists(select 1 from public.reward_revisions where reward_id=p_reward_id and status='pending') then raise exception 'pending revision already exists'; end if;
  perform private.rate_limit(v_uid::text,'reward_revision',20,interval '1 hour');
  if not private.safe_product_url(nullif(btrim(p_product_url),'')) then raise exception 'unsafe product URL'; end if;
  if p_image_asset_id is not null and not exists(select 1 from public.reward_image_assets
@@ -127,14 +128,34 @@ begin
      and revision_id is null and finalized_at is not null) then
    raise exception 'image is not an unattached finalized asset for this reward';
  end if;
+ select * into v_pending from public.reward_revisions
+   where reward_id=p_reward_id and status='pending' for update;
+ if v_item.version<>p_expected_reward_version and not (
+   v_pending.id is not null and v_pending.proposed_by=v_uid
+   and not private.is_parent_of_family(v_item.family_id)
+ ) then raise exception 'stale reward version' using errcode='40001'; end if;
+ if v_pending.id is not null then
+   if v_pending.proposed_by<>v_uid or private.is_parent_of_family(v_item.family_id) then
+     raise exception 'pending revision belongs to another actor' using errcode='42501';
+   end if;
+   update public.reward_revisions set status='withdrawn',reviewed_at=now(),
+     review_note='Superseded by a newer child revision' where id=v_pending.id;
+ end if;
+ v_image_asset_id:=p_image_asset_id;
+ if v_image_asset_id is null then
+  v_image_asset_id:=coalesce(v_pending.image_asset_id,
+    (select image_asset_id from public.reward_revisions where id=v_item.approved_revision_id));
+ end if;
  select coalesce(max(revision_number),0)+1 into v_number from public.reward_revisions where reward_id=p_reward_id;
  insert into public.reward_revisions(id,reward_id,profile_id,revision_number,name,product_url,estimated_price_cents,image_asset_id,proposed_by)
- values(p_revision_id,p_reward_id,v_profile,v_number,btrim(p_name),nullif(btrim(p_product_url),''),p_estimated_price_cents,p_image_asset_id,v_uid);
+ values(p_revision_id,p_reward_id,v_profile,v_number,btrim(p_name),nullif(btrim(p_product_url),''),p_estimated_price_cents,v_image_asset_id,v_uid);
  update public.reward_items set version=version+1 where id=p_reward_id;
  if p_image_asset_id is not null then update public.reward_image_assets set revision_id=p_revision_id where id=p_image_asset_id; end if;
- v_response:=jsonb_build_object('rewardId',p_reward_id,'revisionId',p_revision_id,'revisionNumber',v_number,'status','pending','version',p_expected_reward_version+1);
+ v_response:=jsonb_build_object('rewardId',p_reward_id,'revisionId',p_revision_id,'revisionNumber',v_number,'status','pending','version',v_item.version+1);
  perform private.write_audit(v_item.family_id,v_profile,case when private.is_parent_of_family(v_item.family_id) then 'parent' else 'child_device' end,
-   'reward_revision_submitted','reward_revisions',p_revision_id::text,null,null,v_response);
+   case when v_pending.id is null then 'reward_revision_submitted' else 'reward_revision_replaced' end,
+   'reward_revisions',p_revision_id::text,null,
+   case when v_pending.id is null then null else to_jsonb(v_pending) end,v_response);
  return private.store_receipt('submit_reward_revision',p_idempotency_key,v_payload,v_response);
 end;
 $$;
@@ -149,16 +170,81 @@ declare v_rev public.reward_revisions; v_item public.reward_items; v_assignment 
 begin
  v_prior:=private.prior_receipt('withdraw_reward_revision',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_rev from public.reward_revisions where id=p_revision_id for update; if not found or v_rev.profile_id<>v_assignment.profile_id then raise exception 'revision not found' using errcode='42501'; end if;
+ perform private.require_profile_cloud_authoritative(v_assignment.profile_id);
  select * into v_item from public.reward_items where id=v_rev.reward_id for update;
- if v_item.version<>p_expected_reward_version then raise exception 'stale reward version' using errcode='40001'; end if;
+ if p_expected_reward_version>v_item.version then raise exception 'stale reward version' using errcode='40001'; end if;
  if v_rev.status<>'pending' or v_rev.proposed_by<>auth.uid() then raise exception 'only the child who proposed a pending revision may withdraw it' using errcode='42501'; end if;
  update public.reward_revisions set status='withdrawn' where id=p_revision_id;
  update public.reward_items set status=case when approved_revision_id is null then 'declined' else status end,version=version+1 where id=v_item.id;
- v_response:=jsonb_build_object('revisionId',p_revision_id,'status','withdrawn','version',p_expected_reward_version+1);
+ v_response:=jsonb_build_object('revisionId',p_revision_id,'status','withdrawn','version',v_item.version+1);
  perform private.write_audit(v_item.family_id,v_item.profile_id,'child_device','reward_revision_withdrawn','reward_revisions',p_revision_id::text,null,to_jsonb(v_rev),v_response);
  return private.store_receipt('withdraw_reward_revision',p_idempotency_key,v_payload,v_response);
 end;
 $$;
+
+-- A parent edit is one audited, idempotent transaction. It never exposes an
+-- intermediate pending revision and preserves the currently approved image when
+-- no replacement asset is supplied.
+create or replace function public.parent_edit_reward(
+ p_reward_id uuid,p_revision_id uuid,p_expected_reward_version bigint,
+ p_name text,p_product_url text,p_estimated_price_cents integer,p_image_asset_id uuid,
+ p_authoritative_xp_cost integer,p_is_reusable boolean,p_reason text,p_idempotency_key uuid
+) returns jsonb language plpgsql volatile security definer
+set search_path=pg_catalog,private,public
+as $$
+declare v_item public.reward_items; v_old public.reward_revisions; v_asset public.reward_image_assets;
+ v_number integer; v_response jsonb; v_prior jsonb;
+ v_payload jsonb:=jsonb_build_object('reward',p_reward_id,'revision',p_revision_id,
+  'version',p_expected_reward_version,'name',p_name,'url',p_product_url,
+  'price',p_estimated_price_cents,'image',p_image_asset_id,'cost',p_authoritative_xp_cost,
+  'reusable',p_is_reusable,'reason',p_reason);
+begin
+ v_prior:=private.prior_receipt('parent_edit_reward',p_idempotency_key,v_payload);
+ if v_prior is not null then return v_prior; end if;
+ select * into v_item from public.reward_items where id=p_reward_id for update;
+ if not found then raise exception 'reward not found'; end if;
+ perform private.require_profile_cloud_authoritative(v_item.profile_id);
+ perform private.require_parent(v_item.family_id,true);
+ if v_item.version<>p_expected_reward_version then raise exception 'stale reward version' using errcode='40001'; end if;
+ if v_item.status<>'approved' or v_item.archived_at is not null then raise exception 'only an active approved reward can be edited'; end if;
+ if p_revision_id is null then raise exception 'stable revision ID required'; end if;
+ if char_length(btrim(coalesce(p_name,''))) not between 1 and 120 then raise exception 'bounded reward name required'; end if;
+ if not private.safe_product_url(nullif(btrim(p_product_url),'')) then raise exception 'unsafe product URL'; end if;
+ if p_estimated_price_cents is not null and p_estimated_price_cents not between 0 and 10000000 then raise exception 'invalid estimated price'; end if;
+ if coalesce(p_authoritative_xp_cost,0)<=0 then raise exception 'positive authoritative XP cost required'; end if;
+ if char_length(btrim(coalesce(p_reason,''))) not between 3 and 1000 then raise exception 'bounded audit reason required'; end if;
+ if exists(select 1 from public.reward_revisions where reward_id=p_reward_id and status='pending') then
+   raise exception 'review or decline the pending child revision before editing';
+ end if;
+ select * into v_old from public.reward_revisions where id=v_item.approved_revision_id;
+ if p_image_asset_id is not null then
+   select * into v_asset from public.reward_image_assets where id=p_image_asset_id for update;
+   if not found or v_asset.family_id<>v_item.family_id or v_asset.profile_id<>v_item.profile_id
+      or v_asset.reward_id<>v_item.id or v_asset.finalized_at is null
+      or (v_asset.revision_id is not null and v_asset.revision_id<>p_revision_id) then
+     raise exception 'finalized same-reward image not found';
+   end if;
+ end if;
+ select coalesce(max(revision_number),0)+1 into v_number from public.reward_revisions where reward_id=p_reward_id;
+ insert into public.reward_revisions(id,reward_id,profile_id,revision_number,status,name,product_url,
+   estimated_price_cents,image_asset_id,proposed_by,reviewed_by,review_note,reviewed_at)
+ values(p_revision_id,p_reward_id,v_item.profile_id,v_number,'approved',btrim(p_name),
+   nullif(btrim(p_product_url),''),p_estimated_price_cents,
+   coalesce(p_image_asset_id,v_old.image_asset_id),auth.uid(),auth.uid(),btrim(p_reason),now());
+ if p_image_asset_id is not null then
+   update public.reward_image_assets set revision_id=p_revision_id where id=p_image_asset_id;
+ end if;
+ update public.reward_items set approved_revision_id=p_revision_id,
+   authoritative_xp_cost=p_authoritative_xp_cost,is_reusable=p_is_reusable,version=version+1
+   where id=p_reward_id;
+ v_response:=jsonb_build_object('rewardId',p_reward_id,'revisionId',p_revision_id,
+   'status','approved','version',p_expected_reward_version+1,'imageAssetId',
+   coalesce(p_image_asset_id,v_old.image_asset_id));
+ perform private.write_audit(v_item.family_id,v_item.profile_id,'parent','reward_edited',
+   'reward_items',p_reward_id::text,p_reason,
+   jsonb_build_object('item',to_jsonb(v_item),'approvedRevision',to_jsonb(v_old)),v_response);
+ return private.store_receipt('parent_edit_reward',p_idempotency_key,v_payload,v_response);
+end $$;
 
 create or replace function public.review_reward_revision(
  p_revision_id uuid,p_decision text,p_final_name text,p_final_product_url text,
@@ -173,7 +259,8 @@ begin
  v_prior:=private.prior_receipt('review_reward_revision',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_rev from public.reward_revisions where id=p_revision_id for update; if not found then raise exception 'revision not found'; end if;
  select * into v_item from public.reward_items where id=v_rev.reward_id for update;
- perform private.require_parent(v_item.family_id,false);
+ perform private.require_profile_cloud_authoritative(v_item.profile_id);
+ perform private.require_parent(v_item.family_id,true);
  if v_item.version<>p_expected_reward_version then raise exception 'stale reward version' using errcode='40001'; end if;
  if v_rev.status<>'pending' then raise exception 'revision is not pending'; end if;
  if p_decision not in ('approve','decline') then raise exception 'decision must be approve or decline'; end if;
@@ -208,7 +295,8 @@ declare v_item public.reward_items; v_response jsonb; v_payload jsonb:=jsonb_bui
 begin
  v_prior:=private.prior_receipt('archive_reward',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_item from public.reward_items where id=p_reward_id for update; if not found then raise exception 'reward not found'; end if;
- perform private.require_parent(v_item.family_id,false);
+ perform private.require_profile_cloud_authoritative(v_item.profile_id);
+ perform private.require_parent(v_item.family_id,true);
  if v_item.version<>p_expected_reward_version then raise exception 'stale reward version' using errcode='40001'; end if;
  if char_length(btrim(coalesce(p_reason,'')))<3 then raise exception 'audit reason required'; end if;
  update public.reward_items set status='archived',archived_at=now(),version=version+1 where id=p_reward_id;
@@ -250,6 +338,7 @@ declare v_assignment public.device_assignments:=private.require_active_assignmen
 begin
  v_prior:=private.prior_receipt('request_redemption',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_item from public.reward_items where id=p_reward_id for share;
+ perform private.require_profile_cloud_authoritative(v_assignment.profile_id);
  if not found or v_item.profile_id<>v_assignment.profile_id or v_item.status<>'approved' or v_item.version<>p_expected_reward_version then raise exception 'approved current reward not found'; end if;
  select * into v_rev from public.reward_revisions where id=v_item.approved_revision_id;
  select * into v_balance from public.profile_balances where profile_id=v_assignment.profile_id;
@@ -272,7 +361,8 @@ declare v_req public.redemption_requests; v_item public.reward_items; v_ledger p
 begin
  v_prior:=private.prior_receipt('resolve_redemption',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_req from public.redemption_requests where id=p_redemption_id for update; if not found then raise exception 'redemption not found'; end if;
- perform private.require_parent(v_req.family_id,false);
+ perform private.require_profile_cloud_authoritative(v_req.profile_id);
+ perform private.require_parent(v_req.family_id,true);
  if v_req.status<>'pending' or v_req.version<>p_expected_version then raise exception 'stale or resolved redemption' using errcode='40001'; end if;
  if p_decision not in ('approve','decline') then raise exception 'decision must be approve or decline'; end if;
  if p_decision='approve' then
@@ -306,7 +396,8 @@ declare v_req public.redemption_requests; v_spend public.xp_ledger; v_rev public
 begin
  v_prior:=private.prior_receipt('reverse_redemption',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_req from public.redemption_requests where id=p_redemption_id for update; if not found then raise exception 'redemption not found'; end if;
- perform private.require_parent(v_req.family_id,false);
+ perform private.require_profile_cloud_authoritative(v_req.profile_id);
+ perform private.require_parent(v_req.family_id,true);
  if v_req.status<>'approved' or v_req.version<>p_expected_version or v_req.spend_ledger_id is null then raise exception 'stale or non-approved redemption' using errcode='40001'; end if;
  if char_length(btrim(coalesce(p_reason,'')))<3 then raise exception 'audit reason required'; end if;
  select * into v_spend from public.xp_ledger where id=v_req.spend_ledger_id;
@@ -334,13 +425,37 @@ begin
  select * into v_event from public.xp_evidence_events where event_id=p_event_id for update;
  if not found then raise exception 'evidence not found'; end if;
  select family_id into v_family from public.child_profiles where id=v_event.profile_id;
- perform private.require_parent(v_family,false);
+ perform private.require_profile_cloud_authoritative(v_event.profile_id);
+ perform private.require_parent(v_family,true);
  if v_event.status<>'needs_review' then raise exception 'evidence is not awaiting review'; end if;
  if p_decision not in ('approve','reject') then raise exception 'decision must be approve or reject'; end if;
  if char_length(btrim(coalesce(p_reason,'')))<3 then raise exception 'audit reason required'; end if;
  if p_decision='approve' and v_event.awarded_xp>0 then
    v_ledger:=private.apply_ledger(v_event.profile_id,'earned',v_event.awarded_xp,v_event.awarded_xp,
      p_idempotency_key,p_reason,v_event.event_id,null,null,jsonb_build_object('reviewed',true));
+ end if;
+ if p_decision='approve' and v_event.evidence_kind in (
+   'analogy_type_correct','analogy_bridge_lock','analogy_discard','analogy_final'
+ ) then
+   select * into v_state from private.xp_attempt_state
+    where assignment_id=v_event.assignment_id and attempt_id=v_event.attempt_id for update;
+   if not found or v_state.completed then raise exception 'reviewed analogy attempt state is stale' using errcode='40001'; end if;
+   if v_event.evidence_kind='analogy_type_correct' then
+     if v_state.type_awarded then raise exception 'reviewed type transition is stale' using errcode='40001'; end if;
+     update private.xp_attempt_state set type_awarded=true where assignment_id=v_event.assignment_id and attempt_id=v_event.attempt_id;
+   elsif v_event.evidence_kind='analogy_bridge_lock' then
+     if v_state.bridge_awarded then raise exception 'reviewed bridge transition is stale' using errcode='40001'; end if;
+     update private.xp_attempt_state set bridge_awarded=true where assignment_id=v_event.assignment_id and attempt_id=v_event.attempt_id;
+   elsif v_event.evidence_kind='analogy_discard' then
+     if v_event.payload->>'choice'=any(v_state.discarded_choices) then raise exception 'reviewed discard transition is stale' using errcode='40001'; end if;
+     update private.xp_attempt_state set discarded_choices=array_append(discarded_choices,v_event.payload->>'choice') where assignment_id=v_event.assignment_id and attempt_id=v_event.attempt_id;
+   else
+     if v_state.final_awarded then raise exception 'reviewed final transition is stale' using errcode='40001'; end if;
+     select * into v_catalog from private.content_catalog where content_id=v_event.content_id and content_version=v_event.content_version;
+     if not found then raise exception 'reviewed analogy catalog entry is missing' using errcode='40001'; end if;
+     v_correct:=coalesce(v_event.payload->>'choice'=v_catalog.correct_choice,false);
+     update private.xp_attempt_state set final_awarded=true,correct=v_correct where assignment_id=v_event.assignment_id and attempt_id=v_event.attempt_id;
+   end if;
  end if;
  if p_decision='approve' and v_event.evidence_kind='analogy_complete' then
    select * into v_state from private.xp_attempt_state
@@ -418,6 +533,7 @@ revoke all on function private.reward_actor_profile(uuid),private.store_receipt(
 revoke all on function public.submit_reward_proposal(uuid,uuid,uuid,text,text,integer,uuid,uuid),
  public.submit_reward_revision(uuid,uuid,bigint,text,text,integer,uuid,uuid),
  public.withdraw_reward_revision(uuid,bigint,uuid),
+ public.parent_edit_reward(uuid,uuid,bigint,text,text,integer,uuid,integer,boolean,text,uuid),
  public.review_reward_revision(uuid,text,text,text,integer,integer,boolean,text,bigint,uuid),
  public.archive_reward(uuid,bigint,text,uuid),public.set_reward_goal(uuid,uuid,bigint,uuid),
  public.request_redemption(uuid,uuid,bigint,uuid),public.resolve_redemption(uuid,text,bigint,text,uuid),
@@ -425,6 +541,7 @@ revoke all on function public.submit_reward_proposal(uuid,uuid,uuid,text,text,in
 grant execute on function public.submit_reward_proposal(uuid,uuid,uuid,text,text,integer,uuid,uuid),
  public.submit_reward_revision(uuid,uuid,bigint,text,text,integer,uuid,uuid),
  public.withdraw_reward_revision(uuid,bigint,uuid),
+ public.parent_edit_reward(uuid,uuid,bigint,text,text,integer,uuid,integer,boolean,text,uuid),
  public.review_reward_revision(uuid,text,text,text,integer,integer,boolean,text,bigint,uuid),
  public.archive_reward(uuid,bigint,text,uuid),public.set_reward_goal(uuid,uuid,bigint,uuid),
  public.request_redemption(uuid,uuid,bigint,uuid),public.resolve_redemption(uuid,text,bigint,text,uuid),

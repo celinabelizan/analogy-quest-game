@@ -9,6 +9,9 @@ declare v_settings public.family_reward_settings; v_response jsonb; v_payload js
 begin
  v_prior:=private.prior_receipt('set_reward_visibility',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  perform private.require_parent(p_family_id,false);
+ if not exists(select 1 from public.child_profiles where family_id=p_family_id and sync_authoritative_at is not null) then
+  raise exception 'no cloud-authoritative profile in family' using errcode='42501';
+ end if;
  insert into public.family_reward_settings(family_id) values(p_family_id) on conflict do nothing;
  select * into v_settings from public.family_reward_settings where family_id=p_family_id for update;
  if v_settings.version<>p_expected_version then raise exception 'stale reward-settings version' using errcode='40001'; end if;
@@ -24,16 +27,22 @@ create or replace function public.attach_reward_image(
 set search_path=pg_catalog,private,public
 as $$
 declare v_rev public.reward_revisions; v_item public.reward_items; v_asset public.reward_image_assets; v_response jsonb;
+ v_is_parent boolean;
  v_payload jsonb:=jsonb_build_object('revision',p_revision_id,'asset',p_image_asset_id,'version',p_expected_reward_version); v_prior jsonb;
 begin
  v_prior:=private.prior_receipt('attach_reward_image',p_idempotency_key,v_payload); if v_prior is not null then return v_prior; end if;
  select * into v_rev from public.reward_revisions where id=p_revision_id for update; if not found then raise exception 'revision not found'; end if;
  select * into v_item from public.reward_items where id=v_rev.reward_id for update;
+ perform private.require_profile_cloud_authoritative(v_item.profile_id);
  perform private.reward_actor_profile(v_item.profile_id);
+ v_is_parent:=private.is_parent_of_family(v_item.family_id);
  if v_item.version<>p_expected_reward_version then raise exception 'stale reward version' using errcode='40001'; end if;
  if v_rev.status<>'pending' then raise exception 'image can attach only to a pending revision'; end if;
  select * into v_asset from public.reward_image_assets where id=p_image_asset_id for update;
  if not found or v_asset.profile_id<>v_item.profile_id or v_asset.reward_id<>v_item.id or v_asset.finalized_at is null then raise exception 'finalized same-reward image not found'; end if;
+ if not v_is_parent and (v_rev.proposed_by<>auth.uid() or v_asset.created_by<>auth.uid()) then
+  raise exception 'child may attach only its own image to its own pending revision' using errcode='42501';
+ end if;
  if v_asset.revision_id is not null and v_asset.revision_id<>p_revision_id then raise exception 'image already attached elsewhere'; end if;
  update public.reward_image_assets set revision_id=p_revision_id where id=p_image_asset_id;
  update public.reward_revisions set image_asset_id=p_image_asset_id where id=p_revision_id;
@@ -60,6 +69,10 @@ begin
   'revisions',coalesce((select jsonb_agg(to_jsonb(rr) order by rr.created_at,rr.id) from public.reward_revisions rr where rr.profile_id=v_profile),'[]'::jsonb),
   'activeRewardId',(select reward_id from public.reward_goals where profile_id=v_profile),
   'activeRewardVersion',coalesce((select version from public.reward_goals where profile_id=v_profile),0),
+  'syncAuthoritativeAt',(select sync_authoritative_at from public.child_profiles where id=v_profile),
+  'syncAuthoritativeMigrationId',(select sync_authoritative_migration_id from public.child_profiles where id=v_profile),
+  'migrationStatus',(select status from public.migration_sessions where profile_id=v_profile order by staged_at desc limit 1),
+  'migrationId',(select id from public.migration_sessions where profile_id=v_profile order by staged_at desc limit 1),
   'rewardVisibility',coalesce((v_settings->>'show_rewards')::boolean,false),
   'redemptions',coalesce((select jsonb_agg(to_jsonb(x) order by x.requested_at,x.id) from public.redemption_requests x where x.profile_id=v_profile),'[]'::jsonb));
 end $$;

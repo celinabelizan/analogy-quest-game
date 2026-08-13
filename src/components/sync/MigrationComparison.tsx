@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Download, LockKeyhole } from "lucide-react";
+import { AlertTriangle, CheckCircle2, LockKeyhole } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPhase1SyncAdapter, usePhase1Snapshot } from "./bridge";
 import { HighRiskReauth } from "./HighRiskReauth";
@@ -18,9 +18,11 @@ export function MigrationComparison() {
   const [prepareProfileId, setPrepareProfileId] = useState<"bianca" | "calista" | "test">("test");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [phrase, setPhrase] = useState("");
+  const [rollbackReason, setRollbackReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reauthOpen, setReauthOpen] = useState(false);
+  const [captureCancelReason, setCaptureCancelReason] = useState("");
 
   const load = async () => {
     setBusy(true);
@@ -77,6 +79,34 @@ export function MigrationComparison() {
     }
   };
 
+  const requestRollback = async () => {
+    if (!selected || snapshot.parent.aal !== "aal2") return;
+    setBusy(true);
+    setError(null);
+    try {
+      await getPhase1SyncAdapter().requestRollback(selected.sessionId, rollbackReason.trim());
+      setRollbackReason("");
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Rollback request failed safely.");
+      setBusy(false);
+    }
+  };
+
+  const cancelOpenCapture = async (requestId: string) => {
+    if (snapshot.parent.aal !== "aal2") return;
+    setBusy(true);
+    setError(null);
+    try {
+      await getPhase1SyncAdapter().cancelMigrationCapture(requestId, captureCancelReason.trim());
+      setCaptureCancelReason("");
+      await load();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Capture cancellation failed safely.");
+      setBusy(false);
+    }
+  };
+
   if (!snapshot.adapterAvailable)
     return (
       <p className="quest-card p-6 text-sm text-muted-foreground">
@@ -88,9 +118,9 @@ export function MigrationComparison() {
       <section className="quest-card space-y-4 p-6">
         <h2 className="text-xl font-extrabold">No staged comparisons</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Prepare the Test installation first. This captures the exact raw local data, creates its
-          encrypted backup, uploads the reviewed migration material, and stages a read-only cloud
-          comparison. It does not make the profile cloud-authoritative.
+          Request the Test installation first. The assigned child installation will then capture its
+          own exact raw local data, create and export its encrypted backup, and stage the read-only
+          comparison. The parent browser never substitutes its localStorage.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <label className="text-sm font-bold">
@@ -118,14 +148,37 @@ export function MigrationComparison() {
             className="min-h-[44px] rounded-full bg-primary px-5 font-extrabold text-primary-foreground disabled:opacity-50"
           >
             {busy
-              ? "Preparing safely…"
-              : `Prepare ${prepareProfileId === "test" ? "Test" : prepareProfileId} comparison`}
+              ? "Requesting safely…"
+              : `Request ${prepareProfileId === "test" ? "Test" : prepareProfileId} capture`}
           </button>
         </div>
         <p className="text-xs text-muted-foreground">
           Real Bianca and Calista preparation remains disabled in this build. Keep the downloaded
           backup and recovery key separate until cross-device verification passes.
         </p>
+        {(snapshot.parentMigrationCaptures ?? []).map((capture) => (
+          <div key={capture.requestId} className="space-y-2 rounded-xl border border-amber-300 p-3">
+            <p className="text-sm font-bold">
+              Open {capture.status} capture for profile {capture.profileId}
+            </p>
+            <input
+              value={captureCancelReason}
+              onChange={(event) => setCaptureCancelReason(event.target.value)}
+              placeholder="Reason to cancel interrupted capture"
+              className="min-h-[44px] w-full rounded-xl border px-3"
+            />
+            <button
+              type="button"
+              disabled={
+                busy || snapshot.parent.aal !== "aal2" || captureCancelReason.trim().length < 3
+              }
+              onClick={() => void cancelOpenCapture(capture.requestId)}
+              className="rounded-full border border-amber-600 px-4 py-2 font-bold disabled:opacity-50"
+            >
+              Cancel capture and unlock iPad
+            </button>
+          </div>
+        ))}
         {error && <p className="mt-3 text-sm font-bold text-destructive">{error}</p>}
       </section>
     );
@@ -182,7 +235,7 @@ export function MigrationComparison() {
         </div>
         <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-border p-4">
           <label className="text-sm font-bold">
-            Prepare another local comparison
+            Request another device capture
             <select
               value={prepareProfileId}
               onChange={(event) =>
@@ -206,8 +259,8 @@ export function MigrationComparison() {
             className="min-h-[44px] rounded-full border border-primary px-4 font-bold text-primary disabled:opacity-50"
           >
             {busy
-              ? "Preparing…"
-              : `Prepare ${prepareProfileId === "test" ? "Test" : prepareProfileId} comparison`}
+              ? "Requesting…"
+              : `Request ${prepareProfileId === "test" ? "Test" : prepareProfileId} capture`}
           </button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -271,13 +324,10 @@ export function MigrationComparison() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void getPhase1SyncAdapter().exportMigrationBackup(selected.sessionId)}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 font-bold"
-        >
-          <Download aria-hidden className="h-4 w-4" /> Create or download encrypted backup
-        </button>
+        <p className="rounded-xl border border-border p-3 text-sm font-bold">
+          The encrypted archive and separate recovery key are created and exported only by the
+          assigned child installation. The parent browser never receives the decryption key.
+        </p>
         <p className="text-xs text-muted-foreground">
           Backup state: {selected.backupState.replaceAll("_", " ")}
         </p>
@@ -339,6 +389,42 @@ export function MigrationComparison() {
           </p>
         )}
       </section>
+
+      {(selected.migrationState === "confirmed_cloud" || selected.migrationState === "staged") && (
+        <section className="quest-card space-y-3 border-2 border-amber-300 p-6">
+          <h2 className="text-xl font-extrabold">
+            {selected.migrationState === "staged"
+              ? "Cancel this unconfirmed capture"
+              : "Return this installation to local-only"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {selected.migrationState === "staged"
+              ? "Cloud authority has not started. Cancelling releases the child iPad cutover lock without changing local data."
+              : "This is a two-party rollback. The parent requests it here; the assigned child iPad must then reconcile its outbox and materialize the final synchronized fields locally before the server disables cloud authority."}
+          </p>
+          <input
+            value={rollbackReason}
+            onChange={(event) => setRollbackReason(event.target.value)}
+            placeholder="Reason for rollback"
+            className="min-h-[48px] w-full rounded-xl border border-border px-3"
+          />
+          <button
+            type="button"
+            disabled={busy || rollbackReason.trim().length < 3 || snapshot.parent.aal !== "aal2"}
+            onClick={() => void requestRollback()}
+            className="rounded-full border border-amber-600 px-5 py-3 font-extrabold disabled:opacity-50"
+          >
+            {selected.migrationState === "staged"
+              ? "Cancel capture and unlock iPad"
+              : "Request verified local materialization"}
+          </button>
+          {snapshot.parent.aal !== "aal2" && (
+            <p className="text-xs font-bold text-amber-900">
+              Reauthenticate with TOTP before requesting rollback.
+            </p>
+          )}
+        </section>
+      )}
 
       <HighRiskReauth
         open={reauthOpen}

@@ -68,6 +68,38 @@ export function EnrollmentPanel() {
             <dd className="font-bold">{child.displayName}</dd>
           </div>
         </dl>
+        {snapshot.pendingMigrationCapture && (
+          <div className="space-y-2 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-left">
+            <p className="font-extrabold text-amber-950">Parent requested a migration capture</p>
+            <p className="text-sm text-amber-950">
+              This iPad—not the parent phone—will encrypt and upload its exact local XP, rewards,
+              analogy history, and Vocabulary V1 data. Cloud authority will not change yet.
+            </p>
+            <button
+              type="button"
+              onClick={() => void getPhase1SyncAdapter().captureRequestedMigration()}
+              className="rounded-full bg-primary px-4 py-2 font-bold text-primary-foreground"
+            >
+              Capture and export this iPad
+            </button>
+          </div>
+        )}
+        {snapshot.pendingRollback && (
+          <div className="space-y-2 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-left">
+            <p className="font-extrabold text-amber-950">Parent requested local-only rollback</p>
+            <p className="text-sm text-amber-950">
+              This first reconciles every queued event, then writes the final cloud XP, rewards,
+              goals, redemptions, and visibility into the local cache. Learning state is untouched.
+            </p>
+            <button
+              type="button"
+              onClick={() => void getPhase1SyncAdapter().completeRequestedRollback()}
+              className="rounded-full bg-primary px-4 py-2 font-bold text-primary-foreground"
+            >
+              Reconcile and return to local-only
+            </button>
+          </div>
+        )}
       </section>
     );
   }

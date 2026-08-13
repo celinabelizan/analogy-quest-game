@@ -2,6 +2,7 @@ import { enqueueXpEvidence } from "./outbox";
 import type { EvidenceKind } from "./types";
 import { bindAttemptToken } from "./indexed-db";
 const AUTHORITY_KEY = "ssatquest.phase1.cloud-authority";
+const ROLLBACK_LOCK_KEY = "ssatquest.phase1.rollback-in-progress";
 
 export async function recordXpEvidence(input: {
   attemptId: string;
@@ -45,6 +46,8 @@ export async function recordXpEvidence(input: {
  */
 export async function recordXpEvidenceIfActive(input: Parameters<typeof recordXpEvidence>[0]) {
   if (typeof localStorage === "undefined") return { queued: false as const, reason: "server" };
+  if (localStorage.getItem(ROLLBACK_LOCK_KEY))
+    return { queued: false as const, reason: "rollback-local-only" };
   let marker: {
     profileId?: string;
     localProfileId?: "bianca" | "calista" | "test";

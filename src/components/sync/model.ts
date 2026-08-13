@@ -22,6 +22,7 @@ export interface SyncCounts {
   pending: number;
   needsReview: number;
   rejected: number;
+  rejectedRewards?: number;
 }
 
 export interface ParentSessionView {
@@ -76,6 +77,7 @@ export interface ChildCloudView {
   availableXp: number;
   lifetimeXp: number;
   balanceVersion: number;
+  cloudAuthoritative?: boolean;
   pendingXp: number;
   needsReviewXp: number;
   rewardsVisible: boolean;
@@ -98,6 +100,22 @@ export interface Phase1Snapshot {
   message?: string;
   /** False/omitted until the separate production migration gate is explicitly enabled. */
   realProfileMigrationEnabled?: boolean;
+  pendingMigrationCapture?:
+    | {
+        requestId: string;
+        profileId: string;
+        expiresAt: string;
+        status: "requested" | "captured";
+      }
+    | undefined;
+  /** Locks local mutations after the exact migration snapshot is captured and until cutover resolves. */
+  migrationCutoverLocked?: boolean;
+  pendingRollback?: { migrationId: string; profileId: string } | undefined;
+  parentMigrationCaptures?: Array<{
+    requestId: string;
+    profileId: string;
+    status: "requested" | "captured";
+  }>;
 }
 
 export interface RewardDraft {
@@ -134,7 +152,7 @@ export interface MigrationComparisonView {
   profileName: string;
   sourceHash: string;
   backupState: "not_created" | "local_only" | "encrypted_export_ready" | "uploaded_encrypted";
-  migrationState: "comparison" | "staged" | "confirmed_cloud";
+  migrationState: "comparison" | "staged" | "confirmed_cloud" | "rollback_pending" | "rolled_back";
   rows: MigrationDomainComparison[];
   localLifetimeXp: number;
   localAvailableXp: number;
@@ -195,7 +213,11 @@ export interface Phase1SyncAdapter {
     reason: string,
   ): Promise<void>;
   prepareMigration(localProfileId: LocalProfileId): Promise<void>;
+  captureRequestedMigration(): Promise<void>;
   getMigrationComparisons(): Promise<MigrationComparisonView[]>;
   exportMigrationBackup(sessionId: string): Promise<void>;
   confirmMigration(sessionId: string, confirmationPhrase: string): Promise<void>;
+  requestRollback(sessionId: string, reason: string): Promise<void>;
+  cancelMigrationCapture(requestId: string, reason: string): Promise<void>;
+  completeRequestedRollback(): Promise<void>;
 }
