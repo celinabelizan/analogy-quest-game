@@ -6,7 +6,8 @@ import crown from "@/assets/mascot-crown.png";
 import { MASCOT_TIERS } from "@/lib/quest-store";
 
 export function Mascot({ lifetimeXp, size = 150 }: { lifetimeXp: number; size?: number }) {
-  const src = lifetimeXp >= 2000 ? crown : lifetimeXp >= 1000 ? glasses : lifetimeXp >= 500 ? bow : base;
+  const src =
+    lifetimeXp >= 2000 ? crown : lifetimeXp >= 1000 ? glasses : lifetimeXp >= 500 ? bow : base;
   return (
     <motion.img
       src={src}

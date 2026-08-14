@@ -57,7 +57,7 @@ function VocabDrill() {
   const id = (pid === "calista" ? "calista" : pid === "test" ? "test" : "bianca") as ProfileId;
   const meta = [...PROFILES, TEST_PROFILE].find((p) => p.id === id)!;
   const [profile, update] = useProfile(id);
-  const mastery = profile.wordMastery ?? {};
+  const mastery = useMemo(() => profile.wordMastery ?? {}, [profile.wordMastery]);
   const today = dayOf(profile);
   const done = today.vocabDone ?? 0;
   const [question, setQuestion] = useState(() => pickNext(mastery, null));
@@ -81,7 +81,7 @@ function VocabDrill() {
   };
 
   // Keep SSR/client output identical, then randomize once the interactive page mounts.
-  useEffect(() => setChoices(shuffled(question.choices)), [question.id]);
+  useEffect(() => setChoices(shuffled(question.choices)), [question.choices, question.id]);
 
   const choose = (choiceId: string) => {
     if (answered) return;

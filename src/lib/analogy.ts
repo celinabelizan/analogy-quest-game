@@ -65,13 +65,13 @@ function replaceWord(text: string, from: string, to: string) {
 export function monkeySwap(bridge: string, stem: string, choicePair: string) {
   const [s1, s2] = pairWords(stem);
   const [c1, c2] = pairWords(choicePair);
-  let out = replaceWord(bridge, s1, "\u0001");
-  out = replaceWord(out, s2, "\u0002");
+  let out = replaceWord(bridge, s1, "__AQ_FIRST__");
+  out = replaceWord(out, s2, "__AQ_SECOND__");
   // restore placeholders, preserving any inflection suffix the swap produced
-  out = out.replace(/\u0001(ly|ies|ing|ed|est|er|es|s)?/gi, (_m, suf?: string) =>
+  out = out.replace(/__AQ_FIRST__(ly|ies|ing|ed|est|er|es|s)?/gi, (_m, suf?: string) =>
     applySuffix(c1, suf ?? ""),
   );
-  out = out.replace(/\u0002(ly|ies|ing|ed|est|er|es|s)?/gi, (_m, suf?: string) =>
+  out = out.replace(/__AQ_SECOND__(ly|ies|ing|ed|est|er|es|s)?/gi, (_m, suf?: string) =>
     applySuffix(c2, suf ?? ""),
   );
   out = out.charAt(0).toUpperCase() + out.slice(1);

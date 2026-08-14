@@ -225,7 +225,7 @@ function Practice() {
         ? prev
         : { ...prev, current: newDrill(prev, allowedGroups, shared.classDifficulty) },
     );
-  }, [update]);
+  }, [allowedGroups, shared.classDifficulty, update]);
 
   // A saved drill can point at a question that no longer exists — start fresh instead of crashing.
   useEffect(() => {
@@ -234,7 +234,7 @@ function Practice() {
         ...prev,
         current: newDrill(prev, allowedGroups, shared.classDifficulty),
       }));
-  }, [drill, q, update]);
+  }, [allowedGroups, drill, q, shared.classDifficulty, update]);
 
   // Backward-compatible upgrade for a drill saved before secure evidence IDs existed.
   useEffect(() => {
@@ -253,8 +253,8 @@ function Practice() {
   }, [drill?.qid]);
 
   useEffect(() => {
-    if (drill && !drill.locked) setDraft(drill.bridge);
-  }, [drill?.qid, drill?.locked]);
+    if (!drill?.locked) setDraft(drill?.bridge ?? "");
+  }, [drill?.bridge, drill?.locked, drill?.qid]);
 
   const flash = (msg: string) => {
     setToast(msg);

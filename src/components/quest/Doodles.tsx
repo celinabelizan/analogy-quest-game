@@ -9,91 +9,83 @@ import type { ReactNode } from "react";
  */
 const STEMS = [
   // 0 — cosmos daisy on a bending stem
-  (
-    <g key="s0">
-      <path d="M20 140c-1-28 1-52 2-70 1-9 0-14-1-20" strokeWidth={0.9} />
-      <path d="M20 92c-7-3-10-8-9-14 6 2 9 8 9 14z" strokeWidth={0.8} />
-      <path d="M22 112c6-2 9-6 8-11-5 1-8 5-8 11z" strokeWidth={0.8} />
-      <g strokeWidth={0.9}>
-        <path d="M20 46c-1-6-5-10-10-11 1 6 5 10 10 11z" />
-        <path d="M20 44c-3-6-2-13 2-17 3 5 2 12-2 17z" />
-        <path d="M22 44c3-5 9-8 14-6-2 5-8 8-14 6z" />
-        <path d="M23 48c6-1 11 2 13 6-5 2-11 0-13-6z" />
-        <path d="M21 51c3 5 2 12-2 15-3-4-2-11 2-15z" />
-        <path d="M18 50c-5 2-10 1-13-2 4-3 10-2 13 2z" />
-      </g>
-      <circle cx="20.5" cy="47.5" r="2" strokeWidth={0.8} />
+  <g key="s0">
+    <path d="M20 140c-1-28 1-52 2-70 1-9 0-14-1-20" strokeWidth={0.9} />
+    <path d="M20 92c-7-3-10-8-9-14 6 2 9 8 9 14z" strokeWidth={0.8} />
+    <path d="M22 112c6-2 9-6 8-11-5 1-8 5-8 11z" strokeWidth={0.8} />
+    <g strokeWidth={0.9}>
+      <path d="M20 46c-1-6-5-10-10-11 1 6 5 10 10 11z" />
+      <path d="M20 44c-3-6-2-13 2-17 3 5 2 12-2 17z" />
+      <path d="M22 44c3-5 9-8 14-6-2 5-8 8-14 6z" />
+      <path d="M23 48c6-1 11 2 13 6-5 2-11 0-13-6z" />
+      <path d="M21 51c3 5 2 12-2 15-3-4-2-11 2-15z" />
+      <path d="M18 50c-5 2-10 1-13-2 4-3 10-2 13 2z" />
     </g>
-  ),
+    <circle cx="20.5" cy="47.5" r="2" strokeWidth={0.8} />
+  </g>,
   // 1 — lavender spike
-  (
-    <g key="s1">
-      <path d="M21 140c-2-30-2-56-1-74" strokeWidth={0.9} />
-      {Array.from({ length: 9 }).map((_, i) => (
-        <g key={i} strokeWidth={0.75}>
-          <path d={`M20 ${52 + i * 5}c-4-1-6-3-6-6 4 0 6 2 6 6z`} />
-          <path d={`M21 ${55 + i * 5}c4-1 6-3 6-6-4 0-6 2-6 6z`} />
-        </g>
-      ))}
-      <path d="M20 50c-2-5-1-9 1-12 2 4 2 9-1 12z" strokeWidth={0.8} />
-      <path d="M20 118c-6-2-9-6-9-11 6 1 9 5 9 11z" strokeWidth={0.8} />
-    </g>
-  ),
+  <g key="s1">
+    <path d="M21 140c-2-30-2-56-1-74" strokeWidth={0.9} />
+    {Array.from({ length: 9 }).map((_, i) => (
+      <g key={i} strokeWidth={0.75}>
+        <path d={`M20 ${52 + i * 5}c-4-1-6-3-6-6 4 0 6 2 6 6z`} />
+        <path d={`M21 ${55 + i * 5}c4-1 6-3 6-6-4 0-6 2-6 6z`} />
+      </g>
+    ))}
+    <path d="M20 50c-2-5-1-9 1-12 2 4 2 9-1 12z" strokeWidth={0.8} />
+    <path d="M20 118c-6-2-9-6-9-11 6 1 9 5 9 11z" strokeWidth={0.8} />
+  </g>,
   // 2 — tiny bud sprig with seed dots
-  (
-    <g key="s2">
-      <path d="M19 140c1-26 3-46 3-62" strokeWidth={0.85} />
-      <path d="M22 92c8-3 12-8 12-14-8 1-12 6-12 14z" strokeWidth={0.75} />
-      <path d="M20 106c-8-2-12-7-12-13 8 1 12 6 12 13z" strokeWidth={0.75} />
-      <g strokeWidth={0.8}>
-        <path d="M22 78c-3 0-5-2-5-5s2-6 5-6 5 3 5 6-2 5-5 5z" />
-        <path d="M27 62c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4z" />
-        <path d="M15 60c-2 0-3-2-3-4s1-3 3-3 3 1 3 3-1 4-3 4z" />
-        <path d="M22 46c-2 0-3-2-3-4s1-4 3-4 3 2 3 4-1 4-3 4z" />
-      </g>
-      <path d="M22 68c1-4 3-7 5-9M21 68c-1-3-3-5-6-6M22 60c0-5 0-9 0-13" strokeWidth={0.6} />
+  <g key="s2">
+    <path d="M19 140c1-26 3-46 3-62" strokeWidth={0.85} />
+    <path d="M22 92c8-3 12-8 12-14-8 1-12 6-12 14z" strokeWidth={0.75} />
+    <path d="M20 106c-8-2-12-7-12-13 8 1 12 6 12 13z" strokeWidth={0.75} />
+    <g strokeWidth={0.8}>
+      <path d="M22 78c-3 0-5-2-5-5s2-6 5-6 5 3 5 6-2 5-5 5z" />
+      <path d="M27 62c-2 0-4-2-4-4s2-4 4-4 4 2 4 4-2 4-4 4z" />
+      <path d="M15 60c-2 0-3-2-3-4s1-3 3-3 3 1 3 3-1 4-3 4z" />
+      <path d="M22 46c-2 0-3-2-3-4s1-4 3-4 3 2 3 4-1 4-3 4z" />
     </g>
-  ),
+    <path d="M22 68c1-4 3-7 5-9M21 68c-1-3-3-5-6-6M22 60c0-5 0-9 0-13" strokeWidth={0.6} />
+  </g>,
   // 3 — airy fern frond
-  (
-    <g key="s3">
-      <path d="M20 140c0-30 3-56 6-78" strokeWidth={0.85} />
-      {Array.from({ length: 11 }).map((_, i) => {
-        const y = 56 + i * 7;
-        const len = 4 + i * 0.9;
-        return (
-          <g key={i} strokeWidth={0.7}>
-            <path d={`M${21 + (10 - i) * 0.25} ${y}c-${len} 0-${len + 2} 3-${len + 2} 5 ${len} 0 ${len + 1}-2 ${len + 1}-5z`} />
-            <path d={`M${22 + (10 - i) * 0.25} ${y + 2}c${len} 0 ${len + 2} 3 ${len + 2} 5-${len} 0-${len + 1}-2-${len + 1}-5z`} />
-          </g>
-        );
-      })}
-      <path d="M26 58c1-5 3-8 5-10" strokeWidth={0.7} />
-    </g>
-  ),
+  <g key="s3">
+    <path d="M20 140c0-30 3-56 6-78" strokeWidth={0.85} />
+    {Array.from({ length: 11 }).map((_, i) => {
+      const y = 56 + i * 7;
+      const len = 4 + i * 0.9;
+      return (
+        <g key={i} strokeWidth={0.7}>
+          <path
+            d={`M${21 + (10 - i) * 0.25} ${y}c-${len} 0-${len + 2} 3-${len + 2} 5 ${len} 0 ${len + 1}-2 ${len + 1}-5z`}
+          />
+          <path
+            d={`M${22 + (10 - i) * 0.25} ${y + 2}c${len} 0 ${len + 2} 3 ${len + 2} 5-${len} 0-${len + 1}-2-${len + 1}-5z`}
+          />
+        </g>
+      );
+    })}
+    <path d="M26 58c1-5 3-8 5-10" strokeWidth={0.7} />
+  </g>,
   // 4 — poppy bud, drooping head
-  (
-    <g key="s4">
-      <path d="M20 140c-1-26 1-46 4-58 2-8 4-12 4-18" strokeWidth={0.95} />
-      <path d="M28 62c-2-9 1-17 7-21 4 7 2 16-7 21z" strokeWidth={0.95} />
-      <path d="M30 56c1-6 3-11 6-14" strokeWidth={0.6} />
-      <path d="M22 100c-8-3-11-8-10-14 7 2 11 8 10 14z" strokeWidth={0.8} />
-    </g>
-  ),
+  <g key="s4">
+    <path d="M20 140c-1-26 1-46 4-58 2-8 4-12 4-18" strokeWidth={0.95} />
+    <path d="M28 62c-2-9 1-17 7-21 4 7 2 16-7 21z" strokeWidth={0.95} />
+    <path d="M30 56c1-6 3-11 6-14" strokeWidth={0.6} />
+    <path d="M22 100c-8-3-11-8-10-14 7 2 11 8 10 14z" strokeWidth={0.8} />
+  </g>,
   // 5 — five-petal bloom with grass blades
-  (
-    <g key="s5">
-      <path d="M20 140c0-26 1-46 1-62" strokeWidth={0.9} />
-      <path d="M8 140c3-16 7-25 12-31M32 140c-2-14-5-22-9-27" strokeWidth={0.7} />
-      <g strokeWidth={0.85}>
-        {[0, 72, 144, 216, 288].map((a) => (
-          <path key={a} d="M21 78c-4-4-5-10-2-14 4 2 6 9 2 14z" transform={`rotate(${a} 21 78)`} />
-        ))}
-      </g>
-      <circle cx="21" cy="78" r="1.8" strokeWidth={0.7} />
-      <path d="M21 104c6-2 9-6 8-11-5 1-8 5-8 11z" strokeWidth={0.75} />
+  <g key="s5">
+    <path d="M20 140c0-26 1-46 1-62" strokeWidth={0.9} />
+    <path d="M8 140c3-16 7-25 12-31M32 140c-2-14-5-22-9-27" strokeWidth={0.7} />
+    <g strokeWidth={0.85}>
+      {[0, 72, 144, 216, 288].map((a) => (
+        <path key={a} d="M21 78c-4-4-5-10-2-14 4 2 6 9 2 14z" transform={`rotate(${a} 21 78)`} />
+      ))}
     </g>
-  ),
+    <circle cx="21" cy="78" r="1.8" strokeWidth={0.7} />
+    <path d="M21 104c6-2 9-6 8-11-5 1-8 5-8 11z" strokeWidth={0.75} />
+  </g>,
 ];
 
 export function Flower({
@@ -145,11 +137,28 @@ function InkDefs({ seed }: { seed: number }) {
           seed={s * 13 + 3}
           result="warp"
         />
-        <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.5" xChannelSelector="R" yChannelSelector="G" />
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="warp"
+          scale="1.5"
+          xChannelSelector="R"
+          yChannelSelector="G"
+        />
       </filter>
       <filter id={`grain-${s}`} x="-25%" y="-15%" width="150%" height="130%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={3} seed={s * 7 + 1} result="n" />
-        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0" result="g" />
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.9"
+          numOctaves={3}
+          seed={s * 7 + 1}
+          result="n"
+        />
+        <feColorMatrix
+          in="n"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0"
+          result="g"
+        />
         <feComposite in="g" in2="SourceGraphic" operator="in" />
       </filter>
     </defs>
@@ -233,7 +242,6 @@ function Meadow({ stalks, hanging = false }: { stalks: Stalk[]; hanging?: boolea
     </div>
   );
 }
-
 
 /**
  * Each page gets its own sparse arrangement: a small cluster of wildflowers

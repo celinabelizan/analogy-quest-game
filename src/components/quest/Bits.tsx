@@ -45,10 +45,21 @@ export function ProgressRing({
   return (
     <div
       className="relative grid place-items-center"
-      style={{ width: size, height: size, filter: glow ? `drop-shadow(0 0 14px ${color})` : undefined }}
+      style={{
+        width: size,
+        height: size,
+        filter: glow ? `drop-shadow(0 0 14px ${color})` : undefined,
+      }}
     >
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--muted)" strokeWidth={stroke} fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke="var(--muted)"
+          strokeWidth={stroke}
+          fill="none"
+        />
         <circle
           cx={size / 2}
           cy={size / 2}
