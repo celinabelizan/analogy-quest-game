@@ -405,6 +405,13 @@ select is((select count(*) from public.device_assignments
   'consumed invitation creates exactly one permanent device assignment');
 
 -- Migration claims are idempotent: the preserved 200-XP fresh start is not doubled.
+do $$
+begin
+  perform public.request_device_migration_capture(
+    'a0000000-0000-4000-8000-000000000003'::uuid,
+    'ab000000-0000-4000-8000-000000000001'::uuid);
+end;
+$$;
 reset role;
 set local role service_role;
 select lives_ok(
@@ -415,17 +422,40 @@ select lives_ok(
        'migration-backups/test/encrypted-backup.bin', repeat('7',64), now()+interval '31 days') $$,
   'service-side encrypted backup attestation is registered');
 reset role;
-select test_support.as_user('90000000-0000-4000-8000-000000000001'::uuid);
+select test_support.as_user('90000000-0000-4000-8000-000000000005'::uuid);
 select lives_ok(
   $$ select public.stage_migration_snapshot(
        'ab000000-0000-4000-8000-000000000001'::uuid,
        'a0000000-0000-4000-8000-000000000003'::uuid,
-       'test-device-raw-v8',
+       (select id::text from public.device_assignments
+         where auth_user_id=auth.uid() and status='active'),
        'ac000000-0000-4000-8000-000000000001'::uuid,
        repeat('5', 64), repeat('6', 64),
-       '{"dataVersion":1,"lifetimeXp":200,"availableXp":200}'::jsonb,
+       '{
+         "dataVersion": 1,
+         "lifetimeXp": 200,
+         "availableXp": 200,
+         "rewards": [],
+         "redemptions": [],
+         "vocabBonusFacts": [],
+         "dailyProgressFacts": [],
+         "overlappingDailyClaims": [],
+         "xpFacts": {
+           "completedAnalogyCount": 0,
+           "correctAnalogyCount": 0,
+           "correctStreak": 0,
+           "vocabAnswerCount": 0,
+           "analogyLastCompleted": []
+         },
+         "localLearningSummary": {},
+         "showRewards": false,
+         "activeRewardId": null
+       }'::jsonb,
        'migration-backups/test/encrypted-backup.bin', repeat('7', 64)) $$,
   'Test migration snapshot stages');
+select public.acknowledge_migration_backup_export(
+  'ab000000-0000-4000-8000-000000000001'::uuid);
+select test_support.as_user('90000000-0000-4000-8000-000000000001'::uuid);
 select lives_ok(
   $$ select public.confirm_migration(
        'ab000000-0000-4000-8000-000000000001'::uuid,

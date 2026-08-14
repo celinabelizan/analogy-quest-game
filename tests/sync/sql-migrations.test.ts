@@ -76,4 +76,27 @@ describe("review-gated database migrations", () => {
     expect(xp).toContain("perform private.require_parent(v_family, true)");
     expect(xp).toContain("rejection reason does not match server state");
   });
+
+  it("keeps the forward-only staging remediation explicit and least-privileged", () => {
+    const remediation = readFileSync(
+      resolve(migrationDirectory, "202608120009_phase1_staging_test_remediation.sql"),
+      "utf8",
+    );
+    const adversarial = readFileSync(
+      resolve(process.cwd(), "supabase/tests/secure_sync_adversarial.test.sql"),
+      "utf8",
+    );
+    expect(remediation).toContain("'approved'::public.reward_revision_status");
+    expect(remediation).toContain("'declined'::public.redemption_status");
+    expect(remediation).toContain(
+      "public.reward_items, public.reward_image_assets to service_role",
+    );
+    expect(remediation).not.toContain("grant all");
+    expect(adversarial).toContain(
+      "select test_support.as_user('90000000-0000-4000-8000-000000000005'::uuid);",
+    );
+    expect(adversarial).toContain("where auth_user_id=auth.uid() and status='active'");
+    expect(adversarial).toContain("perform public.request_device_migration_capture(");
+    expect(adversarial).toContain("select public.acknowledge_migration_backup_export(");
+  });
 });

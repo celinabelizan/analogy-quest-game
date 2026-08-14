@@ -1,6 +1,23 @@
 # Secure Sync Phase 1 Operations
 
-This branch contains review artifacts only. No SQL or Edge Function has been applied or deployed.
+## Current synthetic staging status
+
+As of 2026-08-14, the isolated staging project `hvzzymjfmxqmbzibinqz` has:
+
+- migrations 001-009 applied in order;
+- a passing 65-assertion transactional pgTAP adversarial suite;
+- `consume-enrollment-invite`, `migration-backup-upload`,
+  `reward-image-upload`, and `reward-image-url` active at version 1 with JWT
+  verification enabled; and
+- a staging-only `ENROLLMENT_IP_HASH_SECRET` configured in Edge secrets.
+
+All pgTAP synthetic records were rolled back. CAPTCHA remains disabled, both
+secure-sync release switches remain false, and real-profile migration remains
+disabled. No staging identities, preview, or Auth redirect changes exist yet.
+Production was not accessed during staging preparation.
+
+The branch remains a review-gated staging workspace; staging deployment state is
+not evidence that secure synchronization has been enabled for browser clients.
 
 ## Abuse thresholds
 
