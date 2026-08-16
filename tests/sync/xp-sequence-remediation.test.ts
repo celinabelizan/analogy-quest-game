@@ -54,6 +54,10 @@ describe("XP sequence remediation", () => {
     expect(sql).toContain("v_uid_attempts <= 5 and v_ip_attempts <= 20");
     expect(sql).toContain("to service_role");
     expect(edge).toContain("ENROLLMENT_IP_HASH_SECRET");
+    expect(edge).toContain(
+      "const assignment = Array.isArray(assignmentResult) ? assignmentResult[0] : assignmentResult",
+    );
+    expect(edge).toContain('if (consumeError || !assignment || typeof assignment.id !== "string")');
     expect(edge.indexOf("internal_register_enrollment_gateway_attempt")).toBeLessThan(
       edge.indexOf("consume_enrollment_invitation_gateway"),
     );

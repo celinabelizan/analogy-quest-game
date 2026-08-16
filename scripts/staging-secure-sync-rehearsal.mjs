@@ -11,6 +11,7 @@ const projectId = required("SUPABASE_PROJECT_ID");
 const supabaseUrl = required("SUPABASE_URL");
 const publishableKey = required("SUPABASE_PUBLISHABLE_KEY");
 const accessToken = required("SUPABASE_ACCESS_TOKEN");
+const enrollmentIpHashSecret = required("ENROLLMENT_IP_HASH_SECRET");
 const previewUrl = process.env.STAGING_PREVIEW_URL ?? "http://127.0.0.1:4173";
 
 if (process.env.VITE_SECURE_SYNC_PHASE1 !== "false") {
@@ -197,6 +198,32 @@ try {
     }),
     "Verify staging parent TOTP",
   );
+  const recoveryFactor = await unwrap(
+    parent.auth.mfa.enroll({ factorType: "totp", friendlyName: `${runLabel}-recovery` }),
+    "Enroll staging parent recovery TOTP",
+  );
+  const recoveryChallenge = await unwrap(
+    parent.auth.mfa.challenge({ factorId: recoveryFactor.id }),
+    "Challenge staging parent recovery TOTP",
+  );
+  await unwrap(
+    parent.auth.mfa.verify({
+      factorId: recoveryFactor.id,
+      challengeId: recoveryChallenge.id,
+      code: totp(recoveryFactor.totp.secret),
+    }),
+    "Verify staging parent recovery TOTP",
+  );
+  const factors = await unwrap(parent.auth.mfa.listFactors(), "List staging parent TOTP factors");
+  const verifiedFactorIds = new Set(
+    factors.totp.filter((factor) => factor.status === "verified").map((factor) => factor.id),
+  );
+  assert(
+    verifiedFactorIds.has(enrolledFactor.id) &&
+      verifiedFactorIds.has(recoveryFactor.id) &&
+      enrolledFactor.id !== recoveryFactor.id,
+    "synthetic parent recovery readiness used two separately verified TOTP factors",
+  );
   const assurance = await unwrap(
     parent.auth.mfa.getAuthenticatorAssuranceLevel(),
     "Read staging parent assurance",
@@ -245,6 +272,73 @@ try {
 
   const anonymous = await unwrap(child.auth.signInAnonymously(), "Create synthetic child identity");
   assert(anonymous.user?.is_anonymous === true, "synthetic child used a fresh anonymous identity");
+  const beforeIpBuckets = await databaseQuery(`
+    select actor_key,attempts from private.rate_limit_buckets
+    where operation='enrollment_gateway'
+      and window_started_at=date_bin(
+        interval '15 minutes',clock_timestamp(),'2000-01-01 00:00:00+00'::timestamptz
+      )
+  `);
+  const spoofedClientIps = ["203.0.113.123", "198.51.100.77", "192.0.2.12"];
+  const forgedCloudflareProbe = await fetch(
+    `${supabaseUrl}/functions/v1/consume-enrollment-invite`,
+    {
+      method: "POST",
+      headers: {
+        apikey: publishableKey,
+        Authorization: `Bearer ${anonymous.session.access_token}`,
+        "Content-Type": "application/json",
+        "cf-connecting-ip": spoofedClientIps[0],
+      },
+      body: JSON.stringify({ code: "0".repeat(64), installationLabel: `${runLabel}-cf-probe` }),
+    },
+  );
+  assert(
+    forgedCloudflareProbe.status === 403,
+    `edge gateway rejected a caller-supplied Cloudflare IP header (status ${forgedCloudflareProbe.status})`,
+  );
+  const spoofProbe = await fetch(`${supabaseUrl}/functions/v1/consume-enrollment-invite`, {
+    method: "POST",
+    headers: {
+      apikey: publishableKey,
+      Authorization: `Bearer ${anonymous.session.access_token}`,
+      "Content-Type": "application/json",
+      "x-real-ip": spoofedClientIps[1],
+      "x-forwarded-for": `192.0.2.11, ${spoofedClientIps[2]}`,
+    },
+    body: JSON.stringify({ code: "0".repeat(64), installationLabel: `${runLabel}-probe` }),
+  });
+  const spoofProbeBody = await spoofProbe.json().catch(() => null);
+  const genericRejection =
+    spoofProbe.status === 400 &&
+    spoofProbeBody?.error === "Invalid, expired, or unavailable invitation";
+  assert(
+    genericRejection,
+    `invalid enrollment probe returned the generic rejection (status ${spoofProbe.status}, keys ${JSON.stringify(Object.keys(spoofProbeBody ?? {}))})`,
+  );
+  const afterIpBuckets = await databaseQuery(`
+    select actor_key,attempts from private.rate_limit_buckets
+    where operation='enrollment_gateway'
+      and window_started_at=date_bin(
+        interval '15 minutes',clock_timestamp(),'2000-01-01 00:00:00+00'::timestamptz
+      )
+  `);
+  const priorAttempts = new Map(
+    beforeIpBuckets.map((bucket) => [bucket.actor_key, Number(bucket.attempts)]),
+  );
+  const changedIpBuckets = afterIpBuckets.filter(
+    (bucket) =>
+      bucket.actor_key.startsWith("ip:") &&
+      Number(bucket.attempts) > (priorAttempts.get(bucket.actor_key) ?? 0),
+  );
+  const spoofedActorKeys = new Set(
+    spoofedClientIps.map((ip) => `ip:${sha256(`${enrollmentIpHashSecret}\0${ip}`)}`),
+  );
+  assert(changedIpBuckets.length >= 1, "enrollment gateway recorded the invalid probe by IP");
+  assert(
+    changedIpBuckets.every((bucket) => !spoofedActorKeys.has(bucket.actor_key)),
+    "enrollment gateway overwrote caller-supplied client-IP headers",
+  );
   const enrollment = await invoke(child, "consume-enrollment-invite", {
     code: invite.invitation_secret,
     installationLabel: `${runLabel}-ipad`,

@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     if (!/^[0-9a-f]{64}$/.test(invitationSecret) || (installationLabel?.length ?? 0) > 100)
       return genericFailure();
 
-    const { data: assignment, error: consumeError } = await admin.rpc(
+    const { data: assignmentResult, error: consumeError } = await admin.rpc(
       "consume_enrollment_invitation_gateway",
       {
         p_auth_user_id: userData.user.id,
@@ -70,7 +70,8 @@ Deno.serve(async (req) => {
         p_installation_label: installationLabel,
       },
     );
-    if (consumeError || !assignment) return genericFailure();
+    const assignment = Array.isArray(assignmentResult) ? assignmentResult[0] : assignmentResult;
+    if (consumeError || !assignment || typeof assignment.id !== "string") return genericFailure();
     return json({ assignment });
   } catch {
     return genericFailure();

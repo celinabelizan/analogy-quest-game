@@ -40,6 +40,18 @@ returned to false. See
 [`secure-sync-phase1-staging-completion-2026-08-16.md`](./secure-sync-phase1-staging-completion-2026-08-16.md)
 for final evidence and remaining rollout-policy gates.
 
+## 2026-08-16 rollout security-gate follow-up
+
+Two separately verified synthetic TOTP factors satisfied recovery readiness,
+and live Edge probes proved caller-supplied client-IP headers cannot select the
+enrollment rate-limit key. A truthy no-assignment RPC wrapper discovered by the
+probe was remediated; staging enrollment function version 4 now requires an
+assignment ID and returns the generic HTTP 400 response otherwise. The full
+rehearsal again finished `rolled_back` with both release flags false. CAPTCHA is
+the only remaining external gate because staging has no provider credential or
+client token integration. See
+[`secure-sync-phase1-staging-rollout-gates-2026-08-16.md`](./secure-sync-phase1-staging-rollout-gates-2026-08-16.md).
+
 ## Abuse thresholds
 
 The maximum regular analogy award is 18 XP: 2 type + 4 bridge + up to four incorrect discards at 2 each + 4 final. A fifth-correct streak can make the terminal total 23 XP. Vocabulary awards come from the versioned server catalog; the current highest answer plus one-time mastery bonus remains far below the review thresholds. The 3,000 earned-XP/day and 200 terminal-attempt/hour review thresholds, and 2,000 submissions/day hard cap, therefore leave substantial room for legitimate practice while escalating implausible use. An offline browser cannot prove a human performed the work: a hostile child can fabricate plausible evidence. Catalog validation, attempt state, sequencing, authorization tokens, rate limits, and parent review narrow but do not eliminate that risk.

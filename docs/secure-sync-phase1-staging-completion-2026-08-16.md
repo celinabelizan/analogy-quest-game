@@ -1,5 +1,9 @@
 # Secure Sync Phase 1 staging completion — 2026-08-16
 
+> **Security-gate follow-up:** Two-factor recovery readiness and trusted
+> client-IP handling now pass in staging. See
+> [`secure-sync-phase1-staging-rollout-gates-2026-08-16.md`](./secure-sync-phase1-staging-rollout-gates-2026-08-16.md).
+
 ## Outcome
 
 The synthetic Phase 1 staging rehearsal is complete at the service boundary.
@@ -114,13 +118,10 @@ No separate browser automation stack was substituted.
 
 ## Remaining rollout gates
 
-These are rollout-policy items, not blockers to the completed synthetic
-service rehearsal:
+The follow-up resolved two-factor recovery readiness and trusted proxy-header
+verification. The remaining rollout-policy items are:
 
-- CAPTCHA remains disabled in staging.
-- Two-factor recovery readiness with two separately verified TOTP factors was
-  not exercised.
-- The provider's trusted proxy-header overwrite policy was not independently
-  inspected, although enrollment succeeded through the live Edge gateway.
+- CAPTCHA remains disabled because no provider secret or client site-key/token
+  integration is configured.
 - Enabling Phase 1 for any persistent or production client still requires a
   separate release decision. Real-profile migration remains disabled.
