@@ -29,6 +29,17 @@ TanStack server path does not match the generated Nitro output. See
 [`secure-sync-phase1-staging-rehearsal-2026-08-16.md`](./secure-sync-phase1-staging-rehearsal-2026-08-16.md)
 for evidence, containment, and next gates.
 
+## 2026-08-16 remediation completion
+
+Forward-only migration `202608160010` repaired normal offline authorization
+issuance, the packaged Cloudflare preview now runs through Nitro and Wrangler,
+and the full synthetic rehearsal passed without token seeding. Final migration
+status is `rolled_back`, no real profile is cloud-authoritative, every
+real-profile server gate remains false, and both local release switches were
+returned to false. See
+[`secure-sync-phase1-staging-completion-2026-08-16.md`](./secure-sync-phase1-staging-completion-2026-08-16.md)
+for final evidence and remaining rollout-policy gates.
+
 ## Abuse thresholds
 
 The maximum regular analogy award is 18 XP: 2 type + 4 bridge + up to four incorrect discards at 2 each + 4 final. A fifth-correct streak can make the terminal total 23 XP. Vocabulary awards come from the versioned server catalog; the current highest answer plus one-time mastery bonus remains far below the review thresholds. The 3,000 earned-XP/day and 200 terminal-attempt/hour review thresholds, and 2,000 submissions/day hard cap, therefore leave substantial room for legitimate practice while escalating implausible use. An offline browser cannot prove a human performed the work: a hostile child can fabricate plausible evidence. Catalog validation, attempt state, sequencing, authorization tokens, rate limits, and parent review narrow but do not eliminate that risk.

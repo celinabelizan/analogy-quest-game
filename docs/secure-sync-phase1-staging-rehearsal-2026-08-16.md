@@ -1,5 +1,9 @@
 # Secure Sync Phase 1 synthetic staging rehearsal — 2026-08-16
 
+> **Resolved follow-up:** The two defects recorded below were remediated and the
+> full service rehearsal passed without fallback token seeding. See
+> [`secure-sync-phase1-staging-completion-2026-08-16.md`](./secure-sync-phase1-staging-completion-2026-08-16.md).
+
 ## Scope and guardrails
 
 - Checkout: `/Users/celinabelizan/Documents/analogy-quest-game`

@@ -71,7 +71,6 @@ const runLabel = `secure-sync-e2e-${new Date()
 const parentEmail = `${runLabel}@example.invalid`;
 const parentPassword = randomBytes(32).toString("base64url");
 const checks = [];
-const blockers = [];
 
 const assert = (condition, label) => {
   if (!condition) throw new Error(`Rehearsal assertion failed: ${label}`);
@@ -350,32 +349,13 @@ try {
     "AAL2 parent confirmed only the reviewed test-profile migration",
   );
 
-  let authorization;
-  try {
-    const authorizations = await rpc(child, "issue_offline_attempt_authorizations", { p_count: 1 });
-    authorization = Array.isArray(authorizations)
-      ? authorizations[0].token_secret
-      : authorizations.token_secret;
-    checks.push("child issued a bounded offline attempt authorization");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes('column reference "expires_at" is ambiguous')) throw error;
-    blockers.push(
-      'issue_offline_attempt_authorizations fails because "expires_at" is ambiguous; synthetic token was seeded to continue ingestion coverage',
-    );
-    authorization = randomBytes(32).toString("hex");
-    await databaseQuery(`
-      insert into public.offline_attempt_authorizations(
-        id,assignment_id,profile_id,token_hash,expires_at
-      ) values (
-        ${sqlLiteral(randomUUID())}::uuid,
-        ${sqlLiteral(assignment.id)}::uuid,
-        ${sqlLiteral(primaryProfile.id)}::uuid,
-        ${sqlLiteral(sha256(authorization))},
-        now()+interval '30 days'
-      );
-    `);
-  }
+  const authorizations = await rpc(child, "issue_offline_attempt_authorizations", {
+    p_count: 1,
+  });
+  const authorization = Array.isArray(authorizations)
+    ? authorizations[0].token_secret
+    : authorizations.token_secret;
+  checks.push("child issued a bounded offline attempt authorization");
   const attemptId = randomUUID();
   const occurredAt = new Date().toISOString();
   const xpResults = [];
@@ -502,7 +482,6 @@ try {
         flags: { secureSyncPhase1: false, realProfileMigration: false },
         authRedirect: previewUrl,
         checks,
-        blockers,
         finalState: {
           migrationStatus: afterRollback.migrationStatus,
           syncAuthoritative: false,

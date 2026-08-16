@@ -99,4 +99,14 @@ describe("review-gated database migrations", () => {
     expect(adversarial).toContain("perform public.request_device_migration_capture(");
     expect(adversarial).toContain("select public.acknowledge_migration_backup_export(");
   });
+
+  it("qualifies offline authorization columns that collide with output variables", () => {
+    const remediation = readFileSync(
+      resolve(migrationDirectory, "202608160010_offline_authorization_qualification.sql"),
+      "utf8",
+    );
+    expect(remediation).toContain("offline_token.expires_at > now()");
+    expect(remediation).toContain("offline_token.assignment_id = v_assignment.id");
+    expect(remediation).not.toContain("grant all");
+  });
 });
