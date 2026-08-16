@@ -19,6 +19,16 @@ Production was not accessed during staging preparation.
 The branch remains a review-gated staging workspace; staging deployment state is
 not evidence that secure synchronization has been enabled for browser clients.
 
+## 2026-08-16 synthetic end-to-end rehearsal
+
+The staging service-boundary rehearsal completed through test-profile rollback
+with both release switches still false. It exposed two release blockers:
+offline authorization issuance currently fails on an ambiguous `expires_at`
+reference, and the packaged Vite preview returns HTTP 500 because its expected
+TanStack server path does not match the generated Nitro output. See
+[`secure-sync-phase1-staging-rehearsal-2026-08-16.md`](./secure-sync-phase1-staging-rehearsal-2026-08-16.md)
+for evidence, containment, and next gates.
+
 ## Abuse thresholds
 
 The maximum regular analogy award is 18 XP: 2 type + 4 bridge + up to four incorrect discards at 2 each + 4 final. A fifth-correct streak can make the terminal total 23 XP. Vocabulary awards come from the versioned server catalog; the current highest answer plus one-time mastery bonus remains far below the review thresholds. The 3,000 earned-XP/day and 200 terminal-attempt/hour review thresholds, and 2,000 submissions/day hard cap, therefore leave substantial room for legitimate practice while escalating implausible use. An offline browser cannot prove a human performed the work: a hostile child can fabricate plausible evidence. Catalog validation, attempt state, sequencing, authorization tokens, rate limits, and parent review narrow but do not eliminate that risk.
